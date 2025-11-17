@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:collection/collection.dart'; // untuk ListEquality
 
 class HomeController extends GetxController {
   final favoritesController = Get.find<FavoritesController>();
@@ -28,11 +28,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    selectedCategory.value = 'All'; // Default to "All"
+    selectedCategory.value = 'All';
     _getStories();
     searchQuery.listen((_) => _applyFilter());
   }
-
 
   @override
   void onClose() {
@@ -41,26 +40,44 @@ class HomeController extends GetxController {
     super.onClose();
   }
 
+  /// ✅ Ambil data stories dari Firestore dengan struktur baru (ada list chapters)
   void _getStories() {
     try {
       _firestore.collection('stories').snapshots().listen((snapshot) {
         final List<Map<String, dynamic>> updatedStories = snapshot.docs.map((doc) {
+          final data = doc.data();
+
+          // Ambil chapter pertama sebagai preview (bisa dikembangkan nanti)
+          List<dynamic> chapters = data['chapters'] ?? [];
+          String? firstImageUrl;
+          String? firstChapterTitle;
+
+          if (chapters.isNotEmpty) {
+            final firstChapter = chapters.first;
+            firstImageUrl = firstChapter['imageUrl'];
+            firstChapterTitle = firstChapter['chapter'];
+          }
+
           return {
             'id': doc.id,
-            'title': doc['title'],
-            'image': doc['imageUrl'],
-            'author': doc['author'],
-            'category': doc['category'],
+            'title': data['title'] ?? 'Tanpa Judul',
+            'author': data['author'] ?? 'Tidak diketahui',
+            'category': data['category'] ?? 'Lainnya',
+            'createdAt': data['createdAt'] ?? '',
+            'image': firstImageUrl, // gunakan gambar dari chapter pertama
+            'chapters': chapters,
+            'firstChapterTitle': firstChapterTitle,
           };
         }).toList();
 
+        // Hanya update jika datanya berbeda (hindari rebuild berlebih)
         if (!const ListEquality().equals(stories, updatedStories)) {
           stories.value = updatedStories;
           _applyFilter();
         }
       });
     } catch (e) {
-      // Handle error
+      print("🔥 Error ambil stories: $e");
     }
   }
 
@@ -69,6 +86,7 @@ class HomeController extends GetxController {
     _applyFilter();
   }
 
+  /// ✅ Filter berdasarkan kategori dan pencarian
   void _applyFilter() {
     filteredStories.value = stories.where((story) {
       final matchesCategory = selectedCategory.value == 'All' ||
@@ -81,7 +99,4 @@ class HomeController extends GetxController {
       return matchesCategory && matchesSearch;
     }).toList();
   }
-
 }
-
-

@@ -33,10 +33,8 @@ class WriteController extends GetxController {
 
   Future<String?> _getLocalData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     String? localUserId = prefs.getString('userId');
-    if (localUserId == null) {
-    } else {
+    if (localUserId != null) {
       userId.value = localUserId;
     }
     return localUserId;
@@ -49,79 +47,63 @@ class WriteController extends GetxController {
   void _monitorConnection() {
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen((result) {
-      if (result.contains(ConnectivityResult.wifi) ||
-          result.contains(ConnectivityResult.mobile)) {
-        bool isConnectedNow = true;
-        isConnected.value = isConnectedNow;
-        _showConnectionSnackbar(isConnected.value);
-        print("anda kembali online");
-        _checkLocalPendingUploads();
-      } else {
-        bool isConnectedNow = false;
-        isConnected.value = isConnectedNow;
-        _showConnectionSnackbar(isConnected.value);
-        print("anda ofline");
-      }
-    });
+          if (result.contains(ConnectivityResult.wifi) ||
+              result.contains(ConnectivityResult.mobile)) {
+            isConnected.value = true;
+            _showConnectionSnackbar(isConnected.value);
+            print("anda kembali online");
+            _checkLocalPendingUploads();
+          } else {
+            isConnected.value = false;
+            _showConnectionSnackbar(isConnected.value);
+            print("anda offline");
+          }
+        });
   }
 
   void _showConnectionSnackbar(bool status) {
-    if (status) {
-      Get.snackbar(
-        "Internet Connected",
-        "You are now online.",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } else {
-      Get.snackbar(
-        "Internet Disconnected",
-        "You are offline.",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    // if (status) {
+    //   Get.snackbar(
+    //     "Internet Connected",
+    //     "You are now online.",
+    //     backgroundColor: Colors.green,
+    //     colorText: Colors.white,
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // } else {
+    //   Get.snackbar(
+    //     "Internet Disconnected",
+    //     "You are offline.",
+    //     backgroundColor: Colors.red,
+    //     colorText: Colors.white,
+    //     snackPosition: SnackPosition.BOTTOM,
+    //   );
+    // }
   }
 
   Future<void> _checkInitialConnection() async {
-    // print("Memeriksa koneksi awal...");
     var result = await _connectivity.checkConnectivity();
-    // print("Koneksi awal: $result");
     if (result.contains(ConnectivityResult.wifi) ||
         result.contains(ConnectivityResult.mobile)) {
-      // _storage.remove('pending_uploads');
-
-      bool conection = true;
-      isConnected.value = conection;
-      print("isConnected awal: ${isConnected.value}");
-      // _showConnectionSnackbar(isConnected.value);
+      isConnected.value = true;
     } else {
-      bool conection = false;
-      isConnected.value = conection;
-      print("isConnected awal: ${isConnected.value}");
-      // _showConnectionSnackbar(isConnected.value);
-      // _storage.remove('pending_uploads')
+      isConnected.value = false;
     }
+    print("isConnected awal: ${isConnected.value}");
   }
 
   Future<void> _getWriterName() async {
     if (userId.value.isEmpty) {
-      // print("Error: userId kosong");
       return;
     }
-
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(userId.value).get();
+      await _firestore.collection('users').doc(userId.value).get();
       if (userDoc.exists && userDoc.data() != null) {
         username.value = userDoc['username'] ?? 'Unknown Author';
-      } else {
-        // print("Error: User tidak ditemukan di Firestore");
       }
     } catch (e) {
-      // print('Error saat mengambil username dari Firestore: $e');
+      print('Error saat mengambil username: $e');
     }
   }
 
@@ -142,7 +124,6 @@ class WriteController extends GetxController {
         String localPath = "${dir.path}/${path.split('/').last}";
         await file.copy(localPath);
         _addToPendingUploads(localPath, path);
-        // return null;
       }
     } catch (e) {
       print("Error saat mengunggah file: $e");
@@ -153,18 +134,13 @@ class WriteController extends GetxController {
 
   void _addToPendingUploads(String localPath, String firebasePath) {
     try {
-      // Ambil data existing, pastikan selalu dalam format List<String>
       List<String> pendingUploads =
-          (_storage.read('pending_files') as List<dynamic>? ?? [])
-              .cast<String>();
-
-      // Tambahkan data baru, encoded sebagai String JSON
+      (_storage.read('pending_files') as List<dynamic>? ?? [])
+          .cast<String>();
       pendingUploads.add(jsonEncode({
         "localPath": localPath,
         "firebasePath": firebasePath,
       }));
-
-      // Simpan kembali ke GetStorage
       _storage.write('pending_files', pendingUploads);
       print("Disimpan ke pending uploads: $pendingUploads");
     } catch (e) {
@@ -172,7 +148,6 @@ class WriteController extends GetxController {
     }
   }
 
-  // Save Media Locally and Return File Path
   Future<String> saveFileLocally(File file, String filename) async {
     try {
       Directory dir = await getApplicationDocumentsDirectory();
@@ -180,7 +155,6 @@ class WriteController extends GetxController {
       await file.copy(filePath);
       return filePath;
     } catch (e) {
-      // print("Error saving file locally: $e");
       rethrow;
     }
   }
@@ -189,228 +163,181 @@ class WriteController extends GetxController {
   Future<void> uploadData({
     required String title,
     required String content,
+    required String chapter,
     required String category,
     File? imageFile,
-    File? audioFile,
   }) async {
     try {
       isUploading.value = true;
 
-      // Pastikan username sudah diambil
+      // ✅ Pastikan username sudah ada
       if (username.value.isEmpty) {
         await _getWriterName();
       }
 
-      // Paths for Firebase Storage
       String? imageUrl;
-      String? audioUrl;
 
+      // ✅ Upload Image kalau ada
       if (imageFile != null) {
         String imagePath =
             'images/${DateTime.now().millisecondsSinceEpoch}.png';
         imageUrl = await _uploadFileToStorage(imageFile, imagePath);
       }
-      if (audioFile != null) {
-        String audioPath =
-            'audios/${DateTime.now().millisecondsSinceEpoch}.aac';
-        audioUrl = await _uploadFileToStorage(audioFile, audioPath);
-      }
 
       String createdAt = DateTime.now().toIso8601String();
 
-      Map<String, dynamic> data = {
-        "title": title,
-        "content": content,
-        "writerId": userId.value,
-        "author": username.value,
-        "category": category,
-        "imageUrl": imageUrl,
-        "audioUrl": audioUrl,
-        "createdAt": createdAt,
-      };
-      print("data (upload data): $data");
+      // ✅ Cari apakah sudah ada story dengan judul yang sama
+      QuerySnapshot existingStories = await FirebaseFirestore.instance
+          .collection('stories')
+          .where('title', isEqualTo: title)
+          .get();
 
-      if (isConnected.value) {
-        await FirebaseFirestore.instance.collection('stories').add(data);
-        Get.snackbar("Upload Successful", "Data uploaded to Firestore.",
-            backgroundColor: Colors.green, colorText: Colors.white);
-        print("Berhasil updload ke firestore (upload data)");
-        // Navigator.pushReplacementNamed(context, '/home');
+      if (existingStories.docs.isNotEmpty) {
+        // 🔹 Kalau ada → tambahkan chapter ke story pertama yang ditemukan
+        DocumentSnapshot storyDoc = existingStories.docs.first;
+
+        // Ambil list chapters yang sudah ada
+        List<dynamic> chapters = storyDoc['chapters'] ?? [];
+
+        chapters.add({
+          "chapter": chapter,
+          "content": content,
+          "imageUrl": imageUrl,
+          "createdAt": createdAt,
+        });
+
+        await FirebaseFirestore.instance
+            .collection('stories')
+            .doc(storyDoc.id)
+            .update({
+          "chapters": chapters,
+          "updatedAt": createdAt,
+        });
+
+        Get.snackbar(
+          "Chapter Added",
+          "Chapter baru ditambahkan ke cerita '$title'.",
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+        );
+        print("Berhasil menambahkan chapter baru ke story $title");
       } else {
-        _saveDataLocally(data);
-        Get.snackbar("No Internet", "Data saved locally for later upload.",
-            backgroundColor: Colors.red, colorText: Colors.white);
-        print("Data disimpan di local sementara (upload data)");
-        // Get.offNamed('/home');
+        // 🔹 Kalau belum ada → buat story baru
+        Map<String, dynamic> data = {
+          "title": title,
+          "writerId": userId.value,
+          "author": username.value,
+          "category": category,
+          "createdAt": createdAt,
+          "chapters": [
+            {
+              "chapter": chapter,
+              "content": content,
+              "imageUrl": imageUrl,
+              "createdAt": createdAt,
+            }
+          ]
+        };
+
+        await FirebaseFirestore.instance.collection('stories').add(data);
+
+        Get.snackbar(
+          "Story Created",
+          "Cerita baru '$title' berhasil dibuat.",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        print("Berhasil membuat story baru dengan judul $title");
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to upload data: $e",
-          backgroundColor: Get.theme.disabledColor,
-          colorText: Get.theme.colorScheme.onError);
-      print("gagal mengupluod data(upload data): $e ");
-      print("data (upload data): ");
+      Get.snackbar(
+        "Error",
+        "Failed to upload data: $e",
+        backgroundColor: Get.theme.disabledColor,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      print("Gagal upload data (uploadData): $e");
     } finally {
       isUploading.value = false;
     }
   }
 
-  // Save Data Locally
+
+
   void _saveDataLocally(Map<String, dynamic> data) {
-    if (data.isEmpty) {
-      print("Tidak ada data untuk disimpan.");
-      return;
-    }
-    // _storage.remove('pending_uploads');
-    // _storage.remove('pending_uploads');
-
+    if (data.isEmpty) return;
     List<String> pendingUploads =
-        (_storage.read('pending_uploads') as List<dynamic>? ?? [])
-            .map((item) => item.toString())
-            .toList();
-
+    (_storage.read('pending_uploads') as List<dynamic>? ?? [])
+        .map((item) => item.toString())
+        .toList();
     pendingUploads.add(jsonEncode(data));
-    print("data yang di pending: $pendingUploads");
-    print("_savedatalocaly");
     _storage.write('pending_uploads', pendingUploads);
   }
 
-  // Check and Upload Local Pending Data
   void _checkLocalPendingUploads() async {
     if (isConnected.value) {
       List<String> filesPending =
-          (_storage.read('pending_files') as List<dynamic>? ?? [])
-              .cast<String>();
+      (_storage.read('pending_files') as List<dynamic>? ?? [])
+          .cast<String>();
       List<String> dataPending =
-          (_storage.read('pending_uploads') as List<dynamic>? ?? [])
-              .cast<String>();
+      (_storage.read('pending_uploads') as List<dynamic>? ?? [])
+          .cast<String>();
+
       if (filesPending.isNotEmpty || dataPending.isNotEmpty) {
         print("Starting upload process for pending files and data...");
 
-        // Handle pending files
-        print("Pending files to process: $filesPending");
-
         List<String> updatedFilesPending = [];
-        List<String> finalUPdateData = [];
-        String imageURL = "";
-
         for (var item in filesPending) {
           try {
             Map<String, dynamic> fileData = jsonDecode(item);
-
             if (fileData.containsKey("localPath") &&
                 fileData.containsKey("firebasePath")) {
               String localPath = fileData["localPath"];
               String firebasePath = fileData["firebasePath"];
               File localFile = File(localPath);
-
               if (localFile.existsSync()) {
                 String? downloadUrl =
-                    await _uploadFileToStorage(localFile, firebasePath);
-                if (downloadUrl != null) {
-                  print("File uploaded successfully: $downloadUrl");
-                  fileData["downloadUrl"] = downloadUrl;
-                  imageURL = downloadUrl;
-                  finalUPdateData.add(downloadUrl);
-                } else {
-                  print("Failed to upload file: $localPath");
+                await _uploadFileToStorage(localFile, firebasePath);
+                if (downloadUrl == null) {
                   updatedFilesPending.add(item);
-                  print("update file pending: $updatedFilesPending");
-                  continue;
                 }
               } else {
-                print("Local file not found: $localPath");
                 updatedFilesPending.add(item);
-                continue;
               }
             }
           } catch (e) {
-            print("Error processing pending file: $e");
             updatedFilesPending.add(item);
           }
         }
 
-        // Update pending files in local storage
-        print("final update data file: $finalUPdateData");
-        print("data files pending before update: $updatedFilesPending");
         if (updatedFilesPending.isNotEmpty) {
           _storage.write('pending_files', updatedFilesPending);
-          print("Pending files updated: $updatedFilesPending");
         } else {
           _storage.remove('pending_files');
-          print("All pending files successfully processed and uploaded.");
         }
 
-        // Handle pending data
-        print("imageurl after get url: $imageURL");
-
-        print("Pending data to process: $dataPending");
-
         List<String> updatedDataPending = [];
-
         for (var item in dataPending) {
           try {
             Map<String, dynamic> data = jsonDecode(item);
-            print("data pending: $data");
-
-            if (data.containsKey('imageUrl') && data['imageUrl'] == null) {
-              String imageUrl = imageURL;
-
-              data['imageUrl'] = imageUrl;
-              data.remove('localImagePath');
-              print("Image uploaded and URL updated: $imageUrl");
-                        }
-
-            if (data.containsKey('audioUrl') &&
-                data['audioUrl'] == null &&
-                data.containsKey('localAudioPath')) {
-              String localAudioPath = data['localAudioPath'];
-              File localAudioFile = File(localAudioPath);
-
-              if (localAudioFile.existsSync()) {
-                String audioPath =
-                    'audios/${DateTime.now().millisecondsSinceEpoch}.aac';
-                String? audioUrl =
-                    await _uploadFileToStorage(localAudioFile, audioPath);
-
-                if (audioUrl != null) {
-                  data['audioUrl'] = audioUrl;
-                  data.remove('localAudioPath');
-                  print("Audio uploaded and URL updated: $audioUrl");
-                } else {
-                  print("Failed to upload audio file: $localAudioPath");
-                  updatedDataPending.add(item);
-                  continue;
-                }
-              }
-            }
-
-            // Save updated data to Firestore
             if (data.containsKey('title')) {
-              await FirebaseFirestore.instance.collection('stories').add(data);
+              await _firestore.collection('stories').add(data);
               print("Data successfully uploaded to Firestore: $data");
             } else {
-              print("Incomplete data, skipping upload to Firestore: $data");
-              updatedDataPending.add(jsonEncode(data));
+              updatedDataPending.add(item);
             }
           } catch (e) {
-            print("Error processing pending data: $e");
             updatedDataPending.add(item);
           }
         }
 
-        // Update the pending data in local storage
         if (updatedDataPending.isNotEmpty) {
           _storage.write('pending_uploads', updatedDataPending);
-          print("Pending data updated: $updatedDataPending");
         } else {
           _storage.remove('pending_uploads');
-          print("All pending data successfully processed and uploaded.");
           Get.snackbar("Succes", "Semua pending data telah di upload");
         }
       }
-    } else {
-      print(
-          "No internet connection. Pending uploads will be processed when back online.");
     }
   }
 
