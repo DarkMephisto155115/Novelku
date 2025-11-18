@@ -15,3 +15,7 @@ pada terminal Vs code atau Andorid Studio jalankan
 
 flutter pub get
 
+# workflow
+
+![workflow](./assets/readme/Class%20Diagram.png)
+
