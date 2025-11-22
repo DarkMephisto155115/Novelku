@@ -3,7 +3,7 @@
 ## Anggota kelompok
 
 - Andika Salsabilah (202210370311402) `DarkMephisto155115`
-- Abdul Salam (202210370311376) `salam331`
+- Abdul Salam (202210370311376) `samdokal`
 - Hasbi Ash Shiddiqi (202210370311391) `hsdiqi`
 
 Kelas: Rekayasa Interaksi 7C
@@ -42,6 +42,7 @@ Low Fidelity prototype:
 | Semua novel terbaru                    | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
 | Rekomendasi beranda & baca novel       | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
 | Fitur favorit                          | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
+
 
 
 
