@@ -5,25 +5,44 @@
 - Andika Salsabilah (202210370311402) `DarkMephisto155115`
 - Abdul Salam (202210370311376) `salam331`
 - Hasbi Ash Shiddiqi (202210370311391) `hsdiqi`
+
+Kelas: Rekayasa Interaksi 7C
 ______
-## Note
+## Deskripsi Project
+Nama Aplikasi : Novelku
 
-Pastikan sudah install env terbaru
+Deskripsi aplikasi:
 
-### Cara run project
-1. Clone repository (jika menggunakan Git):
+Novelku adalah aplikasi membaca dan menulis cerita digital yang dirancang untuk memudahkan pengguna menikmati berbagai genre novel—mulai dari romance, action, fantasy, thriller, hingga fanfiction. Dengan tampilan yang sederhana dan nyaman di mata, pengguna dapat membaca tanpa gangguan serta menjelajahi ribuan cerita dari penulis berbakat.
 
-`git clone https://github.com/DarkMephisto155115/Novelku.git`
+Selain membaca, Novelku juga menyediakan ruang bagi kreator untuk menulis, mengelola bab, dan menerbitkan karya mereka sendiri. Setiap penulis dapat membangun komunitas pembaca, menerima feedback, dan mengembangkan cerita dengan lebih fleksibel.
 
-`cd prak_mobile`
+Link Figma: https://www.figma.com/design/jiOLJLNCjZDChKahDEiBn7/Novelku?node-id=0-1&t=upBMlbZcz3CbhcsL-1
 
-2. Install dependencies:
+File Worksheet: 
 
-pada terminal Vs code atau Andorid Studio jalankan
+Low Fidelity prototype: 
 
-`flutter pub get`
+### Tabel Backlog
 
-# Workflow
+| Aplikasi XYZ                          | Project Owner | Scrum Master  | Tim Pengembangan |
+|----------------------------------------|--------------|--------------|-----------------------------|
+| Update UI                              | Andika       | Salam        | Andika<br>Salam<br>Hasbi   |
+| Update Login & Register                | Hasbi        | Andika       | Salam<br>Andika<br>Hasbi   |
+| Pilih genre user baru                  | Salam        | Hasbi        | Andika<br>Hasbi<br>Salam   |
+| Update Profil User                     | Andika       | Hasbi        | Salam<br>Andika<br>Hasbi   |
+| Update Edit Profil                     | Salam        | Andika       | Hasbi<br>Salam<br>Andika   |
+| Premium pada Profil                    | Hasbi        | Salam        | Andika<br>Hasbi<br>Salam   |
+| Update Setting                         | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
+| Fitur tulis novel                      | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
+| CRUD novel                             | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
+| Baca novel                             | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
+| Like, dislike, komentar                | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
+| Profil user lain & follow              | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
+| Semua novel terbaru                    | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
+| Rekomendasi beranda & baca novel       | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
+| Fitur favorit                          | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
 
-![workflow](./assets/readme/Class%20Diagram.png)
+
+
 
