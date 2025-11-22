@@ -1,274 +1,372 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 class RegistrationPage extends GetView<RegistrationController> {
-  const RegistrationPage({super.key});
+  const RegistrationPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.black, Colors.deepPurple.shade900],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Get.back(),
-                  ).animate().fadeIn(duration: 400.ms),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ceritakan tentang dirimu',
-                    style: TextStyle(
-                      fontSize: 32,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 600.ms)
-                      .slideY(begin: -0.2, end: 0),
-                  const SizedBox(height: 40),
-                  ..._buildAnimatedFields(context),
-                  const SizedBox(height: 40),
-                  _buildSubmitButton(),
-                  const SizedBox(height: 12),
-                  _buildSignInButton()
-                ],
-              ),
-            ),
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildHeader(),
+              SizedBox(height: 40),
+              _buildRegisterForm(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildAnimatedFields(BuildContext context) {
-    return [
-      _buildAnimatedTextField(
-        label: 'Nama',
-        onChanged: (value) => controller.name.value = value,
-        icon: Icons.person,
-      ),
-      _buildAnimatedTextField(
-        label: 'Email',
-        onChanged: (value) => controller.email.value = value,
-        icon: Icons.email,
-      ),
-      _buildAnimatedTextField(
-        label: 'Kata Sandi',
-        onChanged: (value) => controller.password.value = value,
-        isPassword: true,
-        icon: Icons.lock,
-      ),
-      _buildAnimatedTextField(
-        label: 'Nama Pengguna',
-        onChanged: (value) => controller.username.value = value,
-        hint: 'Pilih nama untuk melindungi privasi Anda.',
-        icon: Icons.account_circle,
-      ),
-      _buildAnimatedDatePicker(context),
-      _buildAnimatedDropdown(
-        label: 'Jenis Kelamin',
-        items: ['Anonim', 'Laki-laki', 'Perempuan'],
-        onChanged: (value) => controller.pronouns.value = value!,
-      ),
-      // _buildSignInButton(),
-    ];
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppThemeData.primaryColor,
+                AppThemeData.pinkColor,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(50),
+            boxShadow: [
+              BoxShadow(
+                color: AppThemeData.primaryColor.withOpacity(0.3),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Image.asset(
+            'assets/icons/novelku_logo.png',
+            width: 100,
+            height: 100,
+          ),
+        ),
+        SizedBox(height: 20),
+        Text(
+          'NovelKu',
+          style: Get.theme.textTheme.displayLarge?.copyWith(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Baca dan Tulis Novelmu',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            fontSize: 16,
+            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 
-  Widget _buildAnimatedTextField({
-    required String label,
-    required Function(String) onChanged,
-    String? hint,
-    bool isPassword = false,
-    IconData? icon,
-  }) {
+  Widget _buildRegisterForm() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Get.theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Label Daftar
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Daftar',
+              style: Get.theme.textTheme.displayMedium,
+            ),
+          ),
+          SizedBox(height: 24),
+
+          // Email Field
+          _buildEmailField(),
+          SizedBox(height: 16),
+
+          // Username Field
+          _buildUsernameField(),
+          SizedBox(height: 16),
+
+          // Password Field
+          _buildPasswordField(),
+          SizedBox(height: 16),
+
+          // Confirm Password Field
+          _buildConfirmPasswordField(),
+          SizedBox(height: 20),
+
+          _buildRegisterButton(),
+          SizedBox(height: 12),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Sudah punya akun? ',
+                style: Get.theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.offNamed(Routes.LOGIN);
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Masuk',
+                  style: TextStyle(
+                    color: Get.theme.primaryColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(color: Colors.white70, fontSize: 16)),
-        const SizedBox(height: 8),
-        TextField(
-          onChanged: onChanged,
-          obscureText: isPassword,
-          style: const TextStyle(color: Colors.white),
+        Text(
+          'Email',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Get.theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          // controller: controller.emailController,
+          onChanged: (value) => controller.email.value = value,
+          style: TextStyle(
+            color: Get.theme.textTheme.bodyLarge?.color,
+            fontSize: 16,
+          ),
           decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Get.theme.inputDecorationTheme.fillColor,
+            hintText: 'user@example.com',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            prefixIcon: icon != null ? Icon(icon, color: Colors.white70) : null,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            hintStyle: TextStyle(color: Get.theme.hintColor),
           ),
+          keyboardType: TextInputType.emailAddress,
+          // validator: controller.validateEmail,
         ),
-        const SizedBox(height: 20),
       ],
-    ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2, end: 0);
+    );
   }
 
-  Widget _buildAnimatedDatePicker(BuildContext context) {
+  Widget _buildUsernameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Kapan ulang tahunmu?',
-            style: TextStyle(color: Colors.white70, fontSize: 16)),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => _selectDate(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(15),
+        Text(
+          'Username',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Get.theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          // controller: controller.usernameController,
+          onChanged: (value) => controller.username.value = value,
+          style: TextStyle(
+            color: Get.theme.textTheme.bodyLarge?.color,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Get.theme.inputDecorationTheme.fillColor,
+            hintText: 'user_name',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today, color: Colors.white70),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Obx(() => Text(
-                        controller.birthDate.value.isEmpty
-                            ? 'Pilih Tanggal'
-                            : controller.birthDate.value,
-                        style: TextStyle(
-                            color: controller.birthDate.value.isEmpty
-                                ? Colors.white.withOpacity(0.5)
-                                : Colors.white),
-                      )),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            hintStyle: TextStyle(color: Get.theme.hintColor),
+          ),
+          // validator: controller.validateUsername,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Password',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Get.theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        SizedBox(height: 8),
+        Obx(() => TextFormField(
+              // controller: controller.passwordController,
+              onChanged: (value) => controller.password.value = value,
+              obscureText: controller.passwordHidden.value,
+              style: TextStyle(
+                color: Get.theme.textTheme.bodyLarge?.color,
+                fontSize: 16,
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Get.theme.inputDecorationTheme.fillColor,
+                hintText: '••••••••',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Get.theme.hintColor),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    controller.passwordHidden.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color:
+                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  ),
+                  onPressed: controller.togglePasswordVisibility,
+                ),
+              ),
+              // validator: controller.validatePassword,
+            )),
       ],
-    ).animate().fadeIn(duration: 600.ms).slideX(begin: 0.2, end: 0);
+    );
   }
 
-  Widget _buildAnimatedDropdown({
-    required String label,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
+  Widget _buildConfirmPasswordField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(color: Colors.white70, fontSize: 16)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: items.first,
-              dropdownColor: Colors.black.withOpacity(0.9),
-              style: const TextStyle(color: Colors.white),
-              onChanged: onChanged,
-              items: items
-                  .map((item) =>
-                      DropdownMenuItem(value: item, child: Text(item)))
-                  .toList(),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
-              isExpanded: true,
-            ),
+        Text(
+          'Konfirmasi Password',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Get.theme.textTheme.bodyLarge?.color,
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 8),
+        Obx(() => TextFormField(
+              // controller: controller.confirmPasswordController,
+              onChanged: (value) => controller.confirmPassword.value = value,
+              obscureText: controller.confirmPasswordHidden.value,
+              style: TextStyle(
+                color: Get.theme.textTheme.bodyLarge?.color,
+                fontSize: 16,
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Get.theme.inputDecorationTheme.fillColor,
+                hintText: '••••••••',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Get.theme.hintColor),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    controller.confirmPasswordHidden.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color:
+                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  ),
+                  onPressed: controller.toggleConfirmPasswordVisibility,
+                ),
+              ),
+              // validator: controller.validateConfirmPassword,
+            )),
       ],
-    ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2, end: 0);
+    );
   }
 
-  Widget _buildSubmitButton() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () async {
-          try {
-            await controller.register();
-          } catch (e) {
-            Get.snackbar(
-              'Error',
-              e.toString(),
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-            );
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: const Text('Lanjutkan',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      ),
-    ).animate().scale(delay: 1000.ms, duration: 400.ms);
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: Colors.deepPurple.shade200,
-              onPrimary: Colors.black,
-              surface: Colors.deepPurple.shade900,
-              onSurface: Colors.white,
+  Widget _buildRegisterButton() {
+    return Obx(() => SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: controller.isLoading.value ? null : controller.register,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Get.theme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+              minimumSize: Size(double.infinity, 50),
+              padding: EdgeInsets.symmetric(vertical: 14),
             ),
-            dialogBackgroundColor: Colors.black,
+            child: controller.isLoading.value
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Daftar',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.person_add, size: 20),
+                    ],
+                  ),
           ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      controller.birthDate.value = "${picked.toLocal()}".split(' ')[0];
-    }
-  }
-
-  Widget _buildSignInButton() {
-    return Center(
-      child: TextButton(
-        onPressed: () {
-          Get.offNamed(Routes.LOGIN);
-        },
-        child: const Text(
-          "Sudah punya akun? Masuk",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70),
-        ),
-      ),
-    );
+        ));
   }
 }

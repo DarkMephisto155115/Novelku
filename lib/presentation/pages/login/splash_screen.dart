@@ -2,6 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../routes/app_pages.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class SplashScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.black, Colors.deepPurple.shade900],
+            colors: [AppThemeData.primaryColor, AppThemeData.pinkColor],
           ),
         ),
         child: Center(
@@ -54,7 +55,9 @@ class SplashScreen extends StatelessWidget {
                 height: 200,
               ),
               const SizedBox(height: 20),
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator(
+                color: Colors.white,
+              ),
             ],
           ),
         ),

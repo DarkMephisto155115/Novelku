@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
+import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class LoginController extends GetxController {
   var isPasswordHidden = true.obs;
@@ -12,13 +13,22 @@ class LoginController extends GetxController {
   TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  ThemeController get themeController => Get.find<ThemeController>();
+
+  final isLoading = false.obs;
+
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
+  }
+
+  void toggleTheme() {
+    themeController.toggleTheme();
   }
 
   void login() async {
     String email = emailController.text;
     String password = passwordController.text;
+    isLoading.value = true;
 
     if (email.isNotEmpty && password.isNotEmpty) {
       try {
@@ -29,9 +39,10 @@ class LoginController extends GetxController {
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userId', userCredential.user!.uid);
 
-
         Get.snackbar('Success', 'Logged in successfully',
             backgroundColor: Colors.green, colorText: Colors.white);
+
+        isLoading.value = false;
 
         Get.offAllNamed(Routes.HOME);
       } on FirebaseAuthException catch (e) {
@@ -45,13 +56,16 @@ class LoginController extends GetxController {
         }
         Get.snackbar('Login Failed ', message,
             backgroundColor: Colors.red, colorText: Colors.white);
+        isLoading.value = false;
       } catch (e) {
         Get.snackbar('Error', 'An unexpeted error ocurred.',
             backgroundColor: Colors.red, colorText: Colors.white);
+        isLoading.value = false;
       }
     } else {
       Get.snackbar('Error', 'Please enter email and password',
           backgroundColor: Colors.red, colorText: Colors.white);
+      isLoading.value = false;
     }
   }
 
