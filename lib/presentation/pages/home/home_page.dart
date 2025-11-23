@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:terra_brain/presentation/controllers/home_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../routes/app_pages.dart';
 import '../favorite_page.dart';
 
@@ -11,7 +12,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FavoritesController favoritesController = Get.put(FavoritesController());
+    final FavoritesController favoritesController =
+        Get.put(FavoritesController());
     final HomeController homeController = Get.put(HomeController());
 
     return Scaffold(
@@ -26,71 +28,75 @@ class HomePage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Obx(() => CustomScrollView(
-            slivers: [
-              // 🔹 AppBar + Search
-              SliverAppBar(
-                expandedHeight: 150.0,
-                floating: false,
-                pinned: true,
-                backgroundColor: Colors.deepPurple.shade900,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: const Text('Novelku', style: TextStyle(color: Colors.white)),
-                  background: Image.asset(
-                    'assets/images/book.jpg',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(50),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: TextField(
-                      controller: homeController.searchController,
-                      onChanged: (value) => homeController.searchQuery.value = value,
-                      decoration: InputDecoration(
-                        hintText: 'Cari rekomendasi cerita...',
-                        hintStyle: const TextStyle(color: Colors.white70),
-                        filled: true,
-                        fillColor: Colors.deepPurple.shade800,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
+                slivers: [
+                  // 🔹 AppBar + Search
+                  SliverAppBar(
+                    expandedHeight: 150.0,
+                    floating: false,
+                    pinned: true,
+                    backgroundColor: Colors.deepPurple.shade900,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: const Text('Novelku',
+                          style: TextStyle(color: Colors.white)),
+                      background: Image.asset(
+                        'assets/images/book.jpg',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(50),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: TextField(
+                          controller: homeController.searchController,
+                          onChanged: (value) =>
+                              homeController.searchQuery.value = value,
+                          decoration: InputDecoration(
+                            hintText: 'Cari rekomendasi cerita...',
+                            hintStyle: const TextStyle(color: Colors.white70),
+                            filled: true,
+                            fillColor: Colors.deepPurple.shade800,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                            prefixIcon:
+                                const Icon(Icons.search, color: Colors.white),
+                          ),
+                          style: const TextStyle(color: Colors.white),
                         ),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white),
                       ),
-                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                ),
-              ),
 
-              // 🔹 Konten utama
-              SliverToBoxAdapter(
-                child: AnimationLimiter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: AnimationConfiguration.toStaggeredList(
-                      duration: const Duration(milliseconds: 375),
-                      childAnimationBuilder: (widget) => SlideAnimation(
-                        horizontalOffset: 50.0,
-                        child: FadeInAnimation(child: widget),
+                  // 🔹 Konten utama
+                  SliverToBoxAdapter(
+                    child: AnimationLimiter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: AnimationConfiguration.toStaggeredList(
+                          duration: const Duration(milliseconds: 375),
+                          childAnimationBuilder: (widget) => SlideAnimation(
+                            horizontalOffset: 50.0,
+                            child: FadeInAnimation(child: widget),
+                          ),
+                          children: [
+                            _buildSectionTitle('Cerita Populer'),
+                            _buildStoryCarousel(homeController),
+                            _buildSectionTitle('Kategori'),
+                            CategoryList(onCategoryTap: (String category) {}),
+                            _buildAuthorCard(),
+                            _buildSectionTitle('Rekomendasi untuk Anda'),
+                            _buildRecommendedStories(
+                                homeController, favoritesController),
+                          ],
+                        ),
                       ),
-                      children: [
-                        _buildSectionTitle('Cerita Populer'),
-                        _buildStoryCarousel(homeController),
-
-                        _buildSectionTitle('Kategori'),
-                        CategoryList(onCategoryTap: (String category) {}),
-
-                        _buildSectionTitle('Rekomendasi untuk Anda'),
-                        _buildRecommendedStories(homeController, favoritesController),
-                      ],
                     ),
                   ),
-                ),
-              ),
-            ],
-          )),
+                ],
+              )),
         ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
@@ -117,7 +123,8 @@ class HomePage extends StatelessWidget {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
-          child: Text('Belum ada cerita.', style: TextStyle(color: Colors.white70)),
+          child: Text('Belum ada cerita.',
+              style: TextStyle(color: Colors.white70)),
         ),
       );
     }
@@ -146,8 +153,10 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   color: Colors.deepPurpleAccent.withOpacity(0.3),
                   image: imageUrl.toString().startsWith('http')
-                      ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                      : DecorationImage(image: AssetImage(imageUrl), fit: BoxFit.cover),
+                      ? DecorationImage(
+                          image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                      : DecorationImage(
+                          image: AssetImage(imageUrl), fit: BoxFit.cover),
                 ),
                 child: Container(
                   alignment: Alignment.bottomLeft,
@@ -157,7 +166,10 @@ class HomePage extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                      colors: [
+                        Colors.black.withOpacity(0.8),
+                        Colors.transparent
+                      ],
                     ),
                   ),
                   child: Text(
@@ -178,6 +190,25 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget _buildAuthorCard() {
+    return Center(
+      child: GestureDetector(
+        onTap: () => (
+          Get.snackbar("hello", "masuk ke halaman author"),
+          Get.toNamed('list_author'),
+        ),
+        child: const Text(
+          'Author Card',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
   // 🔹 Daftar rekomendasi cerita
   Widget _buildRecommendedStories(
       HomeController controller, FavoritesController favoritesController) {
@@ -187,7 +218,10 @@ class HomePage extends StatelessWidget {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
-          child: Text('Tidak ada rekomendasi.', style: TextStyle(color: Colors.white70)),
+          child: Text(
+            'Tidak ada rekomendasi.',
+            style: TextStyle(color: Colors.white70),
+          ),
         ),
       );
     }
@@ -207,16 +241,20 @@ class HomePage extends StatelessWidget {
         return Card(
           color: Colors.deepPurple.shade800.withOpacity(0.6),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: imageUrl.toString().startsWith('http')
-                  ? Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover)
-                  : Image.asset(imageUrl, width: 60, height: 60, fit: BoxFit.cover),
+                  ? Image.network(imageUrl,
+                      width: 60, height: 60, fit: BoxFit.cover)
+                  : Image.asset(imageUrl,
+                      width: 60, height: 60, fit: BoxFit.cover),
             ),
             title: Text(title,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: Text(
               "$author • $category • $chapterCount chapter",
               style: const TextStyle(color: Colors.white70, fontSize: 12),
@@ -270,9 +308,11 @@ class HomePage extends StatelessWidget {
           showUnselectedLabels: true,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Perpustakaan'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.book), label: 'Perpustakaan'),
             BottomNavigationBarItem(icon: Icon(Icons.post_add), label: 'Tulis'),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorit'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.favorite), label: 'Favorit'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
           ],
           onTap: (index) {
@@ -295,7 +335,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // 🔹 Widget kategori tetap sama
@@ -334,19 +373,21 @@ class CategoryList extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Obx(() {
-                final isSelected = homeController.selectedCategory.value == category;
+                final isSelected =
+                    homeController.selectedCategory.value == category;
                 return Chip(
                   label: Text(
                     category,
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.grey,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
-                  backgroundColor: isSelected
-                      ? Colors.deepPurpleAccent
-                      : Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  backgroundColor:
+                      isSelected ? Colors.deepPurpleAccent : Colors.deepPurple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 );
               }),
             ),
