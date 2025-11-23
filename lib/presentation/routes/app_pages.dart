@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
+import 'package:terra_brain/presentation/pages/author/author_page.dart';
+import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
@@ -19,17 +21,23 @@ import '../pages/profil/profile_page.dart';
 part 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.SPLASH;
+  static const INITIAL = '/splash';
 
   static final routes = [
+    GetPage(
+      name: '/splash',
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: Routes.HOME,
       page: () => const HomePage(),
     ),
     GetPage(
-        name: Routes.PROFILE,
-        page: () => const ProfileScreen(),
-        binding: ProfileBinding()),
+      name: Routes.PROFILE,
+      page: () => const ProfileScreen(),
+      binding: ProfileBinding(),
+    ),
     GetPage(
       name: Routes.REGISTRATION,
       page: () => const RegistrationPage(),
@@ -88,6 +96,16 @@ class AppPages {
       name: Routes.EDIT_READ,
       page: () => EditStoryPage(),
       binding: EditStoryBinding(),
+    ),
+    GetPage(
+      name: Routes.AUTHORS,
+      page: () => const AuthorsPage(),
+      binding: AuthorsBinding(),
+    ),
+    GetPage(
+      name: Routes.AUTHOR_PROFILE,
+      page: () => const AuthorProfilePage(),
+      binding: AuthorProfileBinding(),
     ),
   ];
 }

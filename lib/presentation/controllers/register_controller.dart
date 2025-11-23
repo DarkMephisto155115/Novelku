@@ -11,22 +11,37 @@ class RegistrationController extends GetxController {
   var password = ''.obs;
   var birthDate = ''.obs;
   var pronouns = ''.obs;
+  var confirmPassword = ''.obs;
+  var passwordHidden = true.obs;
+  var confirmPasswordHidden = true.obs;
+  var isLoading = false.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   TextEditingController birthDateController = TextEditingController();
 
+  void togglePasswordVisibility() {
+    passwordHidden.value = !passwordHidden.value;
+  }
+
+  void toggleConfirmPasswordVisibility() {
+    confirmPasswordHidden.value = !confirmPasswordHidden.value;
+  }
+
   Future<void> register() async {
+    isLoading.value = true;
     if (name.value.isEmpty ||
         email.value.isEmpty ||
         password.value.isEmpty ||
         username.value.isEmpty ||
         birthDate.value.isEmpty) {
+          isLoading.value = false;
       throw Exception('Please fill in all fields');
     }
     bool usernameExists = await _checkUsernameExists(username.value);
     if (usernameExists) {
+      isLoading.value = false;
       throw Exception('Username is already taken');
     }
     try {
@@ -48,15 +63,19 @@ class RegistrationController extends GetxController {
         "followers": 0,
         "following": 0,
       });
+      isLoading.value = false;
 
       Get.snackbar('Success', 'User registered successfully');
       Get.toNamed("/login");
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
+        isLoading.value = false;
         throw Exception('The account already exists for that email.');
       } else if (e.code == 'weak-password') {
+        isLoading.value = false;
         throw Exception('The password is too weak.');
       } else {
+        isLoading.value = false;
         throw Exception('Registration failed: ${e.message}');
       }
     }
@@ -76,6 +95,16 @@ class RegistrationController extends GetxController {
       }
       return false;
     }
+  }
+
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email harus diisi';
+    }
+    if (!value.contains('@') || !value.contains('.')) {
+      return 'Format email tidak valid';
+    }
+    return null;
   }
 
   @override
