@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
-import '../model/list_category.dart';
+import '../models/list_category.dart';
 import '../service/api_service.dart';
 
 
