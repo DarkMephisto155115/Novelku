@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
+import 'package:terra_brain/presentation/pages/author/author_page.dart';
+import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
@@ -100,6 +102,16 @@ class AppPages {
       name: Routes.ALL_NOVEL,
       page: () => SemuaNovelPage(),
       binding: AllNovelBinding(),
+    ),
+    GetPage(
+      name: Routes.AUTHORS,
+      page: () => const AuthorsPage(),
+      binding: AuthorsBinding(),
+    ),
+    GetPage(
+      name: Routes.AUTHOR_PROFILE,
+      page: () => const AuthorProfilePage(),
+      binding: AuthorProfileBinding(),
     ),
   ];
 }

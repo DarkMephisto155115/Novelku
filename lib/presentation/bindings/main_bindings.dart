@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/author_controller.dart';
+import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/best_seller_list_controller.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
@@ -115,6 +117,20 @@ class EditStoryBinding extends Bindings {
     Get.lazyPut<EditStoryController>(
       () => EditStoryController(),
     );
+  }
+}
+
+class AuthorsBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AuthorsController>(() => AuthorsController());
+  }
+}
+
+class AuthorProfileBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AuthorProfileController>(() => AuthorProfileController());
   }
 }
 
