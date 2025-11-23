@@ -1,438 +1,639 @@
-import 'dart:io';
-
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'package:terra_brain/presentation/routes/app_pages.dart';
-import '../../controllers/profile_controller.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:terra_brain/presentation/controllers/profile_controller.dart';
+import 'package:terra_brain/presentation/models/profile_model.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 
-class ProfileScreen extends GetView<ProfileController> {
-  const ProfileScreen({super.key});
-
-  Future<void> _showCurrentLocation() async {
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw 'Izin lokasi ditolak.';
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw 'Izin lokasi ditolak secara permanen.';
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        // ignore: deprecated_member_use
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final Uri googleMapsUrl = Uri.parse(
-          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}');
-
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(
-          googleMapsUrl,
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        await launchUrl(
-          googleMapsUrl,
-          mode: LaunchMode.inAppWebView,
-        );
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
+class ProfilePage extends GetView<ProfileController> {
+  const ProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
+      body: Obx(() {
+        final user = controller.user.value;
+        return CustomScrollView(
+          slivers: [
+            // App Bar
+            SliverAppBar(
+              expandedHeight: 50,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppThemeData.primaryColor,
+                        // Get.theme.colorScheme.secondary.withOpacity(0.2),
+                        AppThemeData.pinkColor,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              pinned: true,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.settings_outlined),
+                  onPressed: () {
+                    Get.toNamed('/setting');
+                  },
+                ),
+              ],
+            ),
+
+            // Profile Content
+            SliverList(
+              delegate: SliverChildListDelegate([
+                _buildProfileHeader(user),
+                // _buildPremiumSection(user),
+                // _buildStatsSection(user),
+                _buildTabSection(),
+                _buildContentSection(user),
+                SizedBox(height: 20),
+              ]),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildProfileHeader(UserProfile user) {
+    return Card(
+      // padding: EdgeInsets.all(24),
+      color: Get.theme.scaffoldBackgroundColor,
+      elevation: 4,
+      margin: EdgeInsets.only(top: 30, left: 24, right: 24, bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // FOTO PROFIL
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Get.theme.primaryColor.withOpacity(0.2),
+                border: Border.all(
+                  color: Get.theme.primaryColor,
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.person,
+                size: 40,
+                color: Get.theme.primaryColor,
+              ),
+            ),
+
+            SizedBox(height: 12),
+
+            // NAMA
+            Text(
+              user.name,
+              style: Get.theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            SizedBox(height: 4),
+
+            // USERNAME
+            Text(
+              user.username,
+              style: Get.theme.textTheme.bodyMedium?.copyWith(
+                color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            SizedBox(height: 12),
+
+            // BIO
+            Text(
+              user.bio,
+              style: Get.theme.textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+
+            SizedBox(height: 16),
+
+            // TOMBOL EDIT PROFIL
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: controller.editProfile,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Get.theme.primaryColor,
+                  side: BorderSide(color: Get.theme.primaryColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: Text(
+                  'Edit Profil',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            _buildPremiumSection(user),
+            Container(
+              // margin: EdgeInsets.symmetric(horizontal: 16),
+              // padding: EdgeInsets.all(20),
+              // decoration: BoxDecoration(
+              //   color: Get.theme.cardColor,
+              //   borderRadius: BorderRadius.circular(16),
+              //   boxShadow: [
+              //     BoxShadow(
+              //       color: Colors.black.withOpacity(0.05),
+              //       blurRadius: 10,
+              //       offset: Offset(0, 4),
+              //     ),
+              //   ],
+              // ),
+              child: Column(
+                children: [
+                  // Stats Grid
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem(
+                          'Novel', user.novelCount.toString(), Icons.book),
+                      _buildStatItem('Dibaca', user.readCount.toString(),
+                          Icons.visibility),
+                      _buildStatItem(
+                          'Followers',
+                          controller.formatNumber(user.followerCount),
+                          Icons.people),
+                      _buildStatItem('Following',
+                          user.followingCount.toString(), Icons.person_add),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumSection(UserProfile user) {
+    if (user.isPremium) {
+      return Container(
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: [
+              Colors.amber.shade100,
+              Colors.orange.shade100,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.black],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.verified,
+              color: Colors.orange,
+              size: 24,
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Anda adalah pengguna Premium',
+                style: TextStyle(
+                  color: Colors.orange.shade800,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Get.theme.primaryColor.withOpacity(0.1),
+            Get.theme.colorScheme.secondary.withOpacity(0.1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Get.theme.primaryColor.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.star,
+                color: Colors.amber,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Upgrade ke Premium',
+                style: Get.theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Nikmati akses unlimited dan fitur eksklusif lainnya',
+            style: Get.theme.textTheme.bodyMedium?.copyWith(
+              color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+            ),
+          ),
+          SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: controller.upgradeToPremium,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+                padding: EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                'Lihat Penawaran',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSection(UserProfile user) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Get.theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Stats Grid
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem('Novel', user.novelCount.toString(), Icons.book),
+              _buildStatItem(
+                  'Dibaca', user.readCount.toString(), Icons.visibility),
+              _buildStatItem('Followers',
+                  controller.formatNumber(user.followerCount), Icons.people),
+              _buildStatItem('Following', user.followingCount.toString(),
+                  Icons.person_add),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        SizedBox(height: 20),
+        Text(
+          value,
+          style: Get.theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        child: SafeArea(
-          child: AnimationLimiter(
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  leading: const BackButton(
-                      color: Colors.white
-                  ),
-                  expandedHeight: 120.0,
-                  floating: false,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    title: const Text('Profil', style: TextStyle(color: Colors.white)),
-                    background: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.deepPurple.shade700, Colors.transparent],
-                        ),
-                      ),
+        SizedBox(height: 4),
+        Text(
+          label,
+          style: Get.theme.textTheme.bodySmall?.copyWith(
+            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabSection() {
+    return Container(
+      margin: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Get.theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Obx(() => Row(
+            children: [
+              Expanded(
+                child: _buildTabButton('Novel Saya', 0),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _buildTabButton('Favorit', 1),
+              ),
+            ],
+          )),
+    );
+  }
+
+  Widget _buildTabButton(String text, int index) {
+    return ElevatedButton(
+      onPressed: () => controller.switchTab(index),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: controller.selectedTab.value == index
+            ? Get.theme.primaryColor
+            : Get.theme.cardColor,
+        foregroundColor: controller.selectedTab.value == index
+            ? Colors.white
+            : Get.theme.textTheme.bodyMedium?.color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 0,
+        padding: EdgeInsets.symmetric(vertical: 12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentSection(UserProfile user) {
+    return Obx(() {
+      if (controller.selectedTab.value == 0) {
+        return _buildMyNovelsSection(user); // desain baru
+      } else {
+        return _buildFavoritesSection(user); // desain baru
+      }
+    });
+  }
+
+  Widget _buildMyNovelsSection(UserProfile user) {
+    return Container(
+      margin: EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: 0.56,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+        ),
+        itemCount: user.myNovels.length,
+        itemBuilder: (context, index) {
+          final novel = user.myNovels[index];
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // COVER
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      novel.coverUrl,
+                      height: 120,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        return Image.asset(
+                          'assets/images/book.jpg',
+                          height: 120,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        );
+                      },
                     ),
                   ),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () => Get.toNamed(Routes.SETTING),
+
+                  SizedBox(height: 6),
+
+                  // JUDUL
+                  Text(
+                    novel.title,
+                    style: Get.theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // PENULIS
+                  Text(
+                    novel.author,
+                    style: Get.theme.textTheme.bodySmall?.copyWith(
+                      color: Get.theme.textTheme.bodySmall?.color
+                          ?.withOpacity(0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFavoritesSection(UserProfile user) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: user.favoriteNovels.map((novel) {
+          return Container(
+            margin: EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                )
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // COVER
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    novel.coverUrl,
+                    width: 75,
+                    height: 105,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/book.jpg',
+                        width: 75,
+                        height: 105,
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: AnimationConfiguration.toStaggeredList(
-                        duration: const Duration(milliseconds: 375),
-                        childAnimationBuilder: (widget) => SlideAnimation(
-                          horizontalOffset: 50.0,
-                          child: FadeInAnimation(
-                            child: widget,
-                          ),
-                        ),
+
+                SizedBox(width: 12),
+
+                // INFORMATION
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // TITLE + EDIT ICON
+                      Row(
                         children: [
-                          _buildProfileHeader(),
-                          const SizedBox(height: 24),
-                          _buildStatistics(),
-                          const SizedBox(height: 24),
-                          _buildLocationButton(),
-                          const SizedBox(height: 24),
-                          _buildPublishedStories(),
+                          Expanded(
+                            child: Text(
+                              novel.title,
+                              style: Get.theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.edit,
+                              size: 18,
+                              color: Get.theme.primaryColor.withOpacity(0.8)),
                         ],
                       ),
+
+                      SizedBox(height: 4),
+
+                      // GENRE TAG
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          novel.genre,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 6),
+
+                      // CHAPTER + VIEWS
+                      Row(
+                        children: [
+                          Icon(Icons.menu_book, size: 14, color: Colors.grey),
+                          SizedBox(width: 4),
+                          Text(
+                            '${novel.chapterCount} chapter',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          SizedBox(width: 12),
+                          Icon(Icons.favorite, size: 14, color: Colors.grey),
+                          SizedBox(width: 4),
+                          Text(
+                            controller.formatNumber(novel.views) + ' views',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(width: 8),
+
+                // STATUS BADGE
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: novel.status == 'Selesai'
+                        ? Colors.green.shade100
+                        : Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    novel.status,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: novel.status == 'Selesai'
+                          ? Colors.green.shade700
+                          : Colors.blue.shade700,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        ),
+          );
+        }).toList(),
       ),
     );
-  }
-
-  Widget _buildProfileHeader() {
-    return Column(
-      children: [
-        Obx(() => Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.deepPurple.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: CircleAvatar(
-            radius: 60,
-            backgroundImage: controller.imagesURL.isNotEmpty
-                ? NetworkImage(controller.imagesURL.value)
-                : controller.imagesURL.isEmpty &&
-                controller.imagesURL.value.isNotEmpty
-                ? FileImage(File(controller.imagesURL.value))
-            as ImageProvider
-                : const AssetImage(
-                'assets/images/default_avatar.png'),
-          ),
-        )),
-        const SizedBox(height: 16),
-        Obx(() => Text(
-          controller.name.value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        )),
-        Obx(() => Text(
-          '@${controller.username.value}',
-          style: TextStyle(color: Colors.grey[300], fontSize: 16),
-        )),
-      ],
-    );
-  }
-
-  Widget _buildStatistics() {
-    return Obx(() => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildStatItem('Koin', controller.coins.value.toString()),
-        _buildStatItem('Pengikut', controller.followers.value.toString()),
-        _buildStatItem('Publikasi', controller.length.value.toString()),
-        _buildStatItem('Favorite', '0'),
-        _buildStatItem('Mengikuti', controller.following.value.toString()),
-      ],
-    ));
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey[300], fontSize: 14),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLocationButton() {
-    return ElevatedButton.icon(
-      onPressed: _showCurrentLocation,
-      icon: Icon(Icons.location_on, color: Colors.deepPurple[900]),
-      label: Text('Tampilkan Lokasi Saat Ini', style: TextStyle(color: Colors.deepPurple[900])),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      ),
-    );
-  }
-
-  Widget _buildPublishedStories() {
-    return Obx(() => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Cerita yang Dipublikasikan',
-          style: TextStyle(
-              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('stories')
-              .where('writerId', isEqualTo: controller.userID.value)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.deepPurple),
-              );
-            }
-
-            if (snapshot.hasError) {
-              return const Text(
-                'Terjadi kesalahan saat memuat cerita.',
-                style: TextStyle(color: Colors.red, fontSize: 16),
-              );
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Text(
-                'Tidak ada cerita yang dipublikasikan.',
-                style: TextStyle(color: Colors.grey[400], fontSize: 14),
-              );
-            }
-
-            final stories = snapshot.data!.docs;
-
-            // Update the stories count in the controller
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              controller.length.value = stories.length;
-            });
-
-            return ListView.builder(
-              shrinkWrap: true, // Allow ListView to adjust its height
-              physics:
-              const NeverScrollableScrollPhysics(), // Disable scrolling within the list
-              itemCount: stories.length,
-              itemBuilder: (context, index) {
-                final story = stories[index];
-                final storyId = story.id; // Get the story ID for deletion
-                final title = story['title'] ?? 'Judul Tidak Tersedia';
-                final createdAt = story['createdAt'] ?? '';
-                final imagePath = story['imageUrl'] ?? '';
-
-                String formattedDate = '';
-
-                if (createdAt.isNotEmpty) {
-                  try {
-                    // Parse the ISO 8601 string to a DateTime object
-                    DateTime dateTime = DateTime.parse(createdAt);
-
-                    // Format the DateTime to "Day Month Year" (e.g., "23 December 2024")
-                    formattedDate =
-                        DateFormat('dd MMMM yyyy').format(dateTime);
-                  } catch (e) {
-                    formattedDate = 'Invalid Date'; // Fallback if parsing fails
-                  }
-                }
-
-                return Card(
-                  color: Colors.grey[800],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    leading: imagePath.isNotEmpty
-                        ? Image.network(
-                      imagePath,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    )
-                        : Icon(Icons.book, color: Colors.deepPurple[300]),
-                    title: Text(
-                      title,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      'Dibuat: $formattedDate',
-                      style: TextStyle(color: Colors.grey[400]),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red[400]),
-                          onPressed: () =>
-                              _confirmDelete(context, storyId), // Pass context
-                        ),
-                        Icon(Icons.arrow_forward_ios,
-                            color: Colors.grey[400]),
-                      ],
-                    ),
-                    onTap: () {
-                      // Handle navigation to story detail
-                      Get.toNamed(Routes.PROFILE_READ,
-                          arguments: {'id': storyId});
-                    },
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    ));
-  }
-
-
-  Future<void> _confirmDelete(BuildContext context, String storyId) async {
-    bool confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Cerita'),
-        content: const Text('Apakah Anda yakin ingin menghapus cerita ini?'),
-        actions: [
-          TextButton(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          TextButton(
-            child: const Text('Hapus'),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      await _deleteStory(storyId);
-    }
-  }
-
-  Future<void> _deleteStory(String storyId) async {
-    try {
-      // Reference to the Firestore document
-      DocumentSnapshot storyDoc = await FirebaseFirestore.instance
-          .collection('stories')
-          .doc(storyId)
-          .get();
-
-      if (storyDoc.exists) {
-        // Extract the image URL from the document
-        String? imageUrl = storyDoc['imageUrl'] ?? '';
-
-        // If there's an image URL, delete the image from Firebase Storage
-        if (imageUrl!.isNotEmpty) {
-          try {
-            final storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
-            await storageRef.delete();
-            print('Image deleted successfully');
-          } catch (e) {
-            print('Error deleting image: $e');
-          }
-        }
-
-        // Delete the Firestore document
-        await FirebaseFirestore.instance.collection('stories').doc(storyId).delete();
-        print('Story deleted successfully');
-
-        // Refresh the stories list
-        final updatedStories = await _fetchStories();
-        controller.length.value = updatedStories.length; // Update the count
-        Get.snackbar(
-          'Success',
-          'Cerita berhasil dihapus.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        print('Story does not exist');
-      }
-    } catch (e) {
-      print('Error deleting story: $e');
-      Get.snackbar(
-        'Error',
-        'Gagal menghapus cerita.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
-
-
-
-
-
-
-  Future<List<QueryDocumentSnapshot>> _fetchStories() async {
-    try {
-      // Fetch the stories from Firestore where 'writerId' matches the current user's ID
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('stories')
-          .where('writerId', isEqualTo: controller.userID.value)
-          .get();
-
-      return querySnapshot.docs; // Return the list of documents
-    } catch (e) {
-      print('Error fetching stories: $e');
-      return []; // Return an empty list on error
-    }
   }
 }

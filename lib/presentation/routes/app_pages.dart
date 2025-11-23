@@ -36,7 +36,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.PROFILE,
-      page: () => const ProfileScreen(),
+      page: () => const ProfilePage(),
       binding: ProfileBinding(),
     ),
     GetPage(
@@ -60,7 +60,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.SETTING,
-      page: () => const SettingPage(),
+      page: () => const SettingsPage(),
       binding: SettingBinding(),
     ),
     GetPage(

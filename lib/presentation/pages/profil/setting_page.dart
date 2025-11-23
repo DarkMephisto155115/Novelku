@@ -1,74 +1,425 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
-import 'package:terra_brain/presentation/routes/app_pages.dart';
+import 'package:terra_brain/presentation/themes/theme_controller.dart';
+// import '../controllers/settings_controller.dart';
+// import '../themes/theme_controller.dart';
 
-class SettingPage extends GetView<SettingController> {
-  const SettingPage({super.key});
+class SettingsPage extends GetView<SettingsController> {
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const BackButton(
-            color: Colors.white
+        title: Text(
+          'Pengaturan',
+          style: Get.theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Get.theme.appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text('Setting'),
-        titleTextStyle: const TextStyle(color: Colors.white),
-        centerTitle: true,
       ),
-      body: Column(
-        children: [
-          ListTile(
-            title: const Text(
-              'Edit Profile',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              // Tambahkan navigasi ke halaman Edit Profile di sini
-              // print("Navigate to Edit Profile");
-              Get.toNamed(Routes.Edit);
-            },
+      body: Obx(() {
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Tema Section
+              _buildThemeSection(),
+              SizedBox(height: 24),
+
+              // Font Size Section
+              _buildFontSizeSection(),
+              SizedBox(height: 24),
+
+              // Font Family Section
+              _buildFontFamilySection(),
+              SizedBox(height: 24),
+
+              // Live Preview Section
+              _buildLivePreviewSection(),
+              SizedBox(height: 24),
+
+              // Other Settings Section
+              _buildOtherSettingsSection(),
+              SizedBox(height: 32),
+
+              // Save Button
+              _buildSaveButton(),
+              SizedBox(height: 20),
+            ],
           ),
-          Divider(color: Colors.grey[800]),
-          ListTile(
-            title: const Text(
-              'GPS implementation',
-              style: TextStyle(color: Colors.white),
+        );
+      }),
+    );
+  }
+
+  Widget _buildThemeSection() {
+    final themeController = Get.find<ThemeController>();
+
+    return Card(
+      color: Get.theme.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tema',
+              style: Get.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            onTap: () {
-              Get.toNamed(Routes.GPS);
-            },
-          ),
-          Divider(color: Colors.grey[800]),
-          ListTile(
-            title: const Text(
-              'Office Center',
-              style: TextStyle(color: Colors.white),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mode Gelap',
+                        style: Get.theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Nyaman dibaca di malam hari',
+                        style: Get.theme.textTheme.bodySmall?.copyWith(
+                          color: Get.theme.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Obx(() => Switch(
+                      value: themeController.isDarkMode,
+                      onChanged: controller.toggleDarkMode,
+                      activeColor: Get.theme.primaryColor,
+                    )),
+              ],
             ),
-            onTap: () {
-              controller.openGoogleMaps(-7.925554, 112.596379);
-            },
-          ),
-          Divider(color: Colors.grey[800]),
-          const Spacer(),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.pinkAccent),
-            title: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.pinkAccent),
-            ),
-            onTap: () {
-              // Panggil fungsi logout dari controller
-              controller.logout();
-            },
-          ),
-          const SizedBox(height: 16),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildFontSizeSection() {
+    return Card(
+      color: Get.theme.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ukuran Font',
+              style: Get.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity, // paksa card ikut full width
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: controller.fontSizes.map((size) {
+                  final isSelected = controller.settings.value.fontSize == size;
+                  return ChoiceChip(
+                    label: Text(size),
+                    selected: isSelected,
+                    onSelected: (selected) => controller.setFontSize(size),
+                    backgroundColor: Get.theme.cardColor,
+                    selectedColor: Get.theme.primaryColor,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : Get.theme.textTheme.bodyMedium?.color,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSelected
+                            ? Get.theme.primaryColor
+                            : Get.theme.dividerColor.withOpacity(0.3),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFontFamilySection() {
+    return Card(
+      color: Get.theme.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Jenis Font',
+              style: Get.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: controller.settings.value.fontFamily,
+              onChanged: (value) => controller.setFontFamily(value!),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Get.theme.inputDecorationTheme.fillColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              items: controller.fontFamilies.map((font) {
+                return DropdownMenuItem(
+                  value: font,
+                  child: Text(
+                    font,
+                    style: TextStyle(
+                      fontFamily: _getFontFamily(font),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLivePreviewSection() {
+    return Card(
+      color: Get.theme.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Live Preview',
+              style: Get.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Get.theme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Get.theme.dividerColor.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bab 1: Awal Perjalanan',
+                    style: Get.theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: controller.fontSizeValue,
+                      fontFamily:
+                          _getFontFamily(controller.settings.value.fontFamily),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Di sebuah desa kecil yang terletak di kaki gunung, hiduplah seorang pemuda bernama Arya. Sejak kecil, ia selalu bermimpi untuk menjelajahi dunia yang luas di luar desanya.',
+                    style: Get.theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: controller.fontSizeValue,
+                      fontFamily:
+                          _getFontFamily(controller.settings.value.fontFamily),
+                      height: 1.6,
+                    ),
+                    textAlign: TextAlign.justify,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Suatu pagi, ketika matahari baru saja terbit, Arya memutuskan bahwa saatnya telah tiba untuk memulai petualangannya.',
+                    style: Get.theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: controller.fontSizeValue,
+                      fontFamily:
+                          _getFontFamily(controller.settings.value.fontFamily),
+                      height: 1.6,
+                    ),
+                    textAlign: TextAlign.justify,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtherSettingsSection() {
+    return Card(
+      color: Get.theme.cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Lainnya',
+              style: Get.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+
+            // Novel Notifications
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Notifikasi Novel Baru',
+                        style: Get.theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Dapatkan pemberitahuan chapter terbaru',
+                        style: Get.theme.textTheme.bodySmall?.copyWith(
+                          color: Get.theme.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Obx(() => Switch(
+                      value: controller.settings.value.novelNotifications,
+                      onChanged: controller.toggleNovelNotifications,
+                      activeColor: Get.theme.primaryColor,
+                    )),
+              ],
+            ),
+
+            Divider(height: 32),
+
+            // Auto-scroll
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Auto-scroll',
+                        style: Get.theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Scroll otomatis saat membaca',
+                        style: Get.theme.textTheme.bodySmall?.copyWith(
+                          color: Get.theme.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Obx(() => Switch(
+                      value: controller.settings.value.autoScroll,
+                      onChanged: controller.toggleAutoScroll,
+                      activeColor: Get.theme.primaryColor,
+                    )),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: controller.saveChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Get.theme.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          padding: EdgeInsets.symmetric(vertical: 16),
+        ),
+        child: Text(
+          'Simpan Perubahan',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getFontFamily(String fontName) {
+    switch (fontName) {
+      case 'Arial':
+        return 'Arial';
+      case 'Georgia':
+        return 'Georgia';
+      case 'Pangolin':
+        return 'Pangolin';
+      default:
+        return 'Arial';
+    }
   }
 }
