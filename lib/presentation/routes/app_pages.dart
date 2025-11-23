@@ -19,17 +19,23 @@ import '../pages/profil/profile_page.dart';
 part 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.SPLASH;
+  static const INITIAL = '/splash';
 
   static final routes = [
+    GetPage(
+      name: '/splash',
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: Routes.HOME,
       page: () => const HomePage(),
     ),
     GetPage(
-        name: Routes.PROFILE,
-        page: () => const ProfileScreen(),
-        binding: ProfileBinding()),
+      name: Routes.PROFILE,
+      page: () => const ProfileScreen(),
+      binding: ProfileBinding(),
+    ),
     GetPage(
       name: Routes.REGISTRATION,
       page: () => const RegistrationPage(),

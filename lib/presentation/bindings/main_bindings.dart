@@ -8,6 +8,7 @@ import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
+import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/edit_story_controller.dart';
 import '../controllers/home_controller.dart';
@@ -111,8 +112,16 @@ class EditStoryBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<EditStoryController>(
-          () => EditStoryController(),
+      () => EditStoryController(),
     );
   }
 }
 
+class SplashBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<ThemeController>(
+      () => ThemeController(),
+    );
+  }
+}
