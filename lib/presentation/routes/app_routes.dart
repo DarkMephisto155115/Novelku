@@ -17,4 +17,5 @@ abstract class Routes {
   static const READ = '/read';
   static const PROFILE_READ = '/profile_read';
   static const EDIT_READ = '/edit_read';
+  static const ALL_NOVEL = '/all_novel';
 }

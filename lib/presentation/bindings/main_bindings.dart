@@ -10,6 +10,7 @@ import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
+import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
 import '../controllers/home_controller.dart';
 
@@ -122,6 +123,15 @@ class SplashBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<ThemeController>(
       () => ThemeController(),
+    );
+  }
+}
+
+class AllNovelBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AllNovelController>(
+          () => AllNovelController(),
     );
   }
 }

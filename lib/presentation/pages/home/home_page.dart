@@ -1,357 +1,400 @@
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:terra_brain/presentation/controllers/home_controller.dart';
-import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
-import '../../routes/app_pages.dart';
-import '../favorite_page.dart';
+import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
+import '../../controllers/favorites_controller.dart' as fav_ctrl_pkg;
+import '../../controllers/home_controller.dart' as home_ctrl_pkg;
+import '../../models/novel_item.dart';
+import '../../widgets/section_header.dart';
+import '../../models/novel_item.dart';
+import '../../widgets/novel_card.dart';
+import '../../widgets/section_header.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
+
+  // dummy data
+  final List<NovelItem> recommended = [
+    NovelItem(id: '1', title: 'Dunia Fantasi', author: 'Penulis A', coverUrl: 'https://picsum.photos/200/300?random=1', genre: ['Fantasy'], rating: 4.8, chapters: 45, readers: 12500),
+    NovelItem(id: '2', title: 'Cinta di Musim Semi', author: 'Penulis B', coverUrl: 'https://picsum.photos/200/300?random=2', genre: ['Romance'], rating: 4.6, chapters: 32, readers: 8300),
+    NovelItem(id: '3', title: 'Misteri Malam', author: 'Penulis C', coverUrl: 'https://picsum.photos/200/300?random=3', genre: ['Mystery'], rating: 4.9, chapters: 28, readers: 15200),
+  ];
+
+  final List<NovelItem> newThisWeek = [
+    NovelItem(id: '4', title: 'Kisah Pertama', author: 'Sarah Wijaya', coverUrl: 'https://picsum.photos/200/300?random=4', genre: ['Slice of Life'], rating: 4.5, chapters: 12, readers: 4200, isNew: true),
+    NovelItem(id: '5', title: 'Awal Petualangan', author: 'Andi Pratama', coverUrl: 'https://picsum.photos/200/300?random=5', genre: ['Adventure'], rating: 4.3, chapters: 20, readers: 6800, isNew: true),
+    NovelItem(id: '6', title: 'Rahasia Tersembunyi', author: 'Maya Indah', coverUrl: 'https://picsum.photos/200/300?random=6', genre: ['Fantasy'], rating: 4.6, chapters: 16, readers: 5400, isNew: true),
+  ];
+
+  final List<NovelItem> explore = [
+    NovelItem(id: '1', title: 'Dunia Fantasi', author: 'Penulis A', coverUrl: 'https://picsum.photos/200/300?random=1', genre: ['Fantasy'], rating: 4.8, chapters: 45, readers: 12500),
+    NovelItem(id: '2', title: 'Cinta di Musim Semi', author: 'Penulis B', coverUrl: 'https://picsum.photos/200/300?random=2', genre: ['Romance'], rating: 4.6, chapters: 32, readers: 8300),
+    NovelItem(id: '3', title: 'Misteri Malam', author: 'Penulis C', coverUrl: 'https://picsum.photos/200/300?random=3', genre: ['Mystery'], rating: 4.9, chapters: 28, readers: 15200),
+    NovelItem(id: '7', title: 'Petualangan Hebat', author: 'Penulis D', coverUrl: 'https://picsum.photos/200/300?random=7', genre: ['Adventure'], rating: 4.7, chapters: 50, readers: 20100),
+  ];
+
+  final List<Map<String, dynamic>> newAuthors = [
+    {
+      'name': 'Sarah Wijaya',
+      'profileUrl': 'https://picsum.photos/100/100?random=10',
+      'novels': 5,
+    },
+    {
+      'name': 'Andi Pratama',
+      'profileUrl': 'https://picsum.photos/100/100?random=11',
+      'novels': 3,
+    },
+    {
+      'name': 'Maya Indah',
+      'profileUrl': 'https://picsum.photos/100/100?random=12',
+      'novels': 4,
+    },
+    {
+      'name': 'Maya Indah',
+      'profileUrl': 'https://picsum.photos/100/100?random=12',
+      'novels': 4,
+    },
+    {
+      'name': 'Andi Pratama',
+      'profileUrl': 'https://picsum.photos/100/100?random=11',
+      'novels': 3,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final FavoritesController favoritesController = Get.put(FavoritesController());
-    final HomeController homeController = Get.put(HomeController());
+    // attempt to find existing controllers, fallback to local dummy controllers
+    dynamic homeController;
+    dynamic favoritesController;
+    try {
+      homeController = Get.find<home_ctrl_pkg.HomeController>();
+    } catch (e) {
+      homeController = null;
+    }
+    try {
+      favoritesController = Get.find<fav_ctrl_pkg.FavoritesController>();
+    } catch (e) {
+      favoritesController = null;
+    }
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.deepPurple.shade900, Colors.black],
-          ),
-        ),
-        child: SafeArea(
-          child: Obx(() => CustomScrollView(
-            slivers: [
-              // 🔹 AppBar + Search
-              SliverAppBar(
-                expandedHeight: 150.0,
-                floating: false,
-                pinned: true,
-                backgroundColor: Colors.deepPurple.shade900,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: const Text('Novelku', style: TextStyle(color: Colors.white)),
-                  background: Image.asset(
-                    'assets/images/book.jpg',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(50),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: TextField(
-                      controller: homeController.searchController,
-                      onChanged: (value) => homeController.searchQuery.value = value,
-                      decoration: InputDecoration(
-                        hintText: 'Cari rekomendasi cerita...',
-                        hintStyle: const TextStyle(color: Colors.white70),
-                        filled: true,
-                        fillColor: Colors.deepPurple.shade800,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white),
-                      ),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
+      backgroundColor: Colors.white,
+      bottomNavigationBar: _buildBottomNav(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
+              ),
+              SizedBox(
+                height: 210,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (_, idx) => NovelCardHorizontal(item: recommended[idx]),
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: recommended.length,
                 ),
               ),
 
-              // 🔹 Konten utama
-              SliverToBoxAdapter(
-                child: AnimationLimiter(
-                  child: Column(
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Text('✨ Novel Baru Minggu Ini', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    ),
+                    TextButton(onPressed: () {}, child: const Text('Lihat Semua'))
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 200,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (_, idx) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: AnimationConfiguration.toStaggeredList(
-                      duration: const Duration(milliseconds: 375),
-                      childAnimationBuilder: (widget) => SlideAnimation(
-                        horizontalOffset: 50.0,
-                        child: FadeInAnimation(child: widget),
+                    children: [
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(newThisWeek[idx].coverUrl, height: 140, width: 140, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(height: 140, width: 140, color: Colors.grey[300])),
+                          ),
+                          if (newThisWeek[idx].isNew)
+                            Positioned(
+                              left: 8,
+                              top: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
+                                child: const Text('Baru', style: TextStyle(color: Colors.white, fontSize: 12)),
+                              ),
+                            )
+                        ],
                       ),
+                      const SizedBox(height: 8),
+                      SizedBox(width: 140, child: Text(newThisWeek[idx].title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
+                      SizedBox(width: 140, child: Text(newThisWeek[idx].author, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                    ],
+                  ),
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: newThisWeek.length,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                const Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Text('✍️ Penulis Baru', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+
+                    TextButton(onPressed: () {}, child: const Text('Lihat Semua'))
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 140,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: newAuthors.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (_, idx) {
+                    final author = newAuthors[idx];
+                    return Column(
                       children: [
-                        _buildSectionTitle('Cerita Populer'),
-                        _buildStoryCarousel(homeController),
-
-                        _buildSectionTitle('Kategori'),
-                        CategoryList(onCategoryTap: (String category) {}),
-
-                        _buildSectionTitle('Rekomendasi untuk Anda'),
-                        _buildRecommendedStories(homeController, favoritesController),
+                        ClipOval(
+                          child: Image.network(
+                            author['profileUrl'],
+                            height: 80,
+                            width: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 80,
+                              width: 80,
+                              color: Colors.grey[300],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 80,
+                          child: Text(
+                            author['name'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 80,
+                          child: Text(
+                            '${author['novels']} Novel',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SectionHeader(title: '❤️ Favorit Saya'),
+              ),
+              // Use favoritesController if available
+              if (favoritesController != null)
+                Obx(() {
+                  final favs = favoritesController.favorites ?? [];
+                  if (favs.isEmpty) return const SizedBox();
+                  return Column(
+                    children: List.generate(favs.length, (i) => NovelCardVertical(item: NovelItem(id: favs[i].id, title: favs[i].title ?? 'Unknown', author: favs[i].author ?? '-', coverUrl: favs[i].coverUrl ?? '', genre: favs[i].genre ?? 'Unknown', rating: favs[i].rating ?? 0.0, chapters: favs[i].chapters ?? 0, readers: favs[i].readers ?? 0))),
+                  );
+                })
+              else
+              // fallback dummy
+                Column(children: [for (var it in recommended) NovelCardVertical(item: it)]),
+
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: SectionHeader(title: '📚 Jelajahi Novel'),
+              ),
+
+              // Tab selector (simplified)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    Expanded(child: _TabPill(text: 'Trending', selected: true)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _TabPill(text: 'Terbaru', selected: false)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _TabPill(text: 'Selesai', selected: false)),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              Column(children: [for (var e in explore) NovelCardVertical(item: e)]),
+
+              const SizedBox(height: 80),
             ],
-          )),
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
-
-  // 🔹 Judul section
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-      child: Text(
-        title,
-        style: const TextStyle(
-            fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    );
-  }
-
-  // 🔹 Carousel dari stories terbaru
-  Widget _buildStoryCarousel(HomeController controller) {
-    final stories = controller.filteredStories;
-
-    if (stories.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text('Belum ada cerita.', style: TextStyle(color: Colors.white70)),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 220,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: stories.length,
-        itemBuilder: (context, index) {
-          final story = stories[index];
-          final imageUrl = story['image'] ?? 'assets/images/book.jpg';
-          final title = story['title'] ?? 'Tanpa Judul';
-          final author = story['author'] ?? 'Anonim';
-
-          return Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: GestureDetector(
-              onTap: () {
-                // Buka halaman detail (bisa dikembangkan nanti)
-                Get.snackbar("Buka Cerita", "Judul: $title");
-              },
-              child: Container(
-                width: 160,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.deepPurpleAccent.withOpacity(0.3),
-                  image: imageUrl.toString().startsWith('http')
-                      ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                      : DecorationImage(image: AssetImage(imageUrl), fit: BoxFit.cover),
-                ),
-                child: Container(
-                  alignment: Alignment.bottomLeft,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Colors.black.withOpacity(0.8), Colors.transparent],
-                    ),
-                  ),
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // 🔹 Daftar rekomendasi cerita
-  Widget _buildRecommendedStories(
-      HomeController controller, FavoritesController favoritesController) {
-    final stories = controller.filteredStories;
-
-    if (stories.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text('Tidak ada rekomendasi.', style: TextStyle(color: Colors.white70)),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: stories.length,
-      itemBuilder: (context, index) {
-        final story = stories[index];
-        final title = story['title'];
-        final author = story['author'];
-        final category = story['category'];
-        final imageUrl = story['image'] ?? 'assets/images/book.jpg';
-        final chapterCount = story['chapters']?.length ?? 0;
-
-        return Card(
-          color: Colors.deepPurple.shade800.withOpacity(0.6),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: imageUrl.toString().startsWith('http')
-                  ? Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover)
-                  : Image.asset(imageUrl, width: 60, height: 60, fit: BoxFit.cover),
-            ),
-            title: Text(title,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text(
-              "$author • $category • $chapterCount chapter",
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.favorite_border, color: Colors.pinkAccent),
-              onPressed: () {
-                // favoritesController.toggleFavorite(story);
-              },
-            ),
-            onTap: () {
-              // TODO: arahkan ke detail story
-              Get.snackbar("Detail Cerita", "Kamu memilih '$title'");
-            },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // 🔹 Bottom Navigation
-  Widget _buildBottomNavigationBar() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF4A148C), // Deep Purple 900
-            Color(0xFF1A1A2E), // Hitam kebiruan gelap
-          ],
-        ),
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(30),
-          topLeft: Radius.circular(30),
-        ),
+        gradient: LinearGradient(colors: [Color(0xFF8A2BE2), Color(0xFF6A00F4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30.0),
-          topRight: Radius.circular(30.0),
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent, // penting agar gradient terlihat
-          elevation: 0,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white70,
-          selectedIconTheme: const IconThemeData(size: 28),
-          unselectedIconTheme: const IconThemeData(size: 24),
-          showUnselectedLabels: true,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Perpustakaan'),
-            BottomNavigationBarItem(icon: Icon(Icons.post_add), label: 'Tulis'),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorit'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-          ],
-          onTap: (index) {
-            switch (index) {
-              case 1:
-                Get.toNamed(Routes.API);
-                break;
-              case 2:
-                Get.toNamed('/write');
-                break;
-              case 3:
-                Get.to(() => const FavoritesPage());
-                break;
-              case 4:
-                Get.toNamed(Routes.PROFILE);
-                break;
-            }
-          },
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children:[
+              Image.asset("assets/icons/novelku_logo.png",width: 50,
+                height: 50,),
+              SizedBox(width: 12),
+              Text('NovelKu', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: const TextField(
+              decoration: InputDecoration(border: InputBorder.none, hintText: 'Cari novel atau penulis...', prefixIcon: Icon(Icons.search)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _NavItem(
+            icon: Icons.home,
+            label: 'Beranda',
+            selected: true,
+            onTap: () {
+              print("Beranda Clicked");
+              // Get.to(HomePage());
+            },
+          ),
+          _NavItem(
+            icon: Icons.book,
+            label: 'Novel',
+            selected: false,
+            onTap: () {
+              print("Novel Clicked");
+              Get.to(SemuaNovelPage());
+            },
+          ),
+          _NavItem(
+            icon: Icons.edit,
+            label: 'Tulis',
+            selected: false,
+            onTap: () {
+              print("Tulis Clicked");
+              // Get.to(WritePage());
+            },
+          ),
+          _NavItem(
+            icon: Icons.person,
+            label: 'Profil',
+            selected: false,
+            onTap: () {
+              print("Profil Clicked");
+              // Get.to(ProfilePage());
+            },
+          ),
+        ],
       ),
     );
   }
 
 }
 
-// 🔹 Widget kategori tetap sama
-class CategoryList extends StatelessWidget {
-  CategoryList({super.key, required this.onCategoryTap});
+class _TabPill extends StatelessWidget {
+  final String text;
+  final bool selected;
+  const _TabPill({required this.text, required this.selected});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(color: selected ? Colors.grey[200] : Colors.white, borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.grey.shade300)),
+      child: Center(child: Text(text, style: TextStyle(color: selected ? Colors.black : Colors.grey[600]))),
+    );
+  }
+}
 
-  final void Function(String category) onCategoryTap;
-  final List<String> categories = [
-    'All',
-    'Komedi',
-    'Horor',
-    'Romansa',
-    'Thriller',
-    'Fantasi',
-    'Fiksi Ilmiah',
-    'Misteri',
-    'Aksi',
-  ];
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final HomeController homeController = Get.find<HomeController>();
-
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return GestureDetector(
-            onTap: () {
-              homeController.selectCategory(category);
-              onCategoryTap(category);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Obx(() {
-                final isSelected = homeController.selectedCategory.value == category;
-                return Chip(
-                  label: Text(
-                    category,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  backgroundColor: isSelected
-                      ? Colors.deepPurpleAccent
-                      : Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                );
-              }),
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: selected ? Colors.blue : Colors.grey),
+          Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.blue : Colors.grey,
+              fontSize: 12,
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

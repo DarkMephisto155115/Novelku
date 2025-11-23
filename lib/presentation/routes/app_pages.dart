@@ -14,6 +14,7 @@ import 'package:terra_brain/presentation/pages/login/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/home/story_page.dart';
 import 'package:terra_brain/presentation/pages/write/write_page.dart';
 
+import '../pages/novel/all_novel_page.dart';
 import '../pages/profil/profile_page.dart';
 
 part 'app_routes.dart';
@@ -29,7 +30,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.HOME,
-      page: () => const HomePage(),
+      page: () => HomePage(),
     ),
     GetPage(
       name: Routes.PROFILE,
@@ -94,6 +95,11 @@ class AppPages {
       name: Routes.EDIT_READ,
       page: () => EditStoryPage(),
       binding: EditStoryBinding(),
+    ),
+    GetPage(
+      name: Routes.ALL_NOVEL,
+      page: () => SemuaNovelPage(),
+      binding: AllNovelBinding(),
     ),
   ];
 }
