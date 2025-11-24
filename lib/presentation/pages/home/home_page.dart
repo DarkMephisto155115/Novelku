@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
@@ -15,22 +14,105 @@ class HomePage extends StatelessWidget {
 
   // dummy data
   final List<NovelItem> recommended = [
-    NovelItem(id: '1', title: 'Dunia Fantasi', author: 'Penulis A', coverUrl: 'https://picsum.photos/200/300?random=1', genre: ['Fantasy'], rating: 4.8, chapters: 45, readers: 12500),
-    NovelItem(id: '2', title: 'Cinta di Musim Semi', author: 'Penulis B', coverUrl: 'https://picsum.photos/200/300?random=2', genre: ['Romance'], rating: 4.6, chapters: 32, readers: 8300),
-    NovelItem(id: '3', title: 'Misteri Malam', author: 'Penulis C', coverUrl: 'https://picsum.photos/200/300?random=3', genre: ['Mystery'], rating: 4.9, chapters: 28, readers: 15200),
+    NovelItem(
+        id: '1',
+        title: 'Dunia Fantasi',
+        author: 'Penulis A',
+        coverUrl: 'https://picsum.photos/200/300?random=1',
+        genre: ['Fantasy'],
+        rating: 4.8,
+        chapters: 45,
+        readers: 12500),
+    NovelItem(
+        id: '2',
+        title: 'Cinta di Musim Semi',
+        author: 'Penulis B',
+        coverUrl: 'https://picsum.photos/200/300?random=2',
+        genre: ['Romance'],
+        rating: 4.6,
+        chapters: 32,
+        readers: 8300),
+    NovelItem(
+        id: '3',
+        title: 'Misteri Malam',
+        author: 'Penulis C',
+        coverUrl: 'https://picsum.photos/200/300?random=3',
+        genre: ['Mystery'],
+        rating: 4.9,
+        chapters: 28,
+        readers: 15200),
   ];
 
   final List<NovelItem> newThisWeek = [
-    NovelItem(id: '4', title: 'Kisah Pertama', author: 'Sarah Wijaya', coverUrl: 'https://picsum.photos/200/300?random=4', genre: ['Slice of Life'], rating: 4.5, chapters: 12, readers: 4200, isNew: true),
-    NovelItem(id: '5', title: 'Awal Petualangan', author: 'Andi Pratama', coverUrl: 'https://picsum.photos/200/300?random=5', genre: ['Adventure'], rating: 4.3, chapters: 20, readers: 6800, isNew: true),
-    NovelItem(id: '6', title: 'Rahasia Tersembunyi', author: 'Maya Indah', coverUrl: 'https://picsum.photos/200/300?random=6', genre: ['Fantasy'], rating: 4.6, chapters: 16, readers: 5400, isNew: true),
+    NovelItem(
+        id: '4',
+        title: 'Kisah Pertama',
+        author: 'Sarah Wijaya',
+        coverUrl: 'https://picsum.photos/200/300?random=4',
+        genre: ['Slice of Life'],
+        rating: 4.5,
+        chapters: 12,
+        readers: 4200,
+        isNew: true),
+    NovelItem(
+        id: '5',
+        title: 'Awal Petualangan',
+        author: 'Andi Pratama',
+        coverUrl: 'https://picsum.photos/200/300?random=5',
+        genre: ['Adventure'],
+        rating: 4.3,
+        chapters: 20,
+        readers: 6800,
+        isNew: true),
+    NovelItem(
+        id: '6',
+        title: 'Rahasia Tersembunyi',
+        author: 'Maya Indah',
+        coverUrl: 'https://picsum.photos/200/300?random=6',
+        genre: ['Fantasy'],
+        rating: 4.6,
+        chapters: 16,
+        readers: 5400,
+        isNew: true),
   ];
 
   final List<NovelItem> explore = [
-    NovelItem(id: '1', title: 'Dunia Fantasi', author: 'Penulis A', coverUrl: 'https://picsum.photos/200/300?random=1', genre: ['Fantasy'], rating: 4.8, chapters: 45, readers: 12500),
-    NovelItem(id: '2', title: 'Cinta di Musim Semi', author: 'Penulis B', coverUrl: 'https://picsum.photos/200/300?random=2', genre: ['Romance'], rating: 4.6, chapters: 32, readers: 8300),
-    NovelItem(id: '3', title: 'Misteri Malam', author: 'Penulis C', coverUrl: 'https://picsum.photos/200/300?random=3', genre: ['Mystery'], rating: 4.9, chapters: 28, readers: 15200),
-    NovelItem(id: '7', title: 'Petualangan Hebat', author: 'Penulis D', coverUrl: 'https://picsum.photos/200/300?random=7', genre: ['Adventure'], rating: 4.7, chapters: 50, readers: 20100),
+    NovelItem(
+        id: '1',
+        title: 'Dunia Fantasi',
+        author: 'Penulis A',
+        coverUrl: 'https://picsum.photos/200/300?random=1',
+        genre: ['Fantasy'],
+        rating: 4.8,
+        chapters: 45,
+        readers: 12500),
+    NovelItem(
+        id: '2',
+        title: 'Cinta di Musim Semi',
+        author: 'Penulis B',
+        coverUrl: 'https://picsum.photos/200/300?random=2',
+        genre: ['Romance'],
+        rating: 4.6,
+        chapters: 32,
+        readers: 8300),
+    NovelItem(
+        id: '3',
+        title: 'Misteri Malam',
+        author: 'Penulis C',
+        coverUrl: 'https://picsum.photos/200/300?random=3',
+        genre: ['Mystery'],
+        rating: 4.9,
+        chapters: 28,
+        readers: 15200),
+    NovelItem(
+        id: '7',
+        title: 'Petualangan Hebat',
+        author: 'Penulis D',
+        coverUrl: 'https://picsum.photos/200/300?random=7',
+        genre: ['Adventure'],
+        rating: 4.7,
+        chapters: 50,
+        readers: 20100),
   ];
 
   final List<Map<String, dynamic>> newAuthors = [
@@ -96,7 +178,8 @@ class HomePage extends StatelessWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, idx) => NovelCardHorizontal(item: recommended[idx]),
+                  itemBuilder: (_, idx) =>
+                      NovelCardHorizontal(item: recommended[idx]),
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemCount: recommended.length,
                 ),
@@ -110,9 +193,12 @@ class HomePage extends StatelessWidget {
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(left: 8.0),
-                      child: Text('✨ Novel Baru Minggu Ini', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      child: Text('✨ Novel Baru Minggu Ini',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
-                    TextButton(onPressed: () {}, child: const Text('Lihat Semua'))
+                    TextButton(
+                        onPressed: () {}, child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
@@ -128,23 +214,47 @@ class HomePage extends StatelessWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(newThisWeek[idx].coverUrl, height: 140, width: 140, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(height: 140, width: 140, color: Colors.grey[300])),
+                            child: Image.network(newThisWeek[idx].coverUrl,
+                                height: 140,
+                                width: 140,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                    height: 140,
+                                    width: 140,
+                                    color: Colors.grey[300])),
                           ),
                           if (newThisWeek[idx].isNew)
                             Positioned(
                               left: 8,
                               top: 8,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
-                                child: const Text('Baru', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: const Text('Baru',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 12)),
                               ),
                             )
                         ],
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(width: 140, child: Text(newThisWeek[idx].title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
-                      SizedBox(width: 140, child: Text(newThisWeek[idx].author, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                      SizedBox(
+                          width: 140,
+                          child: Text(newThisWeek[idx].title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600))),
+                      SizedBox(
+                          width: 140,
+                          child: Text(newThisWeek[idx].author,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey))),
                     ],
                   ),
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
@@ -157,12 +267,14 @@ class HomePage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text('✍️ Penulis Baru', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
-
-                    TextButton(onPressed: () {}, child: const Text('Lihat Semua'))
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Text('✍️ Penulis Baru',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                    ),
+                    TextButton(
+                        onPressed: () {}, child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
@@ -206,7 +318,8 @@ class HomePage extends StatelessWidget {
                           child: Text(
                             '${author['novels']} Novel',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
                           ),
                         ),
                       ],
@@ -225,12 +338,25 @@ class HomePage extends StatelessWidget {
                   final favs = favoritesController.favorites ?? [];
                   if (favs.isEmpty) return const SizedBox();
                   return Column(
-                    children: List.generate(favs.length, (i) => NovelCardVertical(item: NovelItem(id: favs[i].id, title: favs[i].title ?? 'Unknown', author: favs[i].author ?? '-', coverUrl: favs[i].coverUrl ?? '', genre: favs[i].genre ?? 'Unknown', rating: favs[i].rating ?? 0.0, chapters: favs[i].chapters ?? 0, readers: favs[i].readers ?? 0))),
+                    children: List.generate(
+                        favs.length,
+                        (i) => NovelCardVertical(
+                            item: NovelItem(
+                                id: favs[i].id,
+                                title: favs[i].title ?? 'Unknown',
+                                author: favs[i].author ?? '-',
+                                coverUrl: favs[i].coverUrl ?? '',
+                                genre: favs[i].genre ?? 'Unknown',
+                                rating: favs[i].rating ?? 0.0,
+                                chapters: favs[i].chapters ?? 0,
+                                readers: favs[i].readers ?? 0))),
                   );
                 })
               else
-              // fallback dummy
-                Column(children: [for (var it in recommended) NovelCardVertical(item: it)]),
+                // fallback dummy
+                Column(children: [
+                  for (var it in recommended) NovelCardVertical(item: it)
+                ]),
 
               const SizedBox(height: 12),
               Padding(
@@ -253,7 +379,9 @@ class HomePage extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-              Column(children: [for (var e in explore) NovelCardVertical(item: e)]),
+              Column(children: [
+                for (var e in explore) NovelCardVertical(item: e)
+              ]),
 
               const SizedBox(height: 80),
             ],
@@ -266,27 +394,43 @@ class HomePage extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: [Color(0xFF8A2BE2), Color(0xFF6A00F4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+        gradient: LinearGradient(
+            colors: [Color(0xFF8A2BE2), Color(0xFF6A00F4)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
+        borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children:[
-              Image.asset("assets/icons/novelku_logo.png",width: 50,
-                height: 50,),
+            children: [
+              Image.asset(
+                "assets/icons/novelku_logo.png",
+                width: 50,
+                height: 50,
+              ),
               SizedBox(width: 12),
-              Text('NovelKu', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('NovelKu',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),
           Container(
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: const TextField(
-              decoration: InputDecoration(border: InputBorder.none, hintText: 'Cari novel atau penulis...', prefixIcon: Icon(Icons.search)),
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Cari novel atau penulis...',
+                  prefixIcon: Icon(Icons.search)),
             ),
           ),
         ],
@@ -334,6 +478,7 @@ class HomePage extends StatelessWidget {
             onTap: () {
               print("Tulis Clicked");
               // Get.to(WritePage());
+              Get.toNamed('/write');
             },
           ),
           _NavItem(
@@ -343,13 +488,13 @@ class HomePage extends StatelessWidget {
             onTap: () {
               print("Profil Clicked");
               // Get.to(ProfilePage());
+              Get.toNamed('/profile_page');
             },
           ),
         ],
       ),
     );
   }
-
 }
 
 class _TabPill extends StatelessWidget {
@@ -360,8 +505,14 @@ class _TabPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(color: selected ? Colors.grey[200] : Colors.white, borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.grey.shade300)),
-      child: Center(child: Text(text, style: TextStyle(color: selected ? Colors.black : Colors.grey[600]))),
+      decoration: BoxDecoration(
+          color: selected ? Colors.grey[200] : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.grey.shade300)),
+      child: Center(
+          child: Text(text,
+              style: TextStyle(
+                  color: selected ? Colors.black : Colors.grey[600]))),
     );
   }
 }

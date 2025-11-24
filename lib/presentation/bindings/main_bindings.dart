@@ -60,8 +60,8 @@ class RegisterBinding extends Bindings {
 class SettingBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<SettingController>(
-      () => SettingController(),
+    Get.lazyPut<SettingsController>(
+      () => SettingsController(),
     );
   }
 }
