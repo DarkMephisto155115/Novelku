@@ -19,9 +19,9 @@ Selain membaca, Novelku juga menyediakan ruang bagi kreator untuk menulis, menge
 
 Link Figma: https://www.figma.com/design/jiOLJLNCjZDChKahDEiBn7/Novelku?node-id=0-1&t=upBMlbZcz3CbhcsL-1
 
-File Worksheet: 
+File Worksheet: [Worksheet](https://github.com/DarkMephisto155115/Novelku/tree/main/Worksheet)
 
-Low Fidelity prototype: 
+Low Fidelity Prototype: [Low Fidelity](https://github.com/DarkMephisto155115/Novelku/tree/main/Low%20Fidelity%20prototype)
 
 ### Tabel Backlog
 
@@ -42,6 +42,7 @@ Low Fidelity prototype:
 | Semua novel terbaru                    | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
 | Rekomendasi beranda & baca novel       | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
 | Fitur favorit                          | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
+
 
 
 
