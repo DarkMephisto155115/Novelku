@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/model/author_model.dart';
+import 'package:terra_brain/presentation/models/author_model.dart';
 
 class AuthorsController extends GetxController {
   final RxList<Author> authors = <Author>[].obs;

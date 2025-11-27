@@ -174,7 +174,8 @@ class HomePage extends StatelessWidget {
                 child: SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
               ),
               SizedBox(
-                height: 210,
+                
+                height: 220,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
@@ -187,7 +188,7 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
