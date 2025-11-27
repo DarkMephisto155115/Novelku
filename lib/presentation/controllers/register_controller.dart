@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:terra_brain/presentation/controllers/LoginController.dart';
 
 class RegistrationController extends GetxController {
   var name = ''.obs;
   var email = ''.obs;
   var username = ''.obs;
   var password = ''.obs;
-  var birthDate = ''.obs;
-  var pronouns = ''.obs;
   var confirmPassword = ''.obs;
   var passwordHidden = true.obs;
   var confirmPasswordHidden = true.obs;
@@ -18,6 +17,7 @@ class RegistrationController extends GetxController {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LoginController loginController = Get.find<LoginController>();
 
   TextEditingController birthDateController = TextEditingController();
 
@@ -31,18 +31,25 @@ class RegistrationController extends GetxController {
 
   Future<void> register() async {
     isLoading.value = true;
-    if (name.value.isEmpty ||
+    if (
         email.value.isEmpty ||
-        password.value.isEmpty ||
         username.value.isEmpty ||
-        birthDate.value.isEmpty) {
+        password.value.isEmpty
+        ) {
           isLoading.value = false;
-      throw Exception('Please fill in all fields');
+      throw Exception('Semua field harus diisi');
     }
+
+    bool passwordMatch = password.value == confirmPassword.value;
+    if (!passwordMatch) {
+      isLoading.value = false;
+      throw Exception('Password dan konfirmasi password tidak sesuai');
+    }
+
     bool usernameExists = await _checkUsernameExists(username.value);
     if (usernameExists) {
       isLoading.value = false;
-      throw Exception('Username is already taken');
+      throw Exception('USername sudah digunakan');
     }
     try {
       UserCredential userCredential =
@@ -54,30 +61,36 @@ class RegistrationController extends GetxController {
       String uid = userCredential.user!.uid;
 
       await _firestore.collection('users').doc(uid).set({
-        'name': name.value,
+        // 'name': name.value,
         'email': email.value,
         'username': username.value,
-        'birthDate': birthDate.value,
-        'pronouns': pronouns.value,
-        "coins": 0,
+        // 'birthDate': birthDate.value,
+        // 'pronouns': pronouns.value,
+        // "coins": 0,
         "followers": 0,
         "following": 0,
+        "isPremium": false,
       });
+      loginController.bypassLogin(email.value, password.value);
       isLoading.value = false;
 
-      Get.snackbar('Success', 'User registered successfully');
-      Get.toNamed("/login");
+      // Get.snackbar('Success', 'User registered successfully');
+      Get.toNamed("/genre_selection");
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        isLoading.value = false;
-        throw Exception('The account already exists for that email.');
-      } else if (e.code == 'weak-password') {
-        isLoading.value = false;
-        throw Exception('The password is too weak.');
-      } else {
-        isLoading.value = false;
-        throw Exception('Registration failed: ${e.message}');
-      }
+      isLoading.value = false;
+      rethrow;
+      // if (e.code == 'email-already-in-use') {
+      //   isLoading.value = false;
+      //   throw Exception('The account already exists for that email.');
+      // } else if (e.code == 'weak-password') {
+      //   isLoading.value = false;
+      //   throw Exception('The password is too weak.');
+      // } else {
+      //   isLoading.value = false;
+      //   throw Exception('Registration failed: ${e.message}');
+      // }
+    } finally {
+      isLoading.value = false;
     }
   }
 

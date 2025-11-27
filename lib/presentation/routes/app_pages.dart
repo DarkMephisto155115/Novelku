@@ -1,23 +1,24 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/API_page.dart';
+import 'package:terra_brain/presentation/pages/auth/genre_selection_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
+import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
+import 'package:terra_brain/presentation/pages/novel/reading_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/favorite_page.dart';
 import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home/home_page.dart';
-import 'package:terra_brain/presentation/pages/login/login_page.dart';
+import 'package:terra_brain/presentation/pages/auth/login_page.dart';
+import 'package:terra_brain/presentation/pages/profil/profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/profile_story_page.dart';
-import 'package:terra_brain/presentation/pages/login/registration_page.dart';
+import 'package:terra_brain/presentation/pages/auth/registration_page.dart';
 import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
-import 'package:terra_brain/presentation/pages/login/splash_screen.dart';
+import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/home/story_page.dart';
 import 'package:terra_brain/presentation/pages/write/write_page.dart';
-
-import '../pages/novel/all_novel_page.dart';
-import '../pages/profil/profile_page.dart';
 
 part 'app_routes.dart';
 
@@ -112,6 +113,16 @@ class AppPages {
       name: Routes.AUTHOR_PROFILE,
       page: () => const AuthorProfilePage(),
       binding: AuthorProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.READING,
+      page: () => ReadingPage(),
+      binding: ReadingBinding(),
+    ),
+    GetPage(
+      name: Routes.GENRE_SELECTION,
+      page: () => const GenreSelectionPage(),
+      binding: GenreSelectionBinding(),
     ),
   ];
 }

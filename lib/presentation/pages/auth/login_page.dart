@@ -262,7 +262,27 @@ class LoginPage extends GetView<LoginController> {
       () => SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: controller.isLoading.value ? null : controller.login,
+          onPressed: controller.isLoading.value
+              ? null
+              : () async {
+                  try {
+                    await controller.login();
+                    Get.offAllNamed(Routes.HOME);
+                    Get.snackbar(
+                      'Success',
+                      'Logged in successfully',
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                    );
+                  } catch (e) {
+                    Get.snackbar(
+                      'Error',
+                      e.toString().replaceFirst('Exception: ', ''),
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: Get.theme.primaryColor,
             foregroundColor: Colors.white,

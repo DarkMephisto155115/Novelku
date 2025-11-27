@@ -332,7 +332,28 @@ class RegistrationPage extends GetView<RegistrationController> {
     return Obx(() => SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: controller.isLoading.value ? null : controller.register,
+            onPressed: () async {
+              try {
+                await controller.register();
+                Get.snackbar(
+                  'Sukses', 'Berhasil mendaftar akun',
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: AppThemeData.successColor, 
+                  colorText: Colors.white,
+                );
+                Get.toNamed("/genre_selection");
+              } catch (e) {
+                Get.snackbar(
+                  'Registration Error',
+                  e.toString().replaceFirst('Exception: ', ''),
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              }
+            },
+
+            // controller.isLoading.value ? null : controller.register,
             style: ElevatedButton.styleFrom(
               backgroundColor: Get.theme.primaryColor,
               foregroundColor: Colors.white,

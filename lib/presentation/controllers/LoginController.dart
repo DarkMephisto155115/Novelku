@@ -25,7 +25,13 @@ class LoginController extends GetxController {
     themeController.toggleTheme();
   }
 
-  void login() async {
+  void bypassLogin(String email, String password) async {
+    emailController.text = email;
+    passwordController.text = password;
+    login();
+  }
+
+  Future<void> login() async {
     String email = emailController.text;
     String password = passwordController.text;
     isLoading.value = true;
@@ -39,33 +45,36 @@ class LoginController extends GetxController {
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userId', userCredential.user!.uid);
 
-        Get.snackbar('Success', 'Logged in successfully',
-            backgroundColor: Colors.green, colorText: Colors.white);
+        // Get.snackbar('Success', 'Logged in successfully',
+        //     backgroundColor: Colors.green, colorText: Colors.white);
 
         isLoading.value = false;
-
-        Get.offAllNamed(Routes.HOME);
+ 
+        // Get.offAllNamed(Routes.HOME);
       } on FirebaseAuthException catch (e) {
-        String message;
-        if (e.code == 'user-not-found') {
-          message = ' No user  found for that email. ';
-        } else if (e.code == 'wrong-password') {
-          message = 'Wrong password provider';
-        } else {
-          message = 'Login failed. Please try again!';
-        }
-        Get.snackbar('Login Failed ', message,
-            backgroundColor: Colors.red, colorText: Colors.white);
         isLoading.value = false;
+        rethrow;
+        // String message;
+        // if (e.code == 'user-not-found') {
+        //   message = ' No user  found for that email. ';
+        // } else if (e.code == 'wrong-password') {
+        //   message = 'Wrong password provider';
+        // } else {
+        //   message = 'Login failed. Please try again!';
+        // }
+        // Get.snackbar('Login Failed ', message,
+        //     backgroundColor: Colors.red, colorText: Colors.white);
       } catch (e) {
-        Get.snackbar('Error', 'An unexpeted error ocurred.',
-            backgroundColor: Colors.red, colorText: Colors.white);
         isLoading.value = false;
+        rethrow;
+        // Get.snackbar('Error', 'An unexpeted error ocurred.',
+        //     backgroundColor: Colors.red, colorText: Colors.white);
       }
     } else {
-      Get.snackbar('Error', 'Please enter email and password',
-          backgroundColor: Colors.red, colorText: Colors.white);
       isLoading.value = false;
+      throw Exception('Email dan password harus diisi');
+      // Get.snackbar('Error', 'Please enter email and password',
+      //     backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 
