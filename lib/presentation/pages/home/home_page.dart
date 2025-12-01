@@ -479,7 +479,7 @@ class HomePage extends StatelessWidget {
             onTap: () {
               print("Tulis Clicked");
               // Get.to(WritePage());
-              Get.toNamed('/write');
+              Get.toNamed('/writing');
             },
           ),
           _NavItem(

@@ -22,4 +22,6 @@ abstract class Routes {
   static const AUTHOR_PROFILE = '/author_profile';
   static const READING = '/reading';
   static const GENRE_SELECTION = '/genre_selection';
+  static const WRITING = '/writing';
+
 }

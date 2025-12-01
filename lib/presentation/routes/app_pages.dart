@@ -19,6 +19,7 @@ import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
 import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/home/story_page.dart';
 import 'package:terra_brain/presentation/pages/write/write_page.dart';
+import 'package:terra_brain/presentation/pages/write/writing_page.dart';
 
 part 'app_routes.dart';
 
@@ -81,7 +82,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.Edit,
-      page: () => const EditProfilePage(),
+      page: () => EditProfilePage(),
       binding: EditProfileBinding(),
     ),
     GetPage(
@@ -123,6 +124,11 @@ class AppPages {
       name: Routes.GENRE_SELECTION,
       page: () => const GenreSelectionPage(),
       binding: GenreSelectionBinding(),
+    ),
+    GetPage(
+      name: Routes.WRITING,
+      page: () => WritingPage(),
+      binding: WritingBinding(),
     ),
   ];
 }

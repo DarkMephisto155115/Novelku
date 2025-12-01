@@ -5,7 +5,6 @@ import 'package:terra_brain/presentation/controllers/author_profile_controller.d
 import 'package:terra_brain/presentation/controllers/best_seller_list_controller.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
-import 'package:terra_brain/presentation/controllers/genre_selection_controller.dart';
 import 'package:terra_brain/presentation/controllers/gps_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
@@ -16,7 +15,9 @@ import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
+import '../controllers/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
+import '../controllers/writing_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -167,5 +168,12 @@ class GenreSelectionBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<GenreSelectionController>(() => GenreSelectionController());
+  }
+}
+
+class WritingBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<WritingController>(() => WritingController());
   }
 }

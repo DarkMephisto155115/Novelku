@@ -135,7 +135,7 @@ class ProfilePage extends GetView<ProfileController> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: controller.editProfile,
+                onPressed: () => Get.toNamed('/edit_profile'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Get.theme.primaryColor,
                   side: BorderSide(color: Get.theme.primaryColor),
