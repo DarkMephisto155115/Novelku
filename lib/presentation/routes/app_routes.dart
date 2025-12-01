@@ -20,4 +20,6 @@ abstract class Routes {
   static const ALL_NOVEL = '/all_novel';
   static const AUTHORS = '/list_author';
   static const AUTHOR_PROFILE = '/author_profile';
+  static const READING = '/reading';
+  static const GENRE_SELECTION = '/genre_selection';
 }

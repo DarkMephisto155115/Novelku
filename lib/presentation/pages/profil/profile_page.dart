@@ -41,6 +41,10 @@ class ProfilePage extends GetView<ProfileController> {
                     Get.toNamed('/setting');
                   },
                 ),
+                IconButton(
+                  onPressed: controller.logout, 
+                  icon: Icon(Icons.logout)
+                  ),
               ],
             ),
 
