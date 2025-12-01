@@ -2,12 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'package:collection/collection.dart'; // untuk ListEquality
 
 class HomeController extends GetxController {
-  final favoritesController = Get.find<FavoritesController>();
   final box = GetStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 

@@ -1,15 +1,13 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
-import 'package:terra_brain/presentation/pages/API_page.dart';
 import 'package:terra_brain/presentation/pages/auth/genre_selection_page.dart';
+import 'package:terra_brain/presentation/pages/author/all_author.dart';
 import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import 'package:terra_brain/presentation/pages/novel/reading_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
-import 'package:terra_brain/presentation/pages/favorite_page.dart';
-import 'package:terra_brain/presentation/pages/gps_page.dart';
 import 'package:terra_brain/presentation/pages/home/home_page.dart';
 import 'package:terra_brain/presentation/pages/auth/login_page.dart';
 import 'package:terra_brain/presentation/pages/profil/profile_page.dart';
@@ -52,10 +50,6 @@ class AppPages {
       binding: LoginBinding(),
     ),
     GetPage(
-        name: Routes.API,
-        page: () => const BestSellerListScreen(),
-        binding: APIBinding()),
-    GetPage(
       name: Routes.SPLASH,
       page: () => const SplashScreen(),
       binding: RegisterBinding(),
@@ -66,19 +60,9 @@ class AppPages {
       binding: SettingBinding(),
     ),
     GetPage(
-      name: Routes.FAVORITE,
-      page: () => const FavoritesPage(),
-      binding: FavoriteBinding(),
-    ),
-    GetPage(
       name: Routes.WRITE,
       page: () => const WriteStoryPage(),
       binding: SensorBinding(),
-    ),
-    GetPage(
-      name: Routes.GPS,
-      page: () => const GpsPage(),
-      binding: GpsBinding(),
     ),
     GetPage(
       name: Routes.Edit,
@@ -129,6 +113,11 @@ class AppPages {
       name: Routes.WRITING,
       page: () => WritingPage(),
       binding: WritingBinding(),
+    ),
+    GetPage(
+      name: Routes.ALL_AUTHOR,
+      page: () => AllAuthorPage(),
+      binding: AllAuthorBinding(),
     ),
   ];
 }
