@@ -1,317 +1,202 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
+import '../../controllers/edit_profile_controller.dart';
 
-class EditProfilePage extends GetView<EditProfileController> {
-  const EditProfilePage({super.key});
-  
+
+class EditProfilePage extends StatelessWidget {
+  final c = Get.put(EditProfileController());
+
   @override
   Widget build(BuildContext context) {
-    final namaController = TextEditingController();
-    final usernameController = TextEditingController();
-    final alamatController = TextEditingController();
-
-    // Inisialisasi controller dengan nilai dari RxString
-    namaController.text = controller.nama.value;
-    usernameController.text = controller.username.value;
-    alamatController.text = controller.alamat.value;
-
-    // Monitor perubahan di RxString dan update TextField
-    controller.nama.listen((value) {
-      namaController.text = value;
-    });
-
-    controller.username.listen((value) {
-      usernameController.text = value;
-    });
-
-    controller.alamat.listen((value) {
-      alamatController.text = value;
-    });
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(color: Colors.white),
+        title: const Text("Edit Profil"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
         ),
-        backgroundColor: Colors.grey[900],
       ),
-      body: Theme(
-        data: ThemeData.dark(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () => _showImageSourceDialog(context),
-                child: Obx(
-                  () => CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey[800],
-                    backgroundImage: controller.imagesURL.isNotEmpty
-                        ? NetworkImage(controller.imagesURL.value)
-                        : controller.imagesURL.isEmpty &&
-                                controller.imagesURL.value.isNotEmpty
-                            ? FileImage(File(controller.imagesURL.value))
-                                as ImageProvider
-                            : const AssetImage(
-                                'assets/images/default_avatar.png'),
-                    child: controller.imagesURL.isEmpty
-                        ? const Icon(Icons.person,
-                            size: 60, color: Colors.white)
-                        : null,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // PROFILE IMAGE
+            Obx(() {
+              return GestureDetector(
+                onTap: c.pickImage,
+                child: Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: namaController,
-                decoration: InputDecoration(
-                  labelText: 'Nama',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.nama.value = value,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.username.value = value,
-              ),
-              const SizedBox(height: 16),
-              Obx(() => Text(
-                    controller.birthDate.value != null
-                        ? 'Tanggal Lahir: ${DateFormat('dd/MM/yyyy').format(controller.birthDate.value!)}'
-                        : 'Tanggal Lahir: Belum dipilih',
-                    style: const TextStyle(color: Colors.white),
-                  )),
-              ElevatedButton(
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: ThemeData.dark(),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    controller.birthDate.value = picked;
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Pilih Tanggal Lahir',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: alamatController,
-                decoration: InputDecoration(
-                  labelText: 'Alamat',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.alamat.value = value,
-              ),
-              const SizedBox(height: 16),
-              Obx(() => Text(
-                    'Lokasi: ${controller.latitude.value}, ${controller.longitude.value}',
-                    style: const TextStyle(color: Colors.white),
-                  )),
-              ElevatedButton(
-                onPressed: controller.pilihLokasi,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Pilih Lokasi',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Get.dialog(
-                    AlertDialog(
-                      title: const Text(
-                        'Ubah Password',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      content: TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Password Baru',
-                          filled: true,
-                          fillColor: Colors.grey[800],
-                        ),
-                        onSubmitted: (value) {
-                          controller.ubahPassword(value);
-                          Get.back();
-                        },
-                      ),
-                      backgroundColor: Colors.grey[900],
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Ubah Password',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: controller.simpanProfil,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                ),
-                child: const Text(
-                  'Simpan Profil',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  Get.dialog(
-                    AlertDialog(
-                      title: const Text(
-                        'Hapus Akun',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      content: const Text(
-                        'Apakah Anda yakin ingin menghapus akun?',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Get.back(),
-                          child: const Text('Batal'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Get.back();
-                            controller.hapusAkun();
-                          },
-                          style:
-                              TextButton.styleFrom(foregroundColor: Colors.red),
-                          child: const Text(
-                            'Hapus',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
+                  child: Center(
+                    child: c.profileImage.value == null
+                        ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.camera_alt,
+                            color: Color(0xff9C27B0), size: 40),
+                        SizedBox(height: 8),
+                        Text("Klik ikon kamera untuk mengubah foto profil"),
                       ],
-                      backgroundColor: Colors.grey[900],
+                    )
+                        : ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(c.profileImage.value!.path),
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  ),
                 ),
-                child: const Text(
-                  'Hapus Akun',
-                  style: TextStyle(color: Colors.white),
-                ),
+              );
+            }),
+
+            const SizedBox(height: 20),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // FULL NAME
+                  const Text("Nama Lengkap"),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    return TextField(
+                      controller: TextEditingController(text: c.fullName.value),
+                      onChanged: (v) => c.fullName.value = v,
+                      decoration: inputStyle(),
+                    );
+                  }),
+
+                  const SizedBox(height: 16),
+
+                  // USERNAME
+                  const Text("Username"),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Text("@ "),
+                      Expanded(
+                        child: Obx(() {
+                          return TextField(
+                            controller:
+                            TextEditingController(text: c.username.value),
+                            onChanged: (v) => c.username.value = v,
+                            decoration: inputStyle(),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Username hanya boleh mengandung huruf, angka, dan underscore",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // EMAIL
+                  const Text("Email"),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    return TextField(
+                      controller: TextEditingController(text: c.email.value),
+                      onChanged: (v) => c.email.value = v,
+                      decoration: inputStyle(),
+                    );
+                  }),
+
+                  const SizedBox(height: 16),
+
+                  // BIO
+                  const Text("Bio"),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    return TextField(
+                      controller: TextEditingController(text: c.bio.value),
+                      onChanged: (v) => c.bio.value = v,
+                      maxLines: 4,
+                      decoration: inputStyle(),
+                    );
+                  }),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Obx(() => Text(
+                      "${c.bio.value.length}/150 karakter",
+                      style:
+                      const TextStyle(fontSize: 12, color: Colors.grey),
+                    )),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // BUTTON SAVE
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.save),
+                label: const Text("Simpan Perubahan"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff9C27B0),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: c.saveChanges,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // BUTTON CANCEL
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: Colors.grey.shade400),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => Get.back(),
+                child: const Text("Batal"),
+              ),
+            ),
+          ],
         ),
       ),
-      backgroundColor: Colors.black,
     );
   }
 
-  void _showImageSourceDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Pilih Sumber Gambar',
-            style:
-                TextStyle(color: Colors.white), // Set warna teks menjadi putih
-          ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                GestureDetector(
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.photo_library, // Ikon untuk Galeri
-                        color: Colors.white, // Warna ikon putih
-                      ),
-                      SizedBox(width: 8), // Spasi antara ikon dan teks
-                      Text(
-                        'Galeri',
-                        style:
-                            TextStyle(color: Colors.white), // Warna teks putih
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    _getImage(ImageSource.gallery);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const Padding(padding: EdgeInsets.all(8.0)),
-                GestureDetector(
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.camera_alt, // Ikon untuk Kamera
-                        color: Colors.white, // Warna ikon putih
-                      ),
-                      SizedBox(width: 8), // Spasi antara ikon dan teks
-                      Text(
-                        'Kamera',
-                        style:
-                            TextStyle(color: Colors.white), // Warna teks putih
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    _getImage(ImageSource.camera);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ),
-          backgroundColor: Colors.grey[900],
-        );
-      },
+  InputDecoration inputStyle() {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xffF5F5F5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xff9C27B0)),
+      ),
     );
-  }
-
-  Future<void> _getImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      controller.imagesURL.value = pickedFile.path;
-    }
   }
 }
