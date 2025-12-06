@@ -1,317 +1,409 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 
 class EditProfilePage extends GetView<EditProfileController> {
-  const EditProfilePage({super.key});
-  
+  const EditProfilePage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    final namaController = TextEditingController();
-    final usernameController = TextEditingController();
-    final alamatController = TextEditingController();
-
-    // Inisialisasi controller dengan nilai dari RxString
-    namaController.text = controller.nama.value;
-    usernameController.text = controller.username.value;
-    alamatController.text = controller.alamat.value;
-
-    // Monitor perubahan di RxString dan update TextField
-    controller.nama.listen((value) {
-      namaController.text = value;
-    });
-
-    controller.username.listen((value) {
-      usernameController.text = value;
-    });
-
-    controller.alamat.listen((value) {
-      alamatController.text = value;
-    });
     return Scaffold(
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Edit Profil',
-          style: TextStyle(color: Colors.white),
+          style: Get.theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Get.theme.appBarTheme.backgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: controller.cancelEditing,
+        ),
       ),
-      body: Theme(
-        data: ThemeData.dark(),
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () => _showImageSourceDialog(context),
-                child: Obx(
-                  () => CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey[800],
-                    backgroundImage: controller.imagesURL.isNotEmpty
-                        ? NetworkImage(controller.imagesURL.value)
-                        : controller.imagesURL.isEmpty &&
-                                controller.imagesURL.value.isNotEmpty
-                            ? FileImage(File(controller.imagesURL.value))
-                                as ImageProvider
-                            : const AssetImage(
-                                'assets/images/default_avatar.png'),
-                    child: controller.imagesURL.isEmpty
-                        ? const Icon(Icons.person,
-                            size: 60, color: Colors.white)
-                        : null,
-                  ),
-                ),
+              _buildProfileImageSection(),
+              SizedBox(height: 24),
+              Divider(
+                color: Get.theme.dividerColor.withOpacity(0.3),
+                height: 1,
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: namaController,
-                decoration: InputDecoration(
-                  labelText: 'Nama',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.nama.value = value,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.username.value = value,
-              ),
-              const SizedBox(height: 16),
-              Obx(() => Text(
-                    controller.birthDate.value != null
-                        ? 'Tanggal Lahir: ${DateFormat('dd/MM/yyyy').format(controller.birthDate.value!)}'
-                        : 'Tanggal Lahir: Belum dipilih',
-                    style: const TextStyle(color: Colors.white),
-                  )),
-              ElevatedButton(
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                    builder: (BuildContext context, Widget? child) {
-                      return Theme(
-                        data: ThemeData.dark(),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    controller.birthDate.value = picked;
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Pilih Tanggal Lahir',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: alamatController,
-                decoration: InputDecoration(
-                  labelText: 'Alamat',
-                  labelStyle: const TextStyle(color: Colors.white),
-                  filled: true,
-                  fillColor: Colors.grey[800],
-                ),
-                onChanged: (value) => controller.alamat.value = value,
-              ),
-              const SizedBox(height: 16),
-              Obx(() => Text(
-                    'Lokasi: ${controller.latitude.value}, ${controller.longitude.value}',
-                    style: const TextStyle(color: Colors.white),
-                  )),
-              ElevatedButton(
-                onPressed: controller.pilihLokasi,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Pilih Lokasi',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Get.dialog(
-                    AlertDialog(
-                      title: const Text(
-                        'Ubah Password',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      content: TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Password Baru',
-                          filled: true,
-                          fillColor: Colors.grey[800],
-                        ),
-                        onSubmitted: (value) {
-                          controller.ubahPassword(value);
-                          Get.back();
-                        },
-                      ),
-                      backgroundColor: Colors.grey[900],
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
-                ),
-                child: const Text(
-                  'Ubah Password',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: controller.simpanProfil,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                ),
-                child: const Text(
-                  'Simpan Profil',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  Get.dialog(
-                    AlertDialog(
-                      title: const Text(
-                        'Hapus Akun',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      content: const Text(
-                        'Apakah Anda yakin ingin menghapus akun?',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Get.back(),
-                          child: const Text('Batal'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Get.back();
-                            controller.hapusAkun();
-                          },
-                          style:
-                              TextButton.styleFrom(foregroundColor: Colors.red),
-                          child: const Text(
-                            'Hapus',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                      backgroundColor: Colors.grey[900],
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
-                child: const Text(
-                  'Hapus Akun',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
+              SizedBox(height: 24),
+              _buildFormSection(),
+              SizedBox(height: 32),
+              _buildActionButtons(),
+              SizedBox(height: 20),
             ],
           ),
         ),
       ),
-      backgroundColor: Colors.black,
     );
   }
 
-  void _showImageSourceDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Pilih Sumber Gambar',
-            style:
-                TextStyle(color: Colors.white), // Set warna teks menjadi putih
+  Widget _buildProfileImageSection() {
+    return Column(
+      children: [
+        Text(
+          'Klik ikon kamera untuk mengubah foto profil',
+          style: Get.theme.textTheme.bodyMedium?.copyWith(
+            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
           ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                GestureDetector(
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.photo_library, // Ikon untuk Galeri
-                        color: Colors.white, // Warna ikon putih
-                      ),
-                      SizedBox(width: 8), // Spasi antara ikon dan teks
-                      Text(
-                        'Galeri',
-                        style:
-                            TextStyle(color: Colors.white), // Warna teks putih
-                      ),
-                    ],
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 16),
+        Stack(
+          children: [
+            Obx(
+              () {
+                final image = controller.profileImage.value;
+                return Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Get.theme.primaryColor.withOpacity(0.2),
+                    border: Border.all(
+                      color: Get.theme.primaryColor,
+                      width: 3,
+                    ),
+                    image: image != null
+                        ? DecorationImage(
+                            image: FileImage(image),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  onTap: () {
-                    _getImage(ImageSource.gallery);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const Padding(padding: EdgeInsets.all(8.0)),
-                GestureDetector(
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.camera_alt, // Ikon untuk Kamera
-                        color: Colors.white, // Warna ikon putih
-                      ),
-                      SizedBox(width: 8), // Spasi antara ikon dan teks
-                      Text(
-                        'Kamera',
-                        style:
-                            TextStyle(color: Colors.white), // Warna teks putih
-                      ),
-                    ],
+                  child: image == null
+                      ? Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Get.theme.primaryColor,
+                        )
+                      : null,
+                );
+              },
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Get.theme.primaryColor,
+                  border: Border.all(
+                    color: Get.theme.scaffoldBackgroundColor,
+                    width: 3,
                   ),
-                  onTap: () {
-                    _getImage(ImageSource.camera);
-                    Navigator.of(context).pop();
-                  },
                 ),
-              ],
+                child: PopupMenuButton<String>(
+                  icon: Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                  offset: Offset(0, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: (value) {
+                    if (value == 'gallery') {
+                      controller.pickProfileImage();
+                    } else if (value == 'camera') {
+                      controller.takeProfilePhoto();
+                    } else if (value == 'remove') {
+                      controller.removeProfileImage();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'gallery',
+                      child: Row(
+                        children: [
+                          Icon(Icons.photo_library, size: 20),
+                          SizedBox(width: 8),
+                          Text('Pilih dari Galeri'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'camera',
+                      child: Row(
+                        children: [
+                          Icon(Icons.camera_alt, size: 20),
+                          SizedBox(width: 8),
+                          Text('Ambil Foto'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Hapus Foto',
+                              style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFormField(
+          label: 'Nama Lengkap',
+          controller: controller.nameController,
+          hintText: 'Masukkan nama lengkap',
+          validator: controller.validateName,
+          prefixIcon: Icons.person_outline,
+        ),
+        SizedBox(height: 20),
+        _buildFormField(
+          label: 'Username',
+          controller: controller.usernameController,
+          hintText: 'Masukkan username',
+          validator: controller.validateUsername,
+          prefixText: '@',
+          helperText:
+              'Username hanya boleh mengandung huruf, angka, dan underscore',
+        ),
+        SizedBox(height: 20),
+        _buildFormField(
+          label: 'Email',
+          controller: controller.emailController,
+          hintText: 'Masukkan email',
+          validator: controller.validateEmail,
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        SizedBox(height: 20),
+        _buildBioField(),
+      ],
+    );
+  }
+
+  Widget _buildFormField({
+    required String label,
+    required TextEditingController controller,
+    String? hintText,
+    String? Function(String?)? validator,
+    IconData? prefixIcon,
+    String? prefixText,
+    String? helperText,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Get.theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        SizedBox(height: 8),
+        if (helperText != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              helperText,
+              style: Get.theme.textTheme.bodySmall?.copyWith(
+                color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+              ),
             ),
           ),
-          backgroundColor: Colors.grey[900],
-        );
-      },
+        TextFormField(
+          controller: controller,
+          style: TextStyle(
+            color: Get.theme.textTheme.bodyLarge?.color,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: hintText,
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: Get.theme.hintColor)
+                : null,
+            prefixText: prefixText,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.dividerColor.withOpacity(0.5),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.dividerColor.withOpacity(0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.primaryColor,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: Get.theme.inputDecorationTheme.fillColor,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+          keyboardType: keyboardType,
+          validator: validator,
+        ),
+      ],
     );
   }
 
-  Future<void> _getImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      controller.imagesURL.value = pickedFile.path;
-    }
+  Widget _buildBioField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Bio',
+          style: Get.theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller.bioController,
+          style: TextStyle(
+            color: Get.theme.textTheme.bodyLarge?.color,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Ceritakan tentang dirimu...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.dividerColor.withOpacity(0.5),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.dividerColor.withOpacity(0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Get.theme.primaryColor,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: Get.theme.inputDecorationTheme.fillColor,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            counterText: '',
+          ),
+          maxLines: 4,
+          maxLength: 150,
+          validator: controller.validateBio,
+        ),
+        Obx(
+          () => Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              controller.bioCharCount.value,
+              style: Get.theme.textTheme.bodySmall?.copyWith(
+                color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        Obx(
+          () => SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed:
+                  controller.isLoading.value ? null : controller.saveChanges,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Get.theme.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: controller.isLoading.value
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Simpan Perubahan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        SizedBox(height: 12),
+
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: OutlinedButton(
+            onPressed: controller.cancelEditing,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Get.theme.textTheme.bodyMedium?.color,
+              side: BorderSide(
+                color: Get.theme.dividerColor.withOpacity(0.5),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

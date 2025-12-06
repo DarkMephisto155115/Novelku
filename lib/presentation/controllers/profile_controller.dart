@@ -108,10 +108,11 @@ import 'package:terra_brain/presentation/models/profile_model.dart';
     }
 
     void editProfile() {
-      Get.snackbar(
-        'Edit Profil',
-        'Fitur edit profil akan segera tersedia',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Edit Profil',
+      //   'Fitur edit profil akan segera tersedia',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
+      Get.toNamed('/edit_profile');
     }
   }
