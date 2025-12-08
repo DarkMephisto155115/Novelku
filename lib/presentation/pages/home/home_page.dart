@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
-import '../../controllers/favorites_controller.dart' as fav_ctrl_pkg;
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
 import '../../models/novel_item.dart';
 import '../../widgets/section_header.dart';
@@ -153,11 +152,6 @@ class HomePage extends StatelessWidget {
     } catch (e) {
       homeController = null;
     }
-    try {
-      favoritesController = Get.find<fav_ctrl_pkg.FavoritesController>();
-    } catch (e) {
-      favoritesController = null;
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -174,7 +168,8 @@ class HomePage extends StatelessWidget {
                 child: SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
               ),
               SizedBox(
-                height: 210,
+                
+                height: 220,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
@@ -187,7 +182,7 @@ class HomePage extends StatelessWidget {
 
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -198,7 +193,7 @@ class HomePage extends StatelessWidget {
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     TextButton(
-                        onPressed: () {}, child: const Text('Lihat Semua'))
+                        onPressed: () {Get.toNamed('/all_novel');}, child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
@@ -274,7 +269,7 @@ class HomePage extends StatelessWidget {
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     TextButton(
-                        onPressed: () {}, child: const Text('Lihat Semua'))
+                        onPressed: () {Get.toNamed('/all_author');}, child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
@@ -478,7 +473,7 @@ class HomePage extends StatelessWidget {
             onTap: () {
               print("Tulis Clicked");
               // Get.to(WritePage());
-              Get.toNamed('/write');
+              Get.toNamed('/writing');
             },
           ),
           _NavItem(

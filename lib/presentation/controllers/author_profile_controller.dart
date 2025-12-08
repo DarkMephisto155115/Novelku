@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/model/author_profile_model.dart';
+import 'package:terra_brain/presentation/models/author_profile_model.dart';
 
 class AuthorProfileController extends GetxController {
   final Rx<AuthorProfile> author = AuthorProfile(

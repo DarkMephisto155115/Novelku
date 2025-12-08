@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
-import 'package:terra_brain/presentation/model/author_profile_model.dart';
+import 'package:terra_brain/presentation/models/author_profile_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 class AuthorProfilePage extends GetView<AuthorProfileController> {

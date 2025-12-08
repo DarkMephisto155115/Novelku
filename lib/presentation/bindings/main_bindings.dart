@@ -1,12 +1,9 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/all_author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/best_seller_list_controller.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/favorites_controller.dart';
-import 'package:terra_brain/presentation/controllers/genre_selection_controller.dart';
-import 'package:terra_brain/presentation/controllers/gps_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
@@ -16,7 +13,9 @@ import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
+import '../controllers/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
+import '../controllers/writing_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -41,14 +40,6 @@ class ProfileBinding extends Bindings {
   }
 }
 
-class APIBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<BestSellerListController>(
-      () => BestSellerListController(),
-    );
-  }
-}
 
 class RegisterBinding extends Bindings {
   @override
@@ -68,14 +59,7 @@ class SettingBinding extends Bindings {
   }
 }
 
-class FavoriteBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<FavoritesController>(
-      () => FavoritesController(),
-    );
-  }
-}
+
 
 class SensorBinding extends Bindings {
   @override
@@ -86,14 +70,7 @@ class SensorBinding extends Bindings {
   }
 }
 
-class GpsBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<GpsController>(
-      () => GpsController(),
-    );
-  }
-}
+
 
 class EditProfileBinding extends Bindings {
   @override
@@ -167,5 +144,19 @@ class GenreSelectionBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<GenreSelectionController>(() => GenreSelectionController());
+  }
+}
+
+class WritingBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<WritingController>(() => WritingController());
+  }
+}
+
+class AllAuthorBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AllAuthorController>(() => AllAuthorController());
   }
 }

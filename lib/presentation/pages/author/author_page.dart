@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/author_controller.dart';
-import 'package:terra_brain/presentation/model/author_model.dart';
+import 'package:terra_brain/presentation/models/author_model.dart';
 
 class AuthorsPage extends GetView<AuthorsController> {
   const AuthorsPage({Key? key}) : super(key: key);

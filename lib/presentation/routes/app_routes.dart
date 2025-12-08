@@ -18,8 +18,11 @@ abstract class Routes {
   static const PROFILE_READ = '/profile_read';
   static const EDIT_READ = '/edit_read';
   static const ALL_NOVEL = '/all_novel';
+  static const ALL_AUTHOR = '/all_author';
   static const AUTHORS = '/list_author';
   static const AUTHOR_PROFILE = '/author_profile';
   static const READING = '/reading';
   static const GENRE_SELECTION = '/genre_selection';
+  static const WRITING = '/writing';
+
 }
