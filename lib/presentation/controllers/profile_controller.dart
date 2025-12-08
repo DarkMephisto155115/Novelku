@@ -113,20 +113,20 @@ class ProfileController extends GetxController {
     );
   }
 
-  String formatNumber(int number) {
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    }
-    return number.toString();
-  }
-
-  void editProfile() {
-    Get.snackbar(
-      'Edit Profil',
-      'Fitur edit profil akan segera tersedia',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
+  // String formatNumber(int number) {
+  //   if (number >= 1000) {
+  //     return '${(number / 1000).toStringAsFixed(1)}K';
+  //   }
+  //   return number.toString();
+  // }
+  //
+  // void editProfile() {
+  //   Get.snackbar(
+  //     'Edit Profil',
+  //     'Fitur edit profil akan segera tersedia',
+  //     snackPosition: SnackPosition.BOTTOM,
+  //   );
+  // }
 
   Future<void> logout() async {
     try {
@@ -143,22 +143,27 @@ class ProfileController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 2),
       );
-    }
-
-    String formatNumber(int number) {
-      if (number >= 1000) {
-        return '${(number / 1000).toStringAsFixed(1)}K';
-      }
-      return number.toString();
-    }
-
-    void editProfile() {
-      // Get.snackbar(
-      //   'Edit Profil',
-      //   'Fitur edit profil akan segera tersedia',
-      //   snackPosition: SnackPosition.BOTTOM,
-      // );
-      Get.toNamed('/edit_profile');
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Logout failed: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
     }
   }
+
+// Fungsi membantu format angka
+  String formatNumber(int number) {
+    if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
+  }
+
+// Fungsi pindah halaman edit profile
+  void editProfile() {
+    Get.toNamed('/edit_profile');
+  }
+
 }
