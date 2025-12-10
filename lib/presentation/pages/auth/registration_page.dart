@@ -268,8 +268,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                     controller.passwordHidden.value
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color:
-                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color: controller.passwordHidden.value
+                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.togglePasswordVisibility,
                 ),
@@ -316,8 +317,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                     controller.confirmPasswordHidden.value
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color:
-                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color: controller.confirmPasswordHidden.value
+                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.toggleConfirmPasswordVisibility,
                 ),

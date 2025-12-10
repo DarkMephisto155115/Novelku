@@ -11,8 +11,8 @@ class RegistrationController extends GetxController {
   var username = ''.obs;
   var password = ''.obs;
   var confirmPassword = ''.obs;
-  var passwordHidden = true.obs;
-  var confirmPasswordHidden = true.obs;
+  var passwordHidden = false.obs;
+  var confirmPasswordHidden = false.obs;
   var isLoading = false.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;

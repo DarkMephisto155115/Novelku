@@ -222,8 +222,9 @@ class LoginPage extends GetView<LoginController> {
                   controller.isPasswordHidden.value
                       ? Icons.visibility
                       : Icons.visibility_off,
-                  color:
-                      Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  color: controller.isPasswordHidden.value
+                      ? AppThemeData.primaryColor.withOpacity(0.8)
+                      : Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                 ),
                 onPressed: controller.togglePasswordVisibility,
               ),
