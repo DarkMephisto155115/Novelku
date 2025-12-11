@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,14 +16,32 @@ class SplashScreen extends StatelessWidget {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    String userId = prefs.getString('userId') ?? "";
 
-    if (isLoggedIn) {
-      // await Future.delayed(const Duration(seconds: 1));
-      Get.offAllNamed(Routes.HOME);
-    } else {
-      await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!isLoggedIn || userId.isEmpty) {
       Get.offAllNamed(Routes.LOGIN);
+      return;
     }
+
+    bool hasGenres = await hasSelectedGenres(userId);
+
+    if (!hasGenres) {
+      Get.offAllNamed(Routes.GENRE_SELECTION);
+    } else {
+      Get.offAllNamed(Routes.HOME);
+    }
+  }
+
+  Future<bool> hasSelectedGenres(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('selectedGenres')
+        .get();
+
+    return snapshot.docs.isNotEmpty;
   }
 
   @override

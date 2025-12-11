@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 

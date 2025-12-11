@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
 import 'package:terra_brain/presentation/controllers/all_author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
@@ -7,14 +7,14 @@ import 'package:terra_brain/presentation/controllers/edit_profile_controller.dar
 import 'package:terra_brain/presentation/controllers/premium_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
-import 'package:terra_brain/presentation/controllers/register_controller.dart';
+import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
-import '../controllers/genre_selection_controller.dart';
+import '../controllers/auth/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/writing_controller.dart';
 

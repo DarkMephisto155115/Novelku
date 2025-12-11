@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/genre_selection_controller.dart';
+import 'package:terra_brain/presentation/controllers/auth/genre_selection_controller.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
 
 class GenreSelectionPage extends GetView<GenreSelectionController> {
@@ -37,7 +37,6 @@ class GenreSelectionPage extends GetView<GenreSelectionController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Welcome Title
         Text(
           'Selamat Datang!',
           style: Get.theme.textTheme.headlineSmall?.copyWith(
@@ -95,19 +94,21 @@ class GenreSelectionPage extends GetView<GenreSelectionController> {
 
           // Genre Grid
           Expanded(
-            child: Obx(() => GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemCount: controller.genres.length,
-                  itemBuilder: (context, index) {
-                    final genre = controller.genres[index];
-                    return _buildGenreCard(genre);
-                  },
-                )),
+            child: Obx(
+              () => GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.2,
+                ),
+                itemCount: controller.genres.length,
+                itemBuilder: (context, index) {
+                  final genre = controller.genres[index];
+                  return _buildGenreCard(genre);
+                },
+              ),
+            ),
           ),
         ],
       ),
@@ -122,11 +123,11 @@ class GenreSelectionPage extends GetView<GenreSelectionController> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300),
         decoration: BoxDecoration(
-          color: isSelected ? Get.theme.primaryColor : Get.theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? Get.theme.primaryColor.withOpacity(0.1) : Get.theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
-                ? Get.theme.primaryColor
+                ? Get.theme.primaryColor.withOpacity(0.7)
                 : Get.theme.dividerColor.withOpacity(0.3),
             width: 2,
           ),
@@ -140,7 +141,7 @@ class GenreSelectionPage extends GetView<GenreSelectionController> {
               genre.name,
               style: TextStyle(
                 color: isSelected
-                    ? Colors.white
+                    ? Get.theme.textTheme.labelSmall?.color
                     : Get.theme.textTheme.bodyMedium?.color,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

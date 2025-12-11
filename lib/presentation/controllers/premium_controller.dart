@@ -56,7 +56,6 @@ class PremiumController extends GetxController {
 
   Future<void> _loadPremiumStatus() async {
     try {
-      log("mengambil status premium");
       final data = await getDataFirestore(userId.value);
 
       if (data != null) {
@@ -65,20 +64,18 @@ class PremiumController extends GetxController {
         isPremium.value = false;
       }
     } catch (e) {
-      print('Error loading premium status: $e');
+      rethrow;
     }
   }
 
   Future<void> _getStatusLogin() async {
     try {
-      log("cek udah login belum");
       isLoggedIn.value = prefs.getBool('isLoggedIn') ?? false;
       if (isLoggedIn.value) {
-        log("ternyata sudah");
         userId.value = prefs.getString('userId') ?? '';
       }
     } catch (e) {
-      print("belum login");
+      rethrow;
     }
   }
 
@@ -87,7 +84,6 @@ class PremiumController extends GetxController {
       DocumentSnapshot<Map<String, dynamic>> document =
           await _firestore.collection('users').doc(userId).get();
       if (document.exists) {
-        print(document.data());
         return document.data()!;
       } else {
         print("Data tidak ditemukan dari id: $userId");
@@ -116,7 +112,7 @@ class PremiumController extends GetxController {
     showPremiumPopup.value = false;
 
     if (Get.isDialogOpen ?? false) {
-      Get.back(); // TUTUP POPUP
+      Get.back();
     }
   }
 
@@ -137,17 +133,16 @@ class PremiumController extends GetxController {
 
   void setShowPopupOnNextLaunch(bool show) async {
     try {
-      // final prefs = Get.find<SharedPreferences>();
       log("show? $show");
       await prefs.setBool('show_premium_popup_on_launch', show);
     } catch (e) {
       print('Error setting show popup: $e');
+      rethrow;
     }
   }
 
   bool shouldShowPopupOnLaunch() {
     try {
-      // final prefs = Get.find<SharedPreferences>();
       final isPremium = prefs.getBool('is_premium') ?? false;
       final showOnLaunch =
           prefs.getBool('show_premium_popup_on_launch') ?? true;
@@ -173,11 +168,11 @@ class PremiumController extends GetxController {
 
   void recordPopupShown() async {
     try {
-      // final prefs = Get.find<SharedPreferences>();
       await prefs.setInt(
           'last_premium_popup_shown', DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       print('Error recording popup shown: $e');
+      rethrow;
     }
   }
 }
