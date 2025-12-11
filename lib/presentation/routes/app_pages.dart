@@ -27,7 +27,7 @@ class AppPages {
   static final routes = [
     GetPage(
       name: '/splash',
-      page: () => const SplashScreen(),
+      page: () => SplashScreen(),
       binding: SplashBinding(),
     ),
     GetPage(
@@ -51,7 +51,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.SPLASH,
-      page: () => const SplashScreen(),
+      page: () => SplashScreen(),
       binding: RegisterBinding(),
     ),
     GetPage(

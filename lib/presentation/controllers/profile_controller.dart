@@ -113,21 +113,6 @@ class ProfileController extends GetxController {
     );
   }
 
-  // String formatNumber(int number) {
-  //   if (number >= 1000) {
-  //     return '${(number / 1000).toStringAsFixed(1)}K';
-  //   }
-  //   return number.toString();
-  // }
-  //
-  // void editProfile() {
-  //   Get.snackbar(
-  //     'Edit Profil',
-  //     'Fitur edit profil akan segera tersedia',
-  //     snackPosition: SnackPosition.BOTTOM,
-  //   );
-  // }
-
   Future<void> logout() async {
     try {
       await _auth.signOut();
@@ -153,7 +138,6 @@ class ProfileController extends GetxController {
     }
   }
 
-// Fungsi membantu format angka
   String formatNumber(int number) {
     if (number >= 1000) {
       return '${(number / 1000).toStringAsFixed(1)}K';
@@ -161,7 +145,6 @@ class ProfileController extends GetxController {
     return number.toString();
   }
 
-// Fungsi pindah halaman edit profile
   void editProfile() {
     Get.toNamed('/edit_profile');
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
+import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/novel_item.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/widgets/novel_card.dart';
@@ -40,6 +41,11 @@ class ReadingPage extends GetView<ReadingController> {
 
   @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PremiumPopupManager.showPopupBeforeReading();
+    });
+
     return Scaffold(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       body: CustomScrollView(

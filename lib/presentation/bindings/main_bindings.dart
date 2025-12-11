@@ -4,6 +4,7 @@ import 'package:terra_brain/presentation/controllers/all_author_controller.dart'
 import 'package:terra_brain/presentation/controllers/author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/premium_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
 import 'package:terra_brain/presentation/controllers/register_controller.dart';
@@ -40,7 +41,6 @@ class ProfileBinding extends Bindings {
   }
 }
 
-
 class RegisterBinding extends Bindings {
   @override
   void dependencies() {
@@ -59,8 +59,6 @@ class SettingBinding extends Bindings {
   }
 }
 
-
-
 class SensorBinding extends Bindings {
   @override
   void dependencies() {
@@ -69,8 +67,6 @@ class SensorBinding extends Bindings {
     );
   }
 }
-
-
 
 class EditProfileBinding extends Bindings {
   @override
@@ -119,6 +115,10 @@ class SplashBinding extends Bindings {
     Get.lazyPut<ThemeController>(
       () => ThemeController(),
     );
+    Get.lazyPut<PremiumController>(
+      () => PremiumController(),
+      fenix: true,
+    );
   }
 }
 
@@ -126,7 +126,7 @@ class AllNovelBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<AllNovelController>(
-          () => AllNovelController(),
+      () => AllNovelController(),
     );
   }
 }
@@ -135,7 +135,7 @@ class ReadingBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<ReadingController>(
-          () => ReadingController(),
+      () => ReadingController(),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
+import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
@@ -281,7 +282,14 @@ class ProfilePage extends GetView<ProfileController> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: controller.upgradeToPremium,
+              // onPressed: controller.upgradeToPremium,
+              onPressed: () {
+                PremiumPopupManager.showPremiumPopup(
+                  title: "Upgrade ke Premium",
+                  description: "Nikmati membaca tanpa batas dengan premium!!",
+                  showCloseButton: true,
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber,
                 foregroundColor: Colors.black,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
 import '../../models/novel_item.dart';
@@ -152,6 +153,10 @@ class HomePage extends StatelessWidget {
     } catch (e) {
       homeController = null;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PremiumPopupManager.checkAndShowPopupOnLaunch();
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
