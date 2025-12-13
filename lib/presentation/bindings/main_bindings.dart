@@ -1,8 +1,7 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
-import 'package:terra_brain/presentation/controllers/all_author_controller.dart';
-import 'package:terra_brain/presentation/controllers/author_controller.dart';
-import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/author/author_controller.dart';
+import 'package:terra_brain/presentation/controllers/author/author_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/premium_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile_controller.dart';
@@ -151,12 +150,5 @@ class WritingBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<WritingController>(() => WritingController());
-  }
-}
-
-class AllAuthorBinding implements Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<AllAuthorController>(() => AllAuthorController());
   }
 }

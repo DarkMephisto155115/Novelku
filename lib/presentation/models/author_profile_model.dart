@@ -1,24 +1,5 @@
-class Novel {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String category;
-  final int chapterCount;
-  final int likeCount;
-  final int viewCount;
-  final bool isOngoing;
-
-  Novel({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.category,
-    required this.chapterCount,
-    required this.likeCount,
-    required this.viewCount,
-    required this.isOngoing,
-  });
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'novel_model.dart';
 
 class AuthorProfile {
   final String id;
@@ -31,7 +12,6 @@ class AuthorProfile {
   final int followingCount;
   final int totalLikes;
   final List<Novel> novels;
-  final bool isFollowing;
 
   AuthorProfile({
     required this.id,
@@ -44,6 +24,51 @@ class AuthorProfile {
     required this.followingCount,
     required this.totalLikes,
     required this.novels,
-    required this.isFollowing,
   });
+
+  AuthorProfile copyWith({
+    String? id,
+    String? name,
+    String? username,
+    String? bio,
+    String? profileImage,
+    int? novelCount,
+    int? followerCount,
+    int? followingCount,
+    int? totalLikes,
+    List<Novel>? novels,
+  }) {
+    return AuthorProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      username: username ?? this.username,
+      bio: bio ?? this.bio,
+      profileImage: profileImage ?? this.profileImage,
+      novelCount: novelCount ?? this.novelCount,
+      followerCount: followerCount ?? this.followerCount,
+      followingCount: followingCount ?? this.followingCount,
+      totalLikes: totalLikes ?? this.totalLikes,
+      novels: novels ?? this.novels,
+    );
+  }
+
+  factory AuthorProfile.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc,
+      List<Novel> novels,
+      ) {
+    final data = doc.data()!;
+
+    return AuthorProfile(
+      id: doc.id,
+      name: data['name'] ?? '',
+      username: data['username'] ?? '',
+      bio: data['bio'] ?? '',
+      profileImage: data['imagesURL'] ?? data['imageURL'],
+      novelCount: (data['novelCount'] ?? novels.length) as int,
+      followerCount: (data['followerCount'] ?? 0) as int,
+      followingCount: (data['followingCount'] ?? 0) as int,
+      totalLikes: (data['totalLikes'] ?? 0) as int,
+      novels: novels,
+    );
+  }
 }

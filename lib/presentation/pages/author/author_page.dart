@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/author_controller.dart';
+import 'package:terra_brain/presentation/controllers/author/author_controller.dart';
 import 'package:terra_brain/presentation/models/author_model.dart';
 
 class AuthorsPage extends GetView<AuthorsController> {
@@ -22,16 +22,9 @@ class AuthorsPage extends GetView<AuthorsController> {
       ),
       body: Column(
         children: [
-          // Search Bar
           _buildSearchBar(),
-
-          // Category Filter
           _buildCategoryFilter(),
-
-          // Authors List
-          Expanded(
-            child: _buildAuthorsList(),
-          ),
+          Expanded(child: _buildAuthorsList()),
         ],
       ),
     );
@@ -39,26 +32,17 @@ class AuthorsPage extends GetView<AuthorsController> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Get.theme.cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: TextField(
-          onChanged: controller.setSearchQuery,
-          decoration: InputDecoration(
-            hintText: 'Cari penulis...',
-            prefixIcon: Icon(Icons.search, color: Get.theme.hintColor),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
+      child: TextField(
+        onChanged: controller.setSearchQuery,
+        decoration: InputDecoration(
+          hintText: 'Cari penulis...',
+          prefixIcon: Icon(Icons.search, color: Get.theme.hintColor),
+          filled: true,
+          fillColor: Get.theme.cardColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
         ),
       ),
@@ -66,223 +50,202 @@ class AuthorsPage extends GetView<AuthorsController> {
   }
 
   Widget _buildCategoryFilter() {
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: controller.categories.length,
-        itemBuilder: (context, index) {
-          final category = controller.categories[index];
+    return Obx(
+      () {
+        final categories = controller.categories;
+        final selected = controller.selectedCategory.value;
 
-          return Obx(() {
-            final isSelected = controller.selectedCategory.value == category;
+        return SizedBox(
+          height: 48,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: categories.length,
+            itemBuilder: (_, i) {
+              final category = categories[i];
+              final isSelected = selected == category;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: FilterChip(
-                label: Text(category),
-                selected: isSelected,
-                onSelected: (_) => controller.setCategory(category),
-                backgroundColor: Get.theme.cardColor,
-                selectedColor: Get.theme.primaryColor.withOpacity(0.2),
-                checkmarkColor: Get.theme.primaryColor,
-              ),
-            );
-          });
-        },
-      ),
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  key: ValueKey(category), // 🔥 WAJIB
+                  label: Text(category),
+                  selected: isSelected,
+                  onSelected: (_) {
+                    controller.setCategory(category);
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _buildAuthorsList() {
-    return Obx(() {
-      final items = controller.structuredList;
+    return Obx(
+      () {
+        final items = controller.structuredList;
 
-      if (items.isEmpty) {
-        return Center(
-          child: Text(
-            'Tidak ada penulis ditemukan',
-            style: Get.theme.textTheme.bodyMedium,
-          ),
+        if (items.isEmpty) {
+          return _emptyState();
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: items.length,
+          itemBuilder: (_, index) {
+            final item = items[index];
+
+            if (item == '_header_new') {
+              return _sectionHeader('✨ Penulis Baru');
+            }
+            if (item == '_divider_new') {
+              return _divider();
+            }
+            if (item == '_header_popular') {
+              return _sectionHeader('🔥 Penulis Populer');
+            }
+            if (item == '_header_all') {
+              return _sectionHeader('📚 Semua Penulis');
+            }
+
+            return _authorCard(item as Author);
+          },
         );
-      }
-
-      return ListView.builder(
-        padding: EdgeInsets.all(16),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-
-          if (item == '_header_new') {
-            return _buildSectionHeader('Penulis Baru');
-          }
-
-          if (item == '_divider_new') {
-            return _buildDivider();
-          }
-
-          if (item == '_header_popular') {
-            return _buildSectionHeader('Penulis Populer');
-          }
-
-          // Otherwise it's an Author
-          return _buildAuthorCard(item as Author);
-        },
-      );
-    });
+      },
+    );
   }
 
-  Widget _buildListItem(int index, List<Author> authors) {
-    int currentIndex = 0;
-
-    // Check for New Authors section
-    final newAuthors = controller.newAuthors;
-    if (newAuthors.isNotEmpty) {
-      if (index == currentIndex) {
-        return _buildSectionHeader('Penulis Baru');
-      }
-      currentIndex++;
-
-      for (int i = 0; i < newAuthors.length; i++) {
-        if (index == currentIndex) {
-          return _buildAuthorCard(newAuthors[i]);
-        }
-        currentIndex++;
-      }
-
-      if (index == currentIndex) {
-        return _buildDivider();
-      }
-      currentIndex++;
-    }
-
-    // Check for Popular Authors section
-    final popularAuthors = controller.popularAuthors;
-    if (popularAuthors.isNotEmpty) {
-      if (index == currentIndex) {
-        return _buildSectionHeader('Penulis Populer');
-      }
-      currentIndex++;
-
-      for (int i = 0; i < popularAuthors.length; i++) {
-        if (index == currentIndex) {
-          return _buildAuthorCard(popularAuthors[i]);
-        }
-        currentIndex++;
-      }
-    }
-
-    // Calculate actual author index for other authors
-    final sectionHeadersCount = _getSectionCount(authors);
-    final authorIndex = index - sectionHeadersCount;
-
-    if (authorIndex >= 0 && authorIndex < authors.length) {
-      return _buildAuthorCard(authors[authorIndex]);
-    }
-
-    return SizedBox.shrink();
-  }
-
-  int _getSectionCount(List<Author> authors) {
-    int count = 0;
-    if (controller.newAuthors.isNotEmpty) {
-      count += 2; // Header + Divider
-    }
-    if (controller.popularAuthors.isNotEmpty) {
-      count += 1; // Header
-    }
-    return count;
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Text(
-        title,
-        style: Get.theme.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
+  Widget _emptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 60),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.person_off,
+                size: 80, color: Get.theme.hintColor.withOpacity(0.5)),
+            const SizedBox(height: 12),
+            Text(
+              'Belum ada penulis ditemukan',
+              style: Get.theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Nungguin mereka nulis dulu ya...',
+              style: Get.theme.textTheme.bodySmall
+                  ?.copyWith(color: Get.theme.hintColor),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDivider() {
+  Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Divider(
-        color: Get.theme.dividerColor.withOpacity(0.3),
-        height: 1,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Text(
+        title,
+        style: Get.theme.textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
 
-  Widget _buildAuthorCard(Author author) {
+  Widget _divider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Divider(),
+    );
+  }
+
+  Widget _authorCard(Author author) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        Get.toNamed('/author_profile');
-      },
-      // ),
+      onTap: () => Get.toNamed('/author_profile/${author.id}'),
       child: Card(
-        margin: EdgeInsets.only(bottom: 12),
-        color: Get.theme.cardColor,
+        margin: const EdgeInsets.only(bottom: 12),
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // FOTO DI KIRI
               ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: Image.asset(
-                  author.imageUrl ?? 'assets/images/default_profile.jpeg',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
+                  borderRadius: BorderRadius.circular(40),
+                  child: Image.network(
+                    author.imageUrl!,
+                    width: 55,
+                    height: 55,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/default_profile.jpeg',
+                        width: 55,
+                        height: 55,
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  )
 
-              SizedBox(width: 16),
-
-              // INFO DI KANAN
+                  ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      author.name,
-                      style: Get.theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      author.description,
-                      style: Get.theme.textTheme.bodyMedium?.copyWith(
-                        color: Get.theme.textTheme.bodyMedium?.color
-                            ?.withOpacity(0.8),
-                      ),
-                    ),
-                    SizedBox(height: 12),
                     Row(
                       children: [
-                        _buildStatItem(
-                            '${author.novelCount} novel', Icons.book),
-                        SizedBox(width: 16),
-                        _buildStatItem(
-                          '${_formatFollowerCount(author.followerCount)} pengikut',
-                          Icons.people,
+                        Expanded(
+                          child: Text(
+                            author.name,
+                            style: Get.theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        SizedBox(width: 16),
+                        if (author.isNew)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Get.theme.primaryColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Baru',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Get.theme.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      author.biodata,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Get.theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _stat(Icons.menu_book, '${author.novelCount} novel'),
+                        const SizedBox(width: 16),
+                        _stat(Icons.people,
+                            '${_formatFollowers(author.followerCount)} pengikut'),
+                        const Spacer(),
                         Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Get.theme.primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -290,18 +253,16 @@ class AuthorsPage extends GetView<AuthorsController> {
                           child: Text(
                             author.category,
                             style: TextStyle(
-                              color: Get.theme.primaryColor,
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              color: Get.theme.primaryColor,
                             ),
                           ),
                         ),
-                        Spacer(),
                       ],
                     ),
                   ],
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -309,29 +270,25 @@ class AuthorsPage extends GetView<AuthorsController> {
     );
   }
 
-  Widget _buildStatItem(String text, IconData icon) {
+  Widget _stat(IconData icon, String text) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
-        ),
-        SizedBox(width: 4),
-        Text(
-          text,
-          style: Get.theme.textTheme.bodySmall?.copyWith(
-            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-          ),
-        ),
+        Icon(icon, size: 16),
+        const SizedBox(width: 4),
+        Text(text, style: Get.theme.textTheme.bodySmall),
       ],
     );
   }
 
-  String _formatFollowerCount(int count) {
-    if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K';
+  String _formatFollowers(int value) {
+    if (value < 1000) return value.toString();
+
+    if (value < 1000000) {
+      final r = value / 1000;
+      return '${r.toStringAsFixed(r.truncateToDouble() == r ? 0 : 1)}K';
     }
-    return count.toString();
+
+    final r = value / 1000000;
+    return '${r.toStringAsFixed(r.truncateToDouble() == r ? 0 : 1)}M';
   }
 }

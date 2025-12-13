@@ -274,7 +274,7 @@ class HomePage extends StatelessWidget {
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     TextButton(
-                        onPressed: () {Get.toNamed('/all_author');}, child: const Text('Lihat Semua'))
+                        onPressed: () {Get.toNamed('/list_author');}, child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
