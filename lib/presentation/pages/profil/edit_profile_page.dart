@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/edit_profile_controller.dart';
 
 class EditProfilePage extends GetView<EditProfileController> {
   const EditProfilePage({Key? key}) : super(key: key);
@@ -50,116 +50,132 @@ class EditProfilePage extends GetView<EditProfileController> {
   }
 
   Widget _buildProfileImageSection() {
-    return Column(
-      children: [
-        Text(
-          'Klik ikon kamera untuk mengubah foto profil',
-          style: Get.theme.textTheme.bodyMedium?.copyWith(
-            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Klik ikon kamera untuk mengubah foto profil',
+            style: Get.theme.textTheme.bodyMedium?.copyWith(
+              color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 16),
-        Stack(
-          children: [
-            Obx(
-              () {
-                final image = controller.profileImage.value;
-                return Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Get.theme.primaryColor.withOpacity(0.2),
-                    border: Border.all(
-                      color: Get.theme.primaryColor,
-                      width: 3,
+          const SizedBox(height: 16),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Obx(
+                () {
+                  final File? localImage = controller.profileImage.value;
+                  final String imageUrl =
+                      controller.originalProfileImageUrl.value;
+
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Get.theme.primaryColor.withOpacity(0.2),
+                      border: Border.all(
+                        color: Get.theme.primaryColor,
+                        width: 3,
+                      ),
+                      image: localImage != null
+                          ? DecorationImage(
+                              image: FileImage(localImage),
+                              fit: BoxFit.cover,
+                            )
+                          : imageUrl.isNotEmpty
+                              ? DecorationImage(
+                                  image: NetworkImage(imageUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                     ),
-                    image: image != null
-                        ? DecorationImage(
-                            image: FileImage(image),
-                            fit: BoxFit.cover,
+                    child: localImage == null && imageUrl.isEmpty
+                        ? Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Get.theme.primaryColor,
                           )
                         : null,
-                  ),
-                  child: image == null
-                      ? Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Get.theme.primaryColor,
-                        )
-                      : null,
-                );
-              },
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Get.theme.primaryColor,
-                  border: Border.all(
-                    color: Get.theme.scaffoldBackgroundColor,
-                    width: 3,
-                  ),
-                ),
-                child: PopupMenuButton<String>(
-                  icon: Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                  offset: Offset(0, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  onSelected: (value) {
-                    if (value == 'gallery') {
-                      controller.pickProfileImage();
-                    } else if (value == 'camera') {
-                      controller.takeProfilePhoto();
-                    } else if (value == 'remove') {
-                      controller.removeProfileImage();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'gallery',
-                      child: Row(
-                        children: [
-                          Icon(Icons.photo_library, size: 20),
-                          SizedBox(width: 8),
-                          Text('Pilih dari Galeri'),
-                        ],
-                      ),
+                  );
+                },
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Get.theme.primaryColor,
+                    border: Border.all(
+                      color: Get.theme.scaffoldBackgroundColor,
+                      width: 3,
                     ),
-                    PopupMenuItem(
-                      value: 'camera',
-                      child: Row(
-                        children: [
-                          Icon(Icons.camera_alt, size: 20),
-                          SizedBox(width: 8),
-                          Text('Ambil Foto'),
-                        ],
-                      ),
+                  ),
+                  child: PopupMenuButton<String>(
+                    icon: const Icon(Icons.camera_alt,
+                        color: Colors.white, size: 20),
+                    offset: const Offset(0, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    PopupMenuItem(
-                      value: 'remove',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Hapus Foto',
-                              style: TextStyle(color: Colors.red)),
-                        ],
+                    onSelected: (value) {
+                      if (value == 'gallery') {
+                        controller.pickProfileImage();
+                      } else if (value == 'camera') {
+                        controller.takeProfilePhoto();
+                      } else if (value == 'remove') {
+                        controller.removeProfileImage();
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'gallery',
+                        child: Row(
+                          children: [
+                            Icon(Icons.photo_library, size: 20),
+                            SizedBox(width: 8),
+                            Text('Pilih dari Galeri'),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const PopupMenuItem(
+                        value: 'camera',
+                        child: Row(
+                          children: [
+                            Icon(Icons.camera_alt, size: 20),
+                            SizedBox(width: 8),
+                            Text('Ambil Foto'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'remove',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text(
+                              'Hapus Foto',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -379,7 +395,6 @@ class EditProfilePage extends GetView<EditProfileController> {
           ),
         ),
         SizedBox(height: 12),
-
         SizedBox(
           width: double.infinity,
           height: 50,

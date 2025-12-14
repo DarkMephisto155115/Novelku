@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/profile_controller.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
@@ -43,9 +43,7 @@ class ProfilePage extends GetView<ProfileController> {
                   },
                 ),
                 IconButton(
-                  onPressed: controller.logout, 
-                  icon: Icon(Icons.logout)
-                  ),
+                    onPressed: controller.logout, icon: Icon(Icons.logout)),
               ],
             ),
 
@@ -80,7 +78,6 @@ class ProfilePage extends GetView<ProfileController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // FOTO PROFIL
             Container(
               width: 80,
               height: 80,
@@ -92,10 +89,18 @@ class ProfilePage extends GetView<ProfileController> {
                   width: 2,
                 ),
               ),
-              child: Icon(
-                Icons.person,
-                size: 40,
-                color: Get.theme.primaryColor,
+              child: ClipOval(
+                child:
+                    user.profileImage != null && user.profileImage!.isNotEmpty
+                        ? Image.network(
+                            user.profileImage!,
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Get.theme.primaryColor,
+                          ),
               ),
             ),
 
