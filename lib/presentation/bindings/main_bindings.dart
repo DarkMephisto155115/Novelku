@@ -8,14 +8,13 @@ import 'package:terra_brain/presentation/controllers/profile/profile_controller.
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
 import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
-import 'package:terra_brain/presentation/controllers/story_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
-import '../controllers/writing_controller.dart';
+import '../controllers/write/writing_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -72,15 +71,6 @@ class EditProfileBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<EditProfileController>(
       () => EditProfileController(),
-    );
-  }
-}
-
-class StoryBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<StoryController>(
-      () => StoryController(),
     );
   }
 }

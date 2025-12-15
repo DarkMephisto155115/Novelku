@@ -5,143 +5,10 @@ import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
 import '../../models/novel_item.dart';
 import '../../widgets/section_header.dart';
-import '../../models/novel_item.dart';
 import '../../widgets/novel_card.dart';
-import '../../widgets/section_header.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
-
-  // dummy data
-  final List<NovelItem> recommended = [
-    NovelItem(
-        id: '1',
-        title: 'Dunia Fantasi',
-        author: 'Penulis A',
-        coverUrl: 'https://picsum.photos/200/300?random=1',
-        genre: ['Fantasy'],
-        rating: 4.8,
-        chapters: 45,
-        readers: 12500),
-    NovelItem(
-        id: '2',
-        title: 'Cinta di Musim Semi',
-        author: 'Penulis B',
-        coverUrl: 'https://picsum.photos/200/300?random=2',
-        genre: ['Romance'],
-        rating: 4.6,
-        chapters: 32,
-        readers: 8300),
-    NovelItem(
-        id: '3',
-        title: 'Misteri Malam',
-        author: 'Penulis C',
-        coverUrl: 'https://picsum.photos/200/300?random=3',
-        genre: ['Mystery'],
-        rating: 4.9,
-        chapters: 28,
-        readers: 15200),
-  ];
-
-  final List<NovelItem> newThisWeek = [
-    NovelItem(
-        id: '4',
-        title: 'Kisah Pertama',
-        author: 'Sarah Wijaya',
-        coverUrl: 'https://picsum.photos/200/300?random=4',
-        genre: ['Slice of Life'],
-        rating: 4.5,
-        chapters: 12,
-        readers: 4200,
-        isNew: true),
-    NovelItem(
-        id: '5',
-        title: 'Awal Petualangan',
-        author: 'Andi Pratama',
-        coverUrl: 'https://picsum.photos/200/300?random=5',
-        genre: ['Adventure'],
-        rating: 4.3,
-        chapters: 20,
-        readers: 6800,
-        isNew: true),
-    NovelItem(
-        id: '6',
-        title: 'Rahasia Tersembunyi',
-        author: 'Maya Indah',
-        coverUrl: 'https://picsum.photos/200/300?random=6',
-        genre: ['Fantasy'],
-        rating: 4.6,
-        chapters: 16,
-        readers: 5400,
-        isNew: true),
-  ];
-
-  final List<NovelItem> explore = [
-    NovelItem(
-        id: '1',
-        title: 'Dunia Fantasi',
-        author: 'Penulis A',
-        coverUrl: 'https://picsum.photos/200/300?random=1',
-        genre: ['Fantasy'],
-        rating: 4.8,
-        chapters: 45,
-        readers: 12500),
-    NovelItem(
-        id: '2',
-        title: 'Cinta di Musim Semi',
-        author: 'Penulis B',
-        coverUrl: 'https://picsum.photos/200/300?random=2',
-        genre: ['Romance'],
-        rating: 4.6,
-        chapters: 32,
-        readers: 8300),
-    NovelItem(
-        id: '3',
-        title: 'Misteri Malam',
-        author: 'Penulis C',
-        coverUrl: 'https://picsum.photos/200/300?random=3',
-        genre: ['Mystery'],
-        rating: 4.9,
-        chapters: 28,
-        readers: 15200),
-    NovelItem(
-        id: '7',
-        title: 'Petualangan Hebat',
-        author: 'Penulis D',
-        coverUrl: 'https://picsum.photos/200/300?random=7',
-        genre: ['Adventure'],
-        rating: 4.7,
-        chapters: 50,
-        readers: 20100),
-  ];
-
-  final List<Map<String, dynamic>> newAuthors = [
-    {
-      'name': 'Sarah Wijaya',
-      'profileUrl': 'https://picsum.photos/100/100?random=10',
-      'novels': 5,
-    },
-    {
-      'name': 'Andi Pratama',
-      'profileUrl': 'https://picsum.photos/100/100?random=11',
-      'novels': 3,
-    },
-    {
-      'name': 'Maya Indah',
-      'profileUrl': 'https://picsum.photos/100/100?random=12',
-      'novels': 4,
-    },
-    {
-      'name': 'Maya Indah',
-      'profileUrl': 'https://picsum.photos/100/100?random=12',
-      'novels': 4,
-    },
-    {
-      'name': 'Andi Pratama',
-      'profileUrl': 'https://picsum.photos/100/100?random=11',
-      'novels': 3,
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +18,7 @@ class HomePage extends StatelessWidget {
     try {
       homeController = Get.find<home_ctrl_pkg.HomeController>();
     } catch (e) {
-      homeController = null;
+      homeController = Get.put(home_ctrl_pkg.HomeController());
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -172,18 +39,31 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
               ),
-              SizedBox(
-                
-                height: 220,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, idx) =>
-                      NovelCardHorizontal(item: recommended[idx]),
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemCount: recommended.length,
-                ),
-              ),
+              Obx(() {
+                final recommended = homeController.recommendedNovels;
+                if (recommended.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Tidak ada novel yang tersedia',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox(
+                  height: 230,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (_, idx) =>
+                        NovelCardHorizontal(item: recommended[idx]),
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemCount: recommended.length,
+                  ),
+                );
+              }),
 
               const SizedBox(height: 8),
               Padding(
@@ -202,131 +82,79 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, idx) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(newThisWeek[idx].coverUrl,
-                                height: 140,
-                                width: 140,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                    height: 140,
-                                    width: 140,
-                                    color: Colors.grey[300])),
-                          ),
-                          if (newThisWeek[idx].isNew)
-                            Positioned(
-                              left: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: const Text('Baru',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 12)),
-                              ),
-                            )
-                        ],
+              Obx(() {
+                final newNovels = homeController.newNovels;
+                if (newNovels.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Belum ada novel baru',
+                        style: TextStyle(color: Colors.grey.shade600),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                          width: 140,
-                          child: Text(newThisWeek[idx].title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w600))),
-                      SizedBox(
-                          width: 140,
-                          child: Text(newThisWeek[idx].author,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey))),
-                    ],
-                  ),
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemCount: newThisWeek.length,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 8.0),
-                      child: Text('✍️ Penulis Baru',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
-                    TextButton(
-                        onPressed: () {Get.toNamed('/list_author');}, child: const Text('Lihat Semua'))
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 140,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: newAuthors.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, idx) {
-                    final author = newAuthors[idx];
-                    return Column(
+                  );
+                }
+                return SizedBox(
+                  height: 200,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (_, idx) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ClipOval(
-                          child: Image.network(
-                            author['profileUrl'],
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 80,
-                              width: 80,
-                              color: Colors.grey[300],
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(newNovels[idx].coverUrl,
+                                  height: 140,
+                                  width: 140,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                      height: 140,
+                                      width: 140,
+                                      color: Colors.grey[300])),
                             ),
-                          ),
+                            if (newNovels[idx].isNew)
+                              Positioned(
+                                left: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: const Text('Baru',
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 12)),
+                                ),
+                              )
+                          ],
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
-                          width: 80,
-                          child: Text(
-                            author['name'],
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                            width: 140,
+                            child: Text(newNovels[idx].title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600))),
                         SizedBox(
-                          width: 80,
-                          child: Text(
-                            '${author['novels']} Novel',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                        ),
+                            width: 140,
+                            child: Text(newNovels[idx].author,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey))),
                       ],
-                    );
-                  },
-                ),
-              ),
+                    ),
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemCount: newNovels.length,
+                  ),
+                );
+              }),
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -353,10 +181,12 @@ class HomePage extends StatelessWidget {
                   );
                 })
               else
-                // fallback dummy
-                Column(children: [
-                  for (var it in recommended) NovelCardVertical(item: it)
-                ]),
+                Obx(() => Column(
+                  children: [
+                    for (var it in homeController.recommendedNovels) 
+                      NovelCardVertical(item: it)
+                  ],
+                )),
 
               const SizedBox(height: 12),
               Padding(
@@ -364,24 +194,27 @@ class HomePage extends StatelessWidget {
                 child: SectionHeader(title: '📚 Jelajahi Novel'),
               ),
 
-              // Tab selector (simplified)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(child: _TabPill(text: 'Trending', selected: true)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _TabPill(text: 'Terbaru', selected: false)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _TabPill(text: 'Selesai', selected: false)),
-                  ],
-                ),
-              ),
-
               const SizedBox(height: 12),
-              Column(children: [
-                for (var e in explore) NovelCardVertical(item: e)
-              ]),
+              Obx(() {
+                final allNovels = homeController.allNovels;
+                if (allNovels.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Tidak ada novel yang tersedia',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (var e in allNovels.take(6)) 
+                      NovelCardVertical(item: e)
+                  ],
+                );
+              }),
 
               const SizedBox(height: 80),
             ],

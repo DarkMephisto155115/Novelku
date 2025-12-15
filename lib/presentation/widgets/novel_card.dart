@@ -15,7 +15,10 @@ class NovelCardHorizontal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap ??
+          () {
+            Get.toNamed('/reading', arguments: {'novelId': item.id});
+          },
       child: Card(
         // elevation: 9,
         shape: RoundedRectangleBorder(
@@ -77,7 +80,10 @@ class NovelCardVertical extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap ??
+          () {
+            Get.toNamed('/reading', arguments: {'novelId': item.id});
+          },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -151,7 +157,7 @@ class AllNovelGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.toNamed('/reading');
+        Get.toNamed('/reading', arguments: {'novelId': novel.id});
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

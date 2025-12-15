@@ -11,6 +11,11 @@ class Novel {
   final String? imageUrl;
   final String? genre;
   final List<Chapter> chapters;
+  final String? authorId;
+  final String? authorName;
+  final String? description;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   Novel({
     required this.id,
@@ -23,6 +28,11 @@ class Novel {
     this.imageUrl,
     this.genre,
     required this.chapters,
+    this.authorId,
+    this.authorName,
+    this.description,
+    this.createdAt,
+    this.updatedAt,
   });
 
   int get chapterCount => chapters.length;
@@ -47,7 +57,34 @@ class Novel {
       imageUrl: json['imageUrl'],
       genre: json['genre'],
       chapters: chapters,
+      authorId: json['authorId'],
+      authorName: json['authorName'],
+      description: json['description'],
+      createdAt: json['createdAt'] is Timestamp
+          ? (json['createdAt'] as Timestamp).toDate()
+          : null,
+      updatedAt: json['updatedAt'] is Timestamp
+          ? (json['updatedAt'] as Timestamp).toDate()
+          : null,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'subtitle': subtitle,
+      'category': category,
+      'likeCount': likeCount,
+      'viewCount': viewCount,
+      'isOngoing': isOngoing,
+      'imageUrl': imageUrl,
+      'genre': genre,
+      'authorId': authorId,
+      'authorName': authorName,
+      'description': description,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+    };
   }
 }
 
@@ -77,5 +114,15 @@ class Chapter {
           : DateTime.now(),
       imageUrl: json['imageUrl'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'chapter': chapter,
+      'title': title,
+      'content': content,
+      'createdAt': createdAt,
+      'imageUrl': imageUrl,
+    };
   }
 }

@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/writing_controller.dart';
-
+import '../../controllers/write/writing_controller.dart';
 
 class WritingPage extends StatelessWidget {
   final c = Get.put(WritingController());
@@ -20,16 +20,15 @@ class WritingPage extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.of(Get.context!).maybePop();
+          },
         ),
-
-        // FIXED BUTTON POSITION
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Row(
               children: [
-                // BUTTON PREVIEW (lebih kecil & tidak menabrak)
                 TextButton(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -42,45 +41,125 @@ class WritingPage extends StatelessWidget {
                     style: TextStyle(fontSize: 14),
                   ),
                 ),
-
                 const SizedBox(width: 6),
-
-                // BUTTON SIMPAN
-                ElevatedButton(
-                  onPressed: () {},
+                Obx(() => ElevatedButton(
+                  onPressed: c.isLoading.value ? null : () => c.saveNovel(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF7A4FFF),
+                    backgroundColor: const Color(0xFF7A4FFF),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     minimumSize: const Size(0, 36),
                   ),
-                  child: const Text(
+                  child: c.isLoading.value
+                      ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
                     "Simpan",
                     style: TextStyle(fontSize: 14),
                   ),
-                ),
-
+                )),
                 const SizedBox(width: 8),
               ],
             ),
           )
         ],
       ),
-
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            _cardCoverImage(),
+            const SizedBox(height: 16),
             _cardInformasiNovel(),
+            const SizedBox(height: 16),
+            _cardDeskripsi(),
             const SizedBox(height: 16),
             _cardTulisCerita(),
             const SizedBox(height: 16),
             _cardTipsMenulis(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _cardCoverImage() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _title("Cover Novel (Optional)"),
+          const SizedBox(height: 12),
+          Obx(() => GestureDetector(
+            onTap: () => c.pickCoverImage(),
+            child: Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.shade400,
+                  width: 2,
+                  style: BorderStyle.solid,
+                ),
+                image: c.coverImagePath.value.isNotEmpty
+                    ? DecorationImage(
+                  image: FileImage(File(c.coverImagePath.value)),
+                  fit: BoxFit.cover,
+                )
+                    : null,
+              ),
+              child: c.coverImagePath.value.isEmpty
+                  ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.image_outlined,
+                    size: 48,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap untuk memilih cover',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              )
+                  : null,
+            ),
+          )),
+          Obx(() {
+            if (c.coverImagePath.value.isNotEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: TextButton.icon(
+                  onPressed: () => c.coverImagePath.value = '',
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Hapus Cover'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                  ),
+                ),
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
+          }),
+        ],
       ),
     );
   }
@@ -97,23 +176,20 @@ class WritingPage extends StatelessWidget {
         children: [
           _title("Informasi Novel"),
           const SizedBox(height: 16),
-
           _label("Judul Novel"),
           TextField(
             controller: c.judulNovelC,
             decoration: _inputDecoration("Masukkan judul novel"),
           ),
-
           const SizedBox(height: 16),
           _label("Genre"),
-
           Obx(() => Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: _fieldDecoration(),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: c.genreC.value.isEmpty ? null : c.genreC.value,
-                hint: const Text("Genre"),
+                hint: const Text("Pilih Genre"),
                 isExpanded: true,
                 onChanged: (val) => c.genreC.value = val!,
                 items: c.listGenre
@@ -127,12 +203,37 @@ class WritingPage extends StatelessWidget {
               ),
             ),
           )),
-
           const SizedBox(height: 16),
-          _label("Judul Bab"),
+          _label("Judul Bab Pertama"),
           TextField(
             controller: c.judulBabC,
             decoration: _inputDecoration("Masukkan judul bab"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =============================
+  // CARD DESKRIPSI
+  // =============================
+  Widget _cardDeskripsi() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _title("Deskripsi Novel (Optional)"),
+          const SizedBox(height: 16),
+          TextField(
+            controller: c.deskripsiC,
+            maxLines: 3,
+            decoration: _inputDecoration(
+              "Tulis deskripsi singkat novel Anda...",
+            ).copyWith(
+              contentPadding: const EdgeInsets.all(12),
+            ),
           ),
         ],
       ),
@@ -155,7 +256,7 @@ class WritingPage extends StatelessWidget {
           Obx(() => Align(
             alignment: Alignment.centerRight,
             child: Text(
-              "${c.jumlahKata} kata",
+              "${c.jumlahHuruf} karakter",
               style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           )),
