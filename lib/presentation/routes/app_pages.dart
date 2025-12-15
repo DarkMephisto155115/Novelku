@@ -15,7 +15,6 @@ import 'package:terra_brain/presentation/pages/auth/registration_page.dart';
 import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
 import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/home/story_page.dart';
-import 'package:terra_brain/presentation/pages/write/write_page.dart';
 import 'package:terra_brain/presentation/pages/write/writing_page.dart';
 
 part 'app_routes.dart';
@@ -57,11 +56,6 @@ class AppPages {
       name: Routes.SETTING,
       page: () => const SettingsPage(),
       binding: SettingBinding(),
-    ),
-    GetPage(
-      name: Routes.WRITE,
-      page: () => const WriteStoryPage(),
-      binding: SensorBinding(),
     ),
     GetPage(
       name: Routes.Edit,

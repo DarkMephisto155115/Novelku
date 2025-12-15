@@ -1,84 +1,83 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../models/novel_item.dart';
 
 class AllNovelController extends GetxController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   var novels = <NovelItem>[].obs;
   var filteredNovels = <NovelItem>[].obs;
+  var isLoading = true.obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadDummyData();
+    _fetchNovelsFromFirestore();
   }
 
-  void loadDummyData() {
-    final dummy = [
-      NovelItem(
-        id: '1',
-        title: 'Dunia Fantasi',
-        author: 'Penulis A',
-        coverUrl: 'https://picsum.photos/200/300?random=20',
-        genre: ['Fantasy', 'Adventure'],
-        rating: 4.8,
-        chapters: 120,
-        readers: 34000,
-        isNew: true,
-      ),
-      NovelItem(
-        id: '2',
-        title: 'Cinta di Musim Semi',
-        author: 'Penulis B',
-        coverUrl: 'https://picsum.photos/200/300?random=21',
-        genre: ['Romance', 'Drama'],
-        rating: 4.6,
-        chapters: 89,
-        readers: 27000,
-      ),
-      NovelItem(
-        id: '3',
-        title: 'Misteri Malam',
-        author: 'Penulis C',
-        coverUrl: 'https://picsum.photos/200/300?random=22',
-        genre: ['Mystery', 'Horror'],
-        rating: 4.9,
-        chapters: 102,
-        readers: 41000,
-        isNew: true,
-      ),
-      NovelItem(
-        id: '4',
-        title: 'Petualangan Hebat',
-        author: 'Penulis D',
-        coverUrl: 'https://picsum.photos/200/300?random=23',
-        genre: ['Adventure', 'Fantasy'],
-        rating: 4.7,
-        chapters: 140,
-        readers: 39000,
-      ),
-      NovelItem(
-        id: '5',
-        title: 'Kisah Sci-Fi',
-        author: 'Penulis E',
-        coverUrl: 'https://picsum.photos/200/300?random=24',
-        genre: ['Sci-Fi', 'Action'],
-        rating: 4.5,
-        chapters: 75,
-        readers: 22000,
-      ),
-      NovelItem(
-        id: '6',
-        title: 'Drama Kehidupan',
-        author: 'Penulis F',
-        coverUrl: 'https://picsum.photos/200/300?random=25',
-        genre: ['Drama', 'Romance'],
-        rating: 4.4,
-        chapters: 68,
-        readers: 18000,
-      ),
-    ];
+  void _fetchNovelsFromFirestore() {
+    try {
+      isLoading.value = true;
+      _firestore.collection('novels').snapshots().listen((snapshot) {
+        final List<NovelItem> novels = snapshot.docs.map((doc) {
+          final data = doc.data();
+          final chapters = data['chapters'] as List<dynamic>? ?? [];
 
-    novels.assignAll(dummy);
-    filteredNovels.assignAll(dummy);
+          return NovelItem(
+            id: doc.id,
+            title: data['title'] ?? 'Tanpa Judul',
+            author: data['authorName'] ?? 'Tidak diketahui',
+            coverUrl: data['imageUrl'] ?? '',
+            genre: _parseGenre(data['genre']),
+            rating: (data['likeCount'] ?? 0).toDouble(),
+            chapters: chapters.length,
+            readers: data['viewCount'] ?? 0,
+            isNew: _isNewNovel(data['createdAt']),
+          );
+        }).toList();
+
+        this.novels.assignAll(novels);
+        filteredNovels.assignAll(novels);
+        isLoading.value = false;
+
+        if (kDebugMode) {
+          print('✅ Loaded ${novels.length} novels from Firestore');
+        }
+      });
+    } catch (e) {
+      isLoading.value = false;
+      if (kDebugMode) {
+        print('❌ Error fetching novels: $e');
+      }
+    }
+  }
+
+  List<String> _parseGenre(dynamic genre) {
+    if (genre == null) return ['Unknown'];
+    if (genre is String) return [genre];
+    if (genre is List) {
+      return List<String>.from(genre).where((g) => g.isNotEmpty).toList();
+    }
+    return ['Unknown'];
+  }
+
+  bool _isNewNovel(dynamic createdAt) {
+    if (createdAt == null) return false;
+    try {
+      DateTime created;
+      if (createdAt is Timestamp) {
+        created = createdAt.toDate();
+      } else if (createdAt is DateTime) {
+        created = createdAt;
+      } else {
+        return false;
+      }
+      final difference = DateTime.now().difference(created).inDays;
+      return difference <= 7;
+    } catch (e) {
+      return false;
+    }
   }
 
   void filterNovel(String keyword) {
@@ -87,7 +86,8 @@ class AllNovelController extends GetxController {
     } else {
       filteredNovels.assignAll(
         novels.where(
-              (e) => e.title.toLowerCase().contains(keyword.toLowerCase()),
+          (e) => e.title.toLowerCase().contains(keyword.toLowerCase()) ||
+              e.author.toLowerCase().contains(keyword.toLowerCase()),
         ),
       );
     }

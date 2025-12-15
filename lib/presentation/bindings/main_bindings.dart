@@ -15,7 +15,7 @@ import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
-import '../controllers/writing_controller.dart';
+import '../controllers/write/writing_controller.dart';
 
 class MainBinding extends Bindings {
   @override
