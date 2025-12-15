@@ -20,7 +20,9 @@ class WritingPage extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.of(Get.context!).maybePop();
+          },
         ),
         actions: [
           Padding(
