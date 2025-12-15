@@ -35,7 +35,7 @@ class WritingPage extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     minimumSize: const Size(0, 36),
                   ),
-                  onPressed: () {},
+                  onPressed: () => c.showPreview(),
                   child: const Text(
                     "Preview",
                     style: TextStyle(fontSize: 14),
