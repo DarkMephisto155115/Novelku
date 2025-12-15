@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/register_controller.dart';
+import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
@@ -268,8 +268,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                     controller.passwordHidden.value
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color:
-                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color: controller.passwordHidden.value
+                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.togglePasswordVisibility,
                 ),
@@ -316,8 +317,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                     controller.confirmPasswordHidden.value
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color:
-                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color: controller.confirmPasswordHidden.value
+                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.toggleConfirmPasswordVisibility,
                 ),

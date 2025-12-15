@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:terra_brain/presentation/controllers/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
 
 class RegistrationController extends GetxController {
-  var name = ''.obs;
   var email = ''.obs;
   var username = ''.obs;
   var password = ''.obs;
@@ -61,23 +60,21 @@ class RegistrationController extends GetxController {
       String uid = userCredential.user!.uid;
 
       await _firestore.collection('users').doc(uid).set({
-        // 'name': name.value,
         'email': email.value,
         'username': username.value,
-        // 'birthDate': birthDate.value,
-        // 'pronouns': pronouns.value,
-        // "coins": 0,
         "followers": 0,
         "following": 0,
         "isPremium": false,
+        'created_at': FieldValue.serverTimestamp(),
+        'last_login_at': FieldValue.serverTimestamp(),
+        'last_logout_at': null,
+        'updated_at': FieldValue.serverTimestamp(),
       });
-      loginController.bypassLogin(email.value, password.value);
+      await loginController.bypassLogin(email.value, password.value);
       isLoading.value = false;
 
-      // Get.snackbar('Success', 'User registered successfully');
-      Get.toNamed("/genre_selection");
+      Get.offAllNamed("/genre_selection");
     } on FirebaseAuthException catch (e) {
-      isLoading.value = false;
       rethrow;
       // if (e.code == 'email-already-in-use') {
       //   isLoading.value = false;
@@ -99,6 +96,7 @@ class RegistrationController extends GetxController {
       var snapshot = await _firestore
           .collection('users')
           .where('username', isEqualTo: username)
+          .limit(1)
           .get();
 
       return snapshot.docs.isNotEmpty; 

@@ -1,19 +1,19 @@
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/LoginController.dart';
-import 'package:terra_brain/presentation/controllers/all_author_controller.dart';
-import 'package:terra_brain/presentation/controllers/author_controller.dart';
-import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/edit_profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/author/author_controller.dart';
+import 'package:terra_brain/presentation/controllers/author/author_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/edit_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/premium_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
-import 'package:terra_brain/presentation/controllers/register_controller.dart';
+import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/controllers/story_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
-import '../controllers/genre_selection_controller.dart';
+import '../controllers/auth/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/writing_controller.dart';
 
@@ -40,7 +40,6 @@ class ProfileBinding extends Bindings {
   }
 }
 
-
 class RegisterBinding extends Bindings {
   @override
   void dependencies() {
@@ -59,8 +58,6 @@ class SettingBinding extends Bindings {
   }
 }
 
-
-
 class SensorBinding extends Bindings {
   @override
   void dependencies() {
@@ -69,8 +66,6 @@ class SensorBinding extends Bindings {
     );
   }
 }
-
-
 
 class EditProfileBinding extends Bindings {
   @override
@@ -119,6 +114,10 @@ class SplashBinding extends Bindings {
     Get.lazyPut<ThemeController>(
       () => ThemeController(),
     );
+    Get.lazyPut<PremiumController>(
+      () => PremiumController(),
+      fenix: true,
+    );
   }
 }
 
@@ -126,7 +125,7 @@ class AllNovelBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<AllNovelController>(
-          () => AllNovelController(),
+      () => AllNovelController(),
     );
   }
 }
@@ -135,7 +134,7 @@ class ReadingBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<ReadingController>(
-          () => ReadingController(),
+      () => ReadingController(),
     );
   }
 }
@@ -151,12 +150,5 @@ class WritingBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<WritingController>(() => WritingController());
-  }
-}
-
-class AllAuthorBinding implements Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<AllAuthorController>(() => AllAuthorController());
   }
 }

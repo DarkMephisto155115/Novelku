@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/author_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/author/author_profile_controller.dart';
 import 'package:terra_brain/presentation/models/author_profile_model.dart';
+import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 class AuthorProfilePage extends GetView<AuthorProfileController> {
@@ -11,186 +12,208 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
-      body: Obx(() {
-        final author = controller.author.value;
-
-        return Stack(
-          children: [
-            // BAGIAN BAWAH: SliverScroll
-            CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 50,
-                  // pinned: true,
-                  backgroundColor: Colors.transparent,
-                  // elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppThemeData.primaryColor,
-                            AppThemeData.pinkColor,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.share),
-                      onPressed: () {
-                        Get.snackbar(
-                          'Berbagi',
-                          'Bagikan profil ${author.name}',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-
-                // Space kosong tempat profile card muncul
-
-                // SliverToBoxAdapter(child: SizedBox(height: 120)),
-
-                SliverToBoxAdapter(
-                  child: Transform.translate(
-                    offset: Offset(
-                        0, 20), // ini yang bikin card naik ke atas AppBar
-                    child: _buildMainProfile(author),
-                  ),
-                ),
-
-                // // Konten Novel
-                // SliverToBoxAdapter(
-                //   child: _buildNovelsSection(author),
-                // ),
-
-                SliverToBoxAdapter(child: SizedBox(height: 36)),
-                SliverToBoxAdapter(child: _buildNovelsSection(author)),
-              ],
-            ),
-
-            // LAYER ATAS: Profile Card + Avatar (tidak tertutup AppBar)
-            // Positioned(
-            //   top: 80,
-            //   left: 0,
-            //   right: 0,
-            //   child: _buildMainProfile(author),
-            // ),
-          ],
-        );
-      }),
+      body: Obx(
+        () {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (controller.errorMessage.isNotEmpty) {
+            return Center(child: Text(controller.errorMessage.value));
+          }
+          final author = controller.author.value;
+          if (author == null) {
+            return const Center(
+              child: Text('Data penulis tidak tersedia'),
+            );
+          }
+          return _buildContent(author);
+        },
+      ),
     );
   }
 
-  // =====================================
-  // PROFILE CARD
-  // =====================================
+  Widget _buildContent(AuthorProfile author) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 60,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppThemeData.primaryColor,
+                    AppThemeData.pinkColor,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () {
+                Get.snackbar(
+                  'Berbagi',
+                  'Bagikan profil ${author.name}',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              },
+            ),
+          ],
+        ),
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, 15),
+            child: _buildMainProfile(author),
+          ),
+        ),
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 36),
+        ),
+        SliverToBoxAdapter(
+          child: _buildNovelsSection(author),
+        ),
+      ],
+    );
+  }
+
   Widget _buildMainProfile(AuthorProfile author) {
     return Container(
-      margin: EdgeInsets.only(top: 10, left: 20, right: 20),
-      padding: EdgeInsets.only(top: 0, bottom: 20, left: 16, right: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.only(
+        top: 20,
+        bottom: 20,
+        left: 16,
+        right: 16,
+      ),
       decoration: BoxDecoration(
-        // color: Get.theme.cardColor,
         color: AppThemeData.lightCardBackground,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: Offset(0, 9),
+            offset: const Offset(0, 9),
           )
         ],
       ),
       child: Column(
         children: [
-          // Avatar floating above card
           Transform.translate(
-            offset:
-                Offset(0, -40), // sesuaikan tinggi supaya avatar naik sedikit
+            offset: const Offset(0, 0),
             child: CircleAvatar(
               radius: 55,
               backgroundColor: AppThemeData.darkHintText,
               child: CircleAvatar(
                 radius: 52,
-                backgroundImage:
-                    AssetImage('assets/images/default_profile.jpeg'),
+                backgroundImage: author.profileImage != null &&
+                        author.profileImage!.isNotEmpty
+                    ? NetworkImage(author.profileImage!)
+                    : const AssetImage(
+                        'assets/images/default_profile.jpeg',
+                      ) as ImageProvider,
               ),
             ),
           ),
 
-          SizedBox(height: 1),
+          const SizedBox(height: 4),
           Text(
-            author.name,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            (author.name.isNotEmpty ? author.name : author.username),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            author.username,
+            '@${author.username}',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
             ),
           ),
 
-          SizedBox(height: 12),
-
+          const SizedBox(height: 12),
           Text(
             author.bio,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-          ),
-
-          SizedBox(height: 16),
-
-          // Follow Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: controller.toggleFollow,
-              icon: Icon(author.isFollowing ? Icons.check : Icons.person_add),
-              label: Text(
-                author.isFollowing ? "Mengikuti" : "Ikuti",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                backgroundColor:
-                    author.isFollowing ? Colors.white : Get.theme.primaryColor,
-                foregroundColor:
-                    author.isFollowing ? Get.theme.primaryColor : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: author.isFollowing
-                      ? BorderSide(color: Get.theme.primaryColor, width: 1)
-                      : BorderSide.none,
-                ),
-              ),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
             ),
           ),
 
-          SizedBox(height: 16),
-          _buildStatsRedesign(author),
+          const SizedBox(height: 16),
+
+          SizedBox(
+            width: double.infinity,
+            child: Obx(
+              () {
+                final isFollowing = controller.isFollowing.value;
+                return ElevatedButton.icon(
+                  onPressed: controller.isLoading.value
+                      ? null
+                      : controller.toggleFollow,
+                  icon: Icon(
+                    isFollowing ? Icons.check : Icons.person_add,
+                  ),
+                  label: Text(
+                    isFollowing ? 'Mengikuti' : 'Ikuti',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: isFollowing
+                        ? Colors.white
+                        : Get.theme.primaryColor,
+                    foregroundColor: isFollowing
+                        ? Get.theme.primaryColor
+                        : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: isFollowing
+                          ? BorderSide(
+                              color: Get.theme.primaryColor,
+                            )
+                          : BorderSide.none,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          _buildStats(author),
         ],
       ),
     );
   }
 
-  // =====================================
-  // STATS
-  // =====================================
-  Widget _buildStatsRedesign(AuthorProfile author) {
+  Widget _buildStats(AuthorProfile author) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _statItem("Novel", author.novelCount.toString()),
-        _statItem("Followers", controller.formatNumber(author.followerCount)),
-        _statItem("Following", author.followingCount.toString()),
-        _statItem("Likes", controller.formatNumber(author.totalLikes)),
+        _statItem('Novel', author.novelCount.toString()),
+        _statItem(
+          'Followers',
+          controller.formatNumber(author.followerCount),
+        ),
+        _statItem(
+          'Following',
+          author.followingCount.toString(),
+        ),
+        _statItem(
+          'Likes',
+          controller.formatNumber(author.totalLikes),
+        ),
       ],
     );
   }
@@ -200,39 +223,45 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
       children: [
         Text(
           value,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade500,
+          ),
         ),
       ],
     );
   }
 
-  // =====================================
-  // NOVEL LIST
-  // =====================================
   Widget _buildNovelsSection(AuthorProfile author) {
+    if (author.novels.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Text('Belum ada novel'),
+        ),
+      );
+    }
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              // Icon(Icons.auto_stories, color: Get.theme.primaryColor, size: 20),
-              // SizedBox(width: 8),
-              Text(
-                'Novel (${author.novels.length})',
-                style: Get.theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Text(
+            'Novel (${author.novels.length})',
+            style: Get.theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Column(
             children:
                 author.novels.map((novel) => _buildNovelCard(novel)).toList(),
@@ -244,7 +273,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
 
   Widget _buildNovelCard(Novel novel) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
@@ -252,35 +281,30 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           )
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // COVER IMAGE
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.asset(
-                // novel.coverUrl ?? 'assets/images/default_cover.jpeg',
                 'assets/images/book.jpg',
                 width: 60,
                 height: 80,
                 fit: BoxFit.cover,
               ),
             ),
+            const SizedBox(width: 12),
 
-            SizedBox(width: 12),
-
-            // TEXT SECTION
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title + Status Badge
                   Row(
                     children: [
                       Expanded(
@@ -291,14 +315,13 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
                           ),
                         ),
                       ),
-                      if (novel.isOngoing)
-                        _buildStatusBadge("Berlanjut", Colors.blue)
-                      else
-                        _buildStatusBadge("Selesai", Colors.green),
+                      _buildStatusBadge(
+                        novel.isOngoing ? 'Berlanjut' : 'Selesai',
+                        novel.isOngoing ? Colors.blue : Colors.green,
+                      ),
                     ],
                   ),
-
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     novel.category,
                     style: TextStyle(
@@ -307,19 +330,23 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
                       color: Get.theme.primaryColor,
                     ),
                   ),
-
-                  SizedBox(height: 6),
-
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      _buildSmallStat(Icons.format_list_numbered,
-                          "${novel.chapterCount} chapter"),
-                      SizedBox(width: 10),
-                      _buildSmallStat(Icons.favorite,
-                          controller.formatNumber(novel.likeCount)),
-                      SizedBox(width: 10),
-                      _buildSmallStat(Icons.visibility,
-                          controller.formatNumber(novel.viewCount) + " views"),
+                      _buildSmallStat(
+                        Icons.format_list_numbered,
+                        '${novel.chapterCount} chapter',
+                      ),
+                      const SizedBox(width: 10),
+                      _buildSmallStat(
+                        Icons.thumb_up,
+                        controller.formatNumber(novel.likeCount),
+                      ),
+                      const SizedBox(width: 10),
+                      _buildSmallStat(
+                        Icons.visibility,
+                        '${controller.formatNumber(novel.viewCount)} views',
+                      ),
                     ],
                   ),
                 ],
@@ -333,7 +360,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
 
   Widget _buildStatusBadge(String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(6),
@@ -353,11 +380,14 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
     return Row(
       children: [
         Icon(icon, size: 14, color: Colors.grey),
-        SizedBox(width: 4),
+        const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-        )
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade600,
+          ),
+        ),
       ],
     );
   }

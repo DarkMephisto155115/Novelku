@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/auth/genre_selection_page.dart';
-import 'package:terra_brain/presentation/pages/author/all_author.dart';
 import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
@@ -27,7 +26,7 @@ class AppPages {
   static final routes = [
     GetPage(
       name: '/splash',
-      page: () => const SplashScreen(),
+      page: () => SplashScreen(),
       binding: SplashBinding(),
     ),
     GetPage(
@@ -51,7 +50,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.SPLASH,
-      page: () => const SplashScreen(),
+      page: () => SplashScreen(),
       binding: RegisterBinding(),
     ),
     GetPage(
@@ -90,12 +89,12 @@ class AppPages {
       binding: AllNovelBinding(),
     ),
     GetPage(
-      name: Routes.AUTHORS,
+      name: '/list_author',
       page: () => const AuthorsPage(),
       binding: AuthorsBinding(),
     ),
     GetPage(
-      name: Routes.AUTHOR_PROFILE,
+      name: '/author_profile/:id',
       page: () => const AuthorProfilePage(),
       binding: AuthorProfileBinding(),
     ),
@@ -113,11 +112,6 @@ class AppPages {
       name: Routes.WRITING,
       page: () => WritingPage(),
       binding: WritingBinding(),
-    ),
-    GetPage(
-      name: Routes.ALL_AUTHOR,
-      page: () => AllAuthorPage(),
-      binding: AllAuthorBinding(),
     ),
   ];
 }

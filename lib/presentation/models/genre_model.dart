@@ -11,12 +11,20 @@ class Genre {
     this.isSelected = false,
   });
 
-  Genre copyWith({bool? isSelected}) {
+  Genre copyWith({String? id, String? name, String? emoji, bool? isSelected}) {
     return Genre(
-      id: id,
-      name: name,
-      emoji: emoji,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      emoji: emoji ?? this.emoji,
       isSelected: isSelected ?? this.isSelected,
+    );
+  }
+
+  factory Genre.fromMap(Map<String, dynamic> map) {
+    return Genre(
+      id: map['id'],
+      name: map['name'],
+      emoji: map['emoji'],
     );
   }
 }

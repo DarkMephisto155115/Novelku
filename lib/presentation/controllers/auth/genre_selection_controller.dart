@@ -1,37 +1,65 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 
 class GenreSelectionController extends GetxController {
-  final RxList<Genre> genres = <Genre>[
-    Genre(id: '1', name: 'Fantasi', emoji: '🧙‍♂️'),
-    Genre(id: '2', name: 'Romantis', emoji: '💖'),
-    Genre(id: '3', name: 'Misteri', emoji: '🕵️‍♂️'),
-    Genre(id: '4', name: 'Petualangan', emoji: '🗺️'),
-    Genre(id: '5', name: 'Sci-Fi', emoji: '🚀'),
-    Genre(id: '6', name: 'Horor', emoji: '👻'),
-    Genre(id: '7', name: 'Drama', emoji: '🎭'),
-    Genre(id: '8', name: 'Komedi', emoji: '😂'),
-    Genre(id: '9', name: 'Aksi', emoji: '💥'),
-  ].obs;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  final RxList<Genre> genres = <Genre>[].obs;
+
+  late String userID;
   final RxInt selectedCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    // Listen to changes in genres selection
+    loadUserId();
+    fetchGenres();
+
     ever(genres, (_) {
       selectedCount.value = genres.where((genre) => genre.isSelected).length;
     });
   }
 
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    userID = prefs.getString("userId") ?? "";
+
+    if (userID.isEmpty) {
+      print("❌ userID tidak ditemukan di SharedPreferences");
+    } else {
+      print("✅ userID ditemukan: $userID");
+    }
+  }
+
+  Future<void> fetchGenres() async {
+    try {
+      final snapshot = await _firestore.collection('genres').get();
+
+      final list = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Genre.fromMap({
+          "id": doc.id,
+          "name": data["name"],
+          "emoji": data["emoji"],
+        });
+      }).toList();
+
+      genres.assignAll(list);
+    } catch (e) {
+      print("Error fetching genres: $e");
+      Get.snackbar("Error", "Gagal memuat genre");
+    }
+  }
+
+
   void toggleGenre(String genreId) {
     final index = genres.indexWhere((genre) => genre.id == genreId);
     if (index != -1) {
       final genre = genres[index];
-      // Jika sudah mencapai 3 dan mencoba menambah, tidak boleh
       if (selectedCount.value >= 3 && !genre.isSelected) {
         Get.snackbar(
           'Peringatan',
@@ -48,6 +76,22 @@ class GenreSelectionController extends GetxController {
     }
   }
 
+  Future<void> saveSelectedGenres(List<Genre> selectedGenres) async {
+    try {
+      final userRef = _firestore.collection('users').doc(userID);
+
+      for (var genre in selectedGenres) {
+        await userRef.collection("selectedGenres").doc(genre.id).set({
+          "name": genre.name,
+          "emoji": genre.emoji,
+        });
+      }
+    } catch (e) {
+      print("Error saving genre subcollection: $e");
+    }
+  }
+
+
   void proceedToHome() {
     final selectedGenres = genres.where((genre) => genre.isSelected).toList();
     
@@ -62,10 +106,8 @@ class GenreSelectionController extends GetxController {
       return;
     }
 
-    // Simpan preference genre ke SharedPreferences atau database
-    _saveGenrePreferences(selectedGenres);
-
-    Get.offAllNamed('/home'); // Navigasi ke halaman utama
+    saveSelectedGenres(selectedGenres);
+    Get.offAllNamed('/home');
     Get.snackbar(
       'Berhasil!',
       'Preferensi genre telah disimpan',
@@ -73,15 +115,6 @@ class GenreSelectionController extends GetxController {
       backgroundColor: AppThemeData.successColor,
       colorText: AppThemeData.darkTextPrimary,
     );
-  }
-
-  void _saveGenrePreferences(List<Genre> selectedGenres) {
-    // Simpan ke SharedPreferences atau database
-    final genreIds = selectedGenres.map((genre) => genre.id).toList();
-    print('Genre yang dipilih: $genreIds');
-    
-    // Contoh: Simpan ke Get Storage atau SharedPreferences
-    // GetStorage().write('selected_genres', genreIds);
   }
 
   bool get canProceed => selectedCount.value >= 3;

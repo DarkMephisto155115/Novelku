@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,10 +6,11 @@ import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class LoginController extends GetxController {
-  var isPasswordHidden = true.obs;
+  var isPasswordHidden = false.obs;
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  String userID = '';
 
   ThemeController get themeController => Get.find<ThemeController>();
 
@@ -25,10 +24,10 @@ class LoginController extends GetxController {
     themeController.toggleTheme();
   }
 
-  void bypassLogin(String email, String password) async {
+  Future<void> bypassLogin(String email, String password) async {
     emailController.text = email;
     passwordController.text = password;
-    login();
+    await login();
   }
 
   Future<void> login() async {
@@ -45,12 +44,8 @@ class LoginController extends GetxController {
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userId', userCredential.user!.uid);
 
-        // Get.snackbar('Success', 'Logged in successfully',
-        //     backgroundColor: Colors.green, colorText: Colors.white);
-
         isLoading.value = false;
- 
-        // Get.offAllNamed(Routes.HOME);
+
       } on FirebaseAuthException catch (e) {
         isLoading.value = false;
         rethrow;
@@ -80,8 +75,8 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // emailController.dispose();
-    // passwordController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.onClose();
   }
 }
