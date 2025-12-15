@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -228,6 +229,173 @@ class WritingController extends GetxController {
         ],
       ),
       barrierDismissible: false,
+    );
+  }
+
+  void showPreview() {
+    if (judulNovelC.text.trim().isEmpty) {
+      _showErrorSnackbar('Masukkan judul novel terlebih dahulu');
+      return;
+    }
+    
+    if (ceritaC.text.trim().isEmpty) {
+      _showErrorSnackbar('Masukkan cerita terlebih dahulu');
+      return;
+    }
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        insetPadding: const EdgeInsets.all(16),
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF7A4FFF),
+            elevation: 0,
+            title: const Text(
+              'Preview Novel',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: false,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Get.back(),
+            ),
+          ),
+          body: CustomScrollView(
+            slivers: [
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildPreviewContent(),
+                  const SizedBox(height: 24),
+                ]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (coverImagePath.value.isNotEmpty)
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(12),
+              bottomRight: Radius.circular(12),
+            ),
+            child: Image.file(
+              File(coverImagePath.value),
+              height: 220,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                judulNovelC.text.trim(),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (genreC.value.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7A4FFF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    genreC.value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (deskripsiC.text.trim().isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  deskripsiC.text.trim(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              Divider(
+                color: Colors.grey.shade300,
+                height: 1,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                judulBabC.text.trim(),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    'Bab 1',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${ceritaC.text.length} karakter',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${(ceritaC.text.length / 200).ceil()} menit',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SelectableText(
+                ceritaC.text.trim(),
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.8,
+                  color: Colors.grey.shade900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
