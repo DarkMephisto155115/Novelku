@@ -108,19 +108,22 @@ class ProfileController extends GetxController {
     try {
       // ---------- MY NOVELS ----------
       final novelSnap = await _firestore
-          .collection('stories')
-          .where('writerId', isEqualTo: userId)
+          .collection('novels')
+          .where('authorId', isEqualTo: userId)
           .get();
 
       final myNovels = novelSnap.docs.map((doc) {
         final d = doc.data();
+        
         return UserNovel(
           id: doc.id,
           title: d['title'] ?? '',
-          author: d['author'] ?? '',
-          coverUrl: d['coverUrl'] ?? '',
-          category: d['category'] ?? '',
-          views: d['views'] ?? 0,
+          author: d['authorName'] ?? '',
+          coverUrl: d['imageUrl'] ?? '',
+          category: (d['genre'] is List && (d['genre'] as List).isNotEmpty) 
+              ? (d['genre'] as List).first.toString()
+              : d['genre'] ?? 'General',
+          views: d['viewCount'] ?? 0,
         );
       }).toList();
 
@@ -128,27 +131,51 @@ class ProfileController extends GetxController {
       final favSnap = await _firestore
           .collection('users')
           .doc(userId)
-          .collection('favorites')
+          .collection('bookmarks')
           .get();
 
-      final favoriteNovels = favSnap.docs.map((doc) {
+      final favoriteNovels = <FavoriteNovel>[];
+      
+      for (final doc in favSnap.docs) {
         final d = doc.data();
-        return FavoriteNovel(
-          id: doc.id,
-          title: d['title'] ?? '',
-          coverUrl: d['coverUrl'] ?? '',
-          genre: d['genre'] ?? '',
-          chapterCount: d['chapterCount'] ?? 0,
-          views: d['views'] ?? 0,
-          status: d['status'] ?? '',
-        );
-      }).toList();
+        final novelRef = d['novelRef'] as DocumentReference?;
+        
+        if (novelRef != null) {
+          final novelDoc = await novelRef.get();
+          if (novelDoc.exists) {
+            final novelData = novelDoc.data() as Map<String, dynamic>;
+            final chapters = novelData['chapters'] as List<dynamic>? ?? [];
+            
+            favoriteNovels.add(FavoriteNovel(
+              id: novelDoc.id,
+              title: novelData['title'] ?? '',
+              coverUrl: novelData['imageUrl'] ?? '',
+              genre: (novelData['genre'] is List && (novelData['genre'] as List).isNotEmpty)
+                  ? (novelData['genre'] as List).first.toString()
+                  : novelData['genre'] ?? 'General',
+              chapterCount: chapters.length,
+              views: novelData['viewCount'] ?? 0,
+              status: chapters.isEmpty ? 'Belum Mulai' : 'Berlanjut',
+            ));
+          }
+        }
+      }
+
+      // ---------- READING STATS ----------
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data() ?? {};
+      final totalChaptersRead = userData['totalChaptersRead'] ?? 0;
+      final totalWordsRead = userData['totalWordsRead'] ?? 0;
+      final readingStreak = userData['readingStreak'] ?? 0;
 
       // ---------- UPDATE USER ----------
       user.value = user.value.copyWith(
         myNovels: myNovels,
         favoriteNovels: favoriteNovels,
         novelCount: myNovels.length,
+        totalChaptersRead: totalChaptersRead,
+        totalWordsRead: totalWordsRead,
+        readingStreak: readingStreak,
       );
 
       log('[PROFILE] Static data loaded');

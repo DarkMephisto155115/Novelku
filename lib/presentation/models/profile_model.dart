@@ -49,6 +49,7 @@ class UserProfile {
   final int followerCount;
   final int followingCount;
 
+
   final List<UserNovel> myNovels;
   final List<FavoriteNovel> favoriteNovels;
 
@@ -77,6 +78,9 @@ class UserProfile {
     int? readCount,
     int? followerCount,
     int? followingCount,
+    int? totalChaptersRead,
+    int? totalWordsRead,
+    int? readingStreak,
     List<UserNovel>? myNovels,
     List<FavoriteNovel>? favoriteNovels,
   }) {

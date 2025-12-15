@@ -161,22 +161,22 @@ class ProfilePage extends GetView<ProfileController> {
             ),
             _buildPremiumSection(user),
             Container(
-              // margin: EdgeInsets.symmetric(horizontal: 16),
-              // padding: EdgeInsets.all(20),
-              // decoration: BoxDecoration(
-              //   color: Get.theme.cardColor,
-              //   borderRadius: BorderRadius.circular(16),
-              //   boxShadow: [
-              //     BoxShadow(
-              //       color: Colors.black.withOpacity(0.05),
-              //       blurRadius: 10,
-              //       offset: Offset(0, 4),
-              //     ),
-              //   ],
-              // ),
+              margin: EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stats Grid
+                  Text(
+                    'Statistik',
+                    style: Get.theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -192,6 +192,7 @@ class ProfilePage extends GetView<ProfileController> {
                           user.followingCount.toString(), Icons.person_add),
                     ],
                   ),
+
                 ],
               ),
             ),
@@ -312,41 +313,6 @@ class ProfilePage extends GetView<ProfileController> {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsSection(UserProfile user) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Stats Grid
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem('Novel', user.novelCount.toString(), Icons.book),
-              _buildStatItem(
-                  'Dibaca', user.readCount.toString(), Icons.visibility),
-              _buildStatItem('Followers',
-                  controller.formatNumber(user.followerCount), Icons.people),
-              _buildStatItem('Following', user.followingCount.toString(),
-                  Icons.person_add),
-            ],
           ),
         ],
       ),
