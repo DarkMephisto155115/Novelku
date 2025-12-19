@@ -5,24 +5,36 @@ class AuthorProfile {
   final String id;
   final String name;
   final String username;
+  final String email;
   final String bio;
   final String? profileImage;
+  final bool isPremium;
   final int novelCount;
   final int followerCount;
   final int followingCount;
   final int totalLikes;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? lastLoginAt;
+  final DateTime? lastLogoutAt;
   final List<Novel> novels;
 
   AuthorProfile({
     required this.id,
     required this.name,
     required this.username,
+    required this.email,
     required this.bio,
     this.profileImage,
+    required this.isPremium,
     required this.novelCount,
     required this.followerCount,
     required this.followingCount,
     required this.totalLikes,
+    this.createdAt,
+    this.updatedAt,
+    this.lastLoginAt,
+    this.lastLogoutAt,
     required this.novels,
   });
 
@@ -30,44 +42,68 @@ class AuthorProfile {
     String? id,
     String? name,
     String? username,
+    String? email,
     String? bio,
     String? profileImage,
+    bool? isPremium,
     int? novelCount,
     int? followerCount,
     int? followingCount,
     int? totalLikes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? lastLoginAt,
+    DateTime? lastLogoutAt,
     List<Novel>? novels,
   }) {
     return AuthorProfile(
       id: id ?? this.id,
       name: name ?? this.name,
       username: username ?? this.username,
+      email: email ?? this.email,
       bio: bio ?? this.bio,
       profileImage: profileImage ?? this.profileImage,
+      isPremium: isPremium ?? this.isPremium,
       novelCount: novelCount ?? this.novelCount,
       followerCount: followerCount ?? this.followerCount,
       followingCount: followingCount ?? this.followingCount,
       totalLikes: totalLikes ?? this.totalLikes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      lastLogoutAt: lastLogoutAt ?? this.lastLogoutAt,
       novels: novels ?? this.novels,
     );
   }
 
   factory AuthorProfile.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc,
-      List<Novel> novels,
-      ) {
+    DocumentSnapshot<Map<String, dynamic>> doc,
+    List<Novel> novels,
+  ) {
     final data = doc.data()!;
+
+    int totalLikes = 0;
+    for (var novel in novels) {
+      totalLikes += novel.likeCount;
+    }
 
     return AuthorProfile(
       id: doc.id,
       name: data['name'] ?? '',
-      username: data['username'] ?? '',
-      bio: data['bio'] ?? '',
-      profileImage: data['imagesURL'] ?? data['imageURL'],
-      novelCount: (data['novelCount'] ?? novels.length) as int,
-      followerCount: (data['followerCount'] ?? 0) as int,
-      followingCount: (data['followingCount'] ?? 0) as int,
-      totalLikes: (data['totalLikes'] ?? 0) as int,
+      username: data['username'] ?? data['name'] ?? '',
+      email: data['email'] ?? '',
+      bio: data['biodata'] ?? data['bio'] ?? '',
+      profileImage: data['imageUrl'],
+      isPremium: (data['isPremium'] ?? false) as bool,
+      novelCount: novels.length,
+      followerCount: (data['followers'] ?? 0) as int,
+      followingCount: (data['following'] ?? 0) as int,
+      totalLikes: totalLikes,
+      createdAt:
+          ((data['createdAt'] ?? data['created_at']) as Timestamp?)?.toDate(),
+      updatedAt: ((data['updated_at']) as Timestamp?)?.toDate(),
+      lastLoginAt: ((data['last_login_at']) as Timestamp?)?.toDate(),
+      lastLogoutAt: ((data['last_logout_at']) as Timestamp?)?.toDate(),
       novels: novels,
     );
   }

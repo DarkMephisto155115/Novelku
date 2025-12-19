@@ -36,6 +36,11 @@ class AuthorProfileController extends GetxController {
 
     currentUserId = user.uid;
 
+    if (authorId == currentUserId) {
+      errorMessage.value = 'Tidak bisa melihat profil diri sendiri';
+      return;
+    }
+
     fetchAuthorProfile();
     checkIsFollowing();
   }
@@ -48,7 +53,7 @@ class AuthorProfileController extends GetxController {
       log('[AUTHOR_PROFILE] Fetch started: $authorId');
 
       final authorDoc =
-      await _firestore.collection('users').doc(authorId).get();
+          await _firestore.collection('users').doc(authorId).get();
 
       if (!authorDoc.exists) {
         errorMessage.value = 'Author tidak ditemukan';
@@ -56,13 +61,12 @@ class AuthorProfileController extends GetxController {
       }
 
       final novelSnap = await _firestore
-          .collection('stories')
-          .where('writerId', isEqualTo: authorId)
+          .collection('novels')
+          .where('authorId', isEqualTo: authorId)
           .get();
 
-      final novels = novelSnap.docs
-          .map((d) => Novel.fromJson(d.data(), d.id))
-          .toList();
+      final novels =
+          novelSnap.docs.map((d) => Novel.fromJson(d.data(), d.id)).toList();
 
       author.value = AuthorProfile.fromFirestore(authorDoc, novels);
 
@@ -96,8 +100,7 @@ class AuthorProfileController extends GetxController {
     final batch = _firestore.batch();
 
     final authorRef = _firestore.collection('users').doc(authorId);
-    final followerRef =
-    authorRef.collection('followers').doc(currentUserId);
+    final followerRef = authorRef.collection('followers').doc(currentUserId);
 
     final followingRef = _firestore
         .collection('users')
@@ -119,7 +122,10 @@ class AuthorProfileController extends GetxController {
         batch.delete(followerRef);
         batch.delete(followingRef);
         batch.update(authorRef, {
-          'followerCount': FieldValue.increment(-1),
+          'followers': FieldValue.increment(-1),
+        });
+        batch.update(_firestore.collection('users').doc(currentUserId), {
+          'following': FieldValue.increment(-1),
         });
       } else {
         batch.set(followerRef, {
@@ -129,7 +135,10 @@ class AuthorProfileController extends GetxController {
           'createdAt': FieldValue.serverTimestamp(),
         });
         batch.update(authorRef, {
-          'followerCount': FieldValue.increment(1),
+          'followers': FieldValue.increment(1),
+        });
+        batch.update(_firestore.collection('users').doc(currentUserId), {
+          'following': FieldValue.increment(1),
         });
       }
 

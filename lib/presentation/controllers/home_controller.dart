@@ -41,23 +41,44 @@ class HomeController extends GetxController {
 
   void _fetchNovelsFromFirestore() {
     try {
-      _firestore.collection('novels').snapshots().listen((snapshot) {
-        final List<NovelItem> novels = snapshot.docs.map((doc) {
+      _firestore.collection('novels').snapshots().listen((snapshot) async {
+        final List<NovelItem> novels = [];
+        
+        for (var doc in snapshot.docs) {
           final data = doc.data();
           final chapters = data['chapters'] as List<dynamic>? ?? [];
+          final authorName = data['authorName'] ?? 'Tidak diketahui';
 
-          return NovelItem(
+          String? authorId;
+          try {
+            final userQuery = await _firestore
+                .collection('users')
+                .where('name', isEqualTo: authorName)
+                .limit(1)
+                .get();
+            
+            if (userQuery.docs.isNotEmpty) {
+              authorId = userQuery.docs.first.id;
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('⚠️ Error fetching author ID for $authorName: $e');
+            }
+          }
+
+          novels.add(NovelItem(
             id: doc.id,
             title: data['title'] ?? 'Tanpa Judul',
-            author: data['authorName'] ?? 'Tidak diketahui',
+            author: authorName,
+            authorId: authorId,
             coverUrl: data['imageUrl'] ?? '',
             genre: _parseGenre(data['genre']),
             rating: (data['likeCount'] ?? 0).toDouble(),
             chapters: chapters.length,
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),
-          );
-        }).toList();
+          ));
+        }
 
         allNovels.assignAll(novels);
         

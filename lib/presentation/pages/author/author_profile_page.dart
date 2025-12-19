@@ -108,25 +108,67 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
             child: CircleAvatar(
               radius: 55,
               backgroundColor: AppThemeData.darkHintText,
-              child: CircleAvatar(
-                radius: 52,
-                backgroundImage: author.profileImage != null &&
-                        author.profileImage!.isNotEmpty
-                    ? NetworkImage(author.profileImage!)
-                    : const AssetImage(
+              child: author.profileImage != null &&
+                      author.profileImage!.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 52,
+                      backgroundImage: NetworkImage(author.profileImage!),
+                      onBackgroundImageError: (exception, stackTrace) {},
+                    )
+                  : CircleAvatar(
+                      radius: 52,
+                      backgroundImage: const AssetImage(
                         'assets/images/default_profile.jpeg',
-                      ) as ImageProvider,
-              ),
+                      ),
+                    ),
             ),
           ),
-
           const SizedBox(height: 4),
-          Text(
-            (author.name.isNotEmpty ? author.name : author.username),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  (author.name.isNotEmpty ? author.name : author.username),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (author.isPremium) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star, size: 14, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text(
+                        'Premium',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -136,7 +178,6 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
               color: Colors.grey.shade500,
             ),
           ),
-
           const SizedBox(height: 12),
           Text(
             author.bio,
@@ -146,9 +187,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
               color: Colors.grey.shade600,
             ),
           ),
-
           const SizedBox(height: 16),
-
           SizedBox(
             width: double.infinity,
             child: Obx(
@@ -170,12 +209,10 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: isFollowing
-                        ? Colors.white
-                        : Get.theme.primaryColor,
-                    foregroundColor: isFollowing
-                        ? Get.theme.primaryColor
-                        : Colors.white,
+                    backgroundColor:
+                        isFollowing ? Colors.white : Get.theme.primaryColor,
+                    foregroundColor:
+                        isFollowing ? Get.theme.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: isFollowing
@@ -189,7 +226,6 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
               },
             ),
           ),
-
           const SizedBox(height: 16),
           _buildStats(author),
         ],
@@ -300,7 +336,6 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
               ),
             ),
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
