@@ -42,14 +42,3 @@ Low Fidelity Prototype: [Low Fidelity](https://github.com/DarkMephisto155115/Nov
 | Semua novel terbaru                    | Andika       | Salam        | Hasbi<br>Andika<br>Salam   |
 | Rekomendasi beranda & baca novel       | Salam        | Hasbi        | Andika<br>Salam<br>Hasbi   |
 | Fitur favorit                          | Hasbi        | Andika       | Salam<br>Hasbi<br>Andika   |
-
-
-
-
-tes contribution github
-
-
-
-
-
-
