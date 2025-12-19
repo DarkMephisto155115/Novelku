@@ -97,6 +97,25 @@ class WritingController extends GetxController {
         coverImageUrl = await uploadCoverImageToStorage(imageFile, novelId);
       }
 
+      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+      final userData = userDoc.data();
+      
+      if (kDebugMode) {
+        print('[WRITING] Current User UID: ${currentUser.uid}');
+        print('[WRITING] User Document Data: $userData');
+        print('[WRITING] Name from DB: ${userData?['name']}');
+        print('[WRITING] Username from DB: ${userData?['username']}');
+      }
+      
+      final authorName = (userData?['name']?.isNotEmpty == true)
+          ? (userData?['name'] ?? '')
+          : (userData?['username'] ?? 'Anonymous');
+      
+      if (kDebugMode) {
+        print('[WRITING] Final Author Name: $authorName');
+      }
+
+
       // Save novel document
       await _firestore.collection('novels').doc(novelId).set({
         'id': novelId,
@@ -106,7 +125,7 @@ class WritingController extends GetxController {
         'genre': genreC.value,
         'category': genreC.value,
         'authorId': currentUser.uid,
-        'authorName': currentUser.displayName ?? 'Anonymous',
+        'authorName': authorName,
         'imageUrl': coverImageUrl ?? '',
         'likeCount': 0,
         'viewCount': 0,

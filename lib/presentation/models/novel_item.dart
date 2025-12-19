@@ -2,6 +2,7 @@ class NovelItem {
   final String id;
   final String title;
   final String author;
+  final String? authorId;
   final String coverUrl;
   final List<String> genre;
   final double rating;
@@ -14,6 +15,7 @@ class NovelItem {
     required this.id,
     required this.title,
     required this.author,
+    this.authorId,
     required this.coverUrl,
     required this.genre,
     required this.rating,

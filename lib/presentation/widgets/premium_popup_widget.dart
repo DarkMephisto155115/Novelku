@@ -18,16 +18,23 @@ class PremiumPopup extends StatelessWidget {
     this.showCloseButton = true,
   }) : super(key: key);
 
+  void _closePopup() {
+    if (Get.isDialogOpen == true) {
+      Get.back();
+    }
+    onClose?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<PremiumController>();
+    final PremiumController controller = Get.find();
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.all(20),
+      insetPadding: const EdgeInsets.all(20),
       child: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Get.theme.scaffoldBackgroundColor,
             borderRadius: BorderRadius.circular(20),
@@ -43,14 +50,14 @@ class PremiumPopup extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header dengan close button
+              // ===== HEADER =====
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
                       title ?? 'Upgrade ke Premium',
-                      style: Get.theme.textTheme.headlineSmall?.copyWith(
+                      style: Get.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
                       ),
@@ -58,77 +65,90 @@ class PremiumPopup extends StatelessWidget {
                   ),
                   if (showCloseButton)
                     IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: onClose ?? () => controller.hidePopup(),
+                      icon: const Icon(Icons.close),
+                      onPressed: _closePopup,
                     ),
                 ],
               ),
-              SizedBox(height: 16),
 
-              // Description
+              const SizedBox(height: 16),
+
+              // ===== DESCRIPTION =====
               Text(
-                description ?? 'Nikmati pengalaman membaca tanpa\nbatas dengan Premium!',
-                style: Get.theme.textTheme.bodyMedium?.copyWith(
+                description ??
+                    'Nikmati pengalaman membaca tanpa\nbatas dengan Premium!',
+                style: Get.textTheme.bodyMedium?.copyWith(
                   fontSize: 16,
                   height: 1.5,
                 ),
               ),
-              SizedBox(height: 24),
 
-              // Features List
+              const SizedBox(height: 24),
+
+              // ===== FEATURES =====
               Column(
-                children: controller.features.map((feature) => _buildFeatureItem(feature)).toList(),
+                children: controller.features
+                    .map(_buildFeatureItem)
+                    .toList(),
               ),
-              SizedBox(height: 24),
+
+              const SizedBox(height: 24),
 
               Divider(
                 color: Get.theme.dividerColor.withOpacity(0.3),
                 height: 1,
               ),
-              SizedBox(height: 24),
 
-              // Price
+              const SizedBox(height: 24),
+
+              // ===== PRICE =====
               Center(
                 child: Column(
                   children: [
                     Text(
                       controller.monthlyPrice,
-                      style: Get.theme.textTheme.headlineMedium?.copyWith(
+                      style: Get.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 32,
                         color: Get.theme.primaryColor,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       controller.perMonthText,
-                      style: Get.theme.textTheme.bodyMedium?.copyWith(
-                        color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                      style: Get.textTheme.bodyMedium?.copyWith(
+                        color: Get.textTheme.bodyMedium?.color
+                            ?.withOpacity(0.6),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 24),
 
-              // Buttons
+              const SizedBox(height: 24),
+
+              // ===== ACTION BUTTONS =====
               Column(
                 children: [
-                  // Upgrade Button
+                  // UPGRADE
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: controller.upgradeToPremium,
+                      onPressed: () {
+                        controller.upgradeToPremium();
+                        _closePopup();
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.black,
+                        elevation: 0,
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        elevation: 0,
-                        padding: EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Upgrade Sekarang',
                         style: TextStyle(
                           fontSize: 16,
@@ -137,28 +157,24 @@ class PremiumPopup extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 12),
 
-                  // Later Button
+                  const SizedBox(height: 12),
+
+                  // LATER
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
                       onPressed: () {
-                        controller.setShowPopupOnNextLaunch(false);
-                        controller.hidePopup();
-                        // onClose?.call() ?? controller.hidePopup();
-                        // onClose?.call();
-                        // if(onClose != null){
-                        //   onClose?.call();
-                        // } else {
-                        //   controller.hidePopup();
-                        // }
+                        controller
+                            .setShowPopupOnNextLaunch(false);
+                        _closePopup();
                       },
                       child: Text(
                         'Nanti Saja',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                          color: Get.textTheme.bodyMedium?.color
+                              ?.withOpacity(0.6),
                         ),
                       ),
                     ),
@@ -174,7 +190,7 @@ class PremiumPopup extends StatelessWidget {
 
   Widget _buildFeatureItem(PremiumFeature feature) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -183,11 +199,11 @@ class PremiumPopup extends StatelessWidget {
             color: Get.theme.primaryColor,
             size: 20,
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               feature.title,
-              style: Get.theme.textTheme.bodyMedium?.copyWith(
+              style: Get.textTheme.bodyMedium?.copyWith(
                 fontSize: 14,
               ),
             ),

@@ -28,6 +28,7 @@ class EditProfileController extends GetxController {
   final Rx<File?> profileImage = Rx<File?>(null);
   final RxBool isLoading = false.obs;
   final RxString bioCharCount = '0/150'.obs;
+  final RxBool imageRemoved = false.obs;
 
   // ==========================
   // ORIGINAL DATA (UNTUK DETEKSI PERUBAHAN)
@@ -87,6 +88,7 @@ class EditProfileController extends GetxController {
       bioController.text = originalBio;
 
       bioCharCount.value = '${originalBio.length}/150';
+      imageRemoved.value = false;
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -124,7 +126,7 @@ class EditProfileController extends GetxController {
 
   void removeProfileImage() {
     profileImage.value = null;
-    originalProfileImageUrl.value = '';
+    imageRemoved.value = true;
   }
 
   // ==========================
@@ -184,7 +186,8 @@ class EditProfileController extends GetxController {
     try {
       isLoading.value = true;
 
-      String? imageUrl = originalProfileImageUrl.value;
+      String? imageUrl;
+      bool imageChanged = false;
 
       // UPLOAD FOTO JIKA ADA
       if (profileImage.value != null) {
@@ -193,25 +196,34 @@ class EditProfileController extends GetxController {
 
         await ref.putFile(profileImage.value!);
         imageUrl = await ref.getDownloadURL();
-      }
-      if(originalProfileImageUrl.value != '' && profileImage.value == null){
+        imageChanged = true;
+      } else if(imageRemoved.value){
         // HAPUS FOTO DI STORAGE JIKA DIHAPUS
         final ref = _storage.ref().child('profile_images/$uid.jpg');
         await ref.delete();
         imageUrl = null;
+        imageChanged = true;
       }
 
       // UPDATE FIRESTORE
-      await _firestore.collection('users').doc(uid).update({
+      final updateData = {
         'name': nameController.text.trim(),
         'username': usernameController.text.trim(),
         'email': emailController.text.trim(),
         'bio': bioController.text.trim(),
-        'imageUrl': imageUrl,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      
+      if (imageChanged) {
+        updateData['imageUrl'] = imageUrl!;
+      }
+      
+      await _firestore.collection('users').doc(uid).update(updateData);
 
-    Get.back(result: true);
+      profileImage.value = null;
+      imageRemoved.value = false;
+      
+      Get.back(result: true);
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -225,14 +237,18 @@ class EditProfileController extends GetxController {
   }
 
   void cancelEditing() {
+    profileImage.value = null;
+    imageRemoved.value = false;
     Get.back();
   }
 
   bool get hasChanges {
+    final imageChanged = profileImage.value != null || imageRemoved.value;
+    
     return nameController.text != originalName ||
         usernameController.text != originalUsername ||
         emailController.text != originalEmail ||
         bioController.text != originalBio ||
-        profileImage.value != null;
+        imageChanged;
   }
 }

@@ -2,17 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
+import '../../controllers/author/author_controller.dart' as home_ctrl_pkg;
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
+import '../../controllers/author/author_controller.dart';
 import '../../models/novel_item.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/novel_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String selectedFilter = 'Trending';
+
+  @override
   Widget build(BuildContext context) {
-    // attempt to find existing controllers, fallback to local dummy controllers
     dynamic homeController;
     dynamic favoritesController;
     try {
@@ -64,7 +72,6 @@ class HomePage extends StatelessWidget {
                   ),
                 );
               }),
-
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -78,7 +85,10 @@ class HomePage extends StatelessWidget {
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     TextButton(
-                        onPressed: () {Get.toNamed('/all_novel');}, child: const Text('Lihat Semua'))
+                        onPressed: () {
+                          Get.toNamed('/all_novel');
+                        },
+                        child: const Text('Lihat Semua'))
                   ],
                 ),
               ),
@@ -157,10 +167,186 @@ class HomePage extends StatelessWidget {
               }),
               const SizedBox(height: 12),
               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Text('👥 Penulis Baru Minggu Ini',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          Get.toNamed('/list_author');
+                        },
+                        child: const Text('Lihat Semua'))
+                  ],
+                ),
+              ),
+              GetBuilder<AuthorsController>(
+                init: AuthorsController(),
+                builder: (authorsController) {
+                  return Obx(() {
+                    final newAuthors = authorsController.newAuthors;
+                    if (newAuthors.isEmpty) {
+                      return const SizedBox();
+                    }
+
+                    return SizedBox(
+                      height: 120,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: newAuthors.take(10).length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (_, idx) {
+                          final author = newAuthors[idx];
+                          return GestureDetector(
+                            onTap: () {
+                              Get.toNamed('/author_profile/${author.id}');
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: author.imageUrl != null &&
+                                              author.imageUrl!.isNotEmpty
+                                          ? Image.network(
+                                              author.imageUrl!,
+                                              width: 70,
+                                              height: 70,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 70,
+                                                  height: 70,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.primaries[
+                                                            idx %
+                                                                Colors.primaries
+                                                                    .length]
+                                                        .withOpacity(0.2),
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      author.name.isNotEmpty
+                                                          ? author.name[0]
+                                                              .toUpperCase()
+                                                          : '?',
+                                                      style: TextStyle(
+                                                        fontSize: 28,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.primaries[
+                                                            idx %
+                                                                Colors.primaries
+                                                                    .length],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          : Container(
+                                              width: 70,
+                                              height: 70,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.primaries[idx %
+                                                        Colors.primaries.length]
+                                                    .withOpacity(0.2),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  author.name.isNotEmpty
+                                                      ? author.name[0]
+                                                          .toUpperCase()
+                                                      : '?',
+                                                  style: TextStyle(
+                                                    fontSize: 28,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.primaries[
+                                                        idx %
+                                                            Colors.primaries
+                                                                .length],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+                                    if (author.isPremium)
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFFFFD700),
+                                                Color(0xFFFFA500)
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.star,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: 70,
+                                  child: Text(
+                                    author.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 70,
+                                  child: Text(
+                                    '${author.novelCount} novel',
+                                    maxLines: 1,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: SectionHeader(title: '❤️ Favorit Saya'),
               ),
-              // Use favoritesController if available
               if (favoritesController != null)
                 Obx(() {
                   final favs = favoritesController.favorites ?? [];
@@ -181,20 +367,67 @@ class HomePage extends StatelessWidget {
                   );
                 })
               else
-                Obx(() => Column(
-                  children: [
-                    for (var it in homeController.recommendedNovels) 
-                      NovelCardVertical(item: it)
-                  ],
-                )),
-
+                Obx(() {
+                  final recommended = homeController.recommendedNovels;
+                  if (recommended.isEmpty) return const SizedBox();
+                  return Column(
+                    children: [
+                      for (var it in recommended.take(2))
+                        NovelCardVertical(item: it)
+                    ],
+                  );
+                }),
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: SectionHeader(title: '📚 Jelajahi Novel'),
               ),
-
               const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: ['Trending', 'Terbaru', 'Terlaris']
+                      .map((filter) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedFilter = filter;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: selectedFilter == filter
+                                      ? Colors.grey[300]
+                                      : Colors.white,
+                                  border: Border.all(
+                                    color: Colors.grey[300]!,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  filter,
+                                  style: TextStyle(
+                                    color: selectedFilter == filter
+                                        ? Colors.black
+                                        : Colors.grey[600],
+                                    fontWeight: selectedFilter == filter
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
               Obx(() {
                 final allNovels = homeController.allNovels;
                 if (allNovels.isEmpty) {
@@ -208,14 +441,26 @@ class HomePage extends StatelessWidget {
                     ),
                   );
                 }
+
+                List<NovelItem> filteredNovels = [];
+
+                if (selectedFilter == 'Trending') {
+                  filteredNovels = List<NovelItem>.from(allNovels)
+                    ..sort((a, b) => b.rating.compareTo(a.rating));
+                } else if (selectedFilter == 'Terbaru') {
+                  filteredNovels = List<NovelItem>.from(allNovels);
+                } else if (selectedFilter == 'Terlaris') {
+                  filteredNovels = List<NovelItem>.from(allNovels)
+                    ..sort((a, b) => b.readers.compareTo(a.readers));
+                }
+
                 return Column(
                   children: [
-                    for (var e in allNovels.take(6)) 
+                    for (var e in filteredNovels.take(6))
                       NovelCardVertical(item: e)
                   ],
                 );
               }),
-
               const SizedBox(height: 80),
             ],
           ),

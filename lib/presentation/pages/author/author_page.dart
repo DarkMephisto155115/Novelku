@@ -179,22 +179,27 @@ class AuthorsPage extends GetView<AuthorsController> {
             children: [
               ClipRRect(
                   borderRadius: BorderRadius.circular(40),
-                  child: Image.network(
-                    author.imageUrl!,
-                    width: 55,
-                    height: 55,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'assets/images/default_profile.jpeg',
-                        width: 55,
-                        height: 55,
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  )
-
-                  ),
+                  child: author.imageUrl != null && author.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          author.imageUrl!,
+                          width: 55,
+                          height: 55,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/default_profile.jpeg',
+                              width: 55,
+                              height: 55,
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          'assets/images/default_profile.jpeg',
+                          width: 55,
+                          height: 55,
+                          fit: BoxFit.cover,
+                        )),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -209,6 +214,35 @@ class AuthorsPage extends GetView<AuthorsController> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
+                        if (author.isPremium)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.star, size: 10, color: Colors.white),
+                                SizedBox(width: 2),
+                                Text(
+                                  'Premium',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         if (author.isNew)
                           Container(
                             padding: const EdgeInsets.symmetric(

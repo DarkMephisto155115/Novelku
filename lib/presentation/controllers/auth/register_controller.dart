@@ -62,6 +62,7 @@ class RegistrationController extends GetxController {
       await _firestore.collection('users').doc(uid).set({
         'email': email.value,
         'username': username.value,
+        'authorId': uid,
         "followers": 0,
         "following": 0,
         "isPremium": false,

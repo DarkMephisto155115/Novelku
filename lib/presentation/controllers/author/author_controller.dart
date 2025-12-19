@@ -1,11 +1,13 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/author_model.dart';
 
 class AuthorsController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final RxList<Author> authors = <Author>[].obs;
 
@@ -25,67 +27,88 @@ class AuthorsController extends GetxController {
     try {
       log('[AUTHOR] Fetch authors started');
 
-      final storySnap = await _firestore
-          .collection('stories')
-          .where('isPublished', isEqualTo: true)
-          .get();
+      final currentUserId = _auth.currentUser?.uid;
+      final novelSnap = await _firestore.collection('novels').get();
 
-      if (storySnap.docs.isEmpty) {
+      if (novelSnap.docs.isEmpty) {
         authors.clear();
-        log('[AUTHOR] No published stories found');
+        log('[AUTHOR] No novels found');
         return;
       }
 
       final Map<String, List<QueryDocumentSnapshot>> grouped = {};
 
-      for (var doc in storySnap.docs) {
-        final writerId = doc['writerId'];
-        grouped.putIfAbsent(writerId, () => []);
-        grouped[writerId]!.add(doc);
+      for (var doc in novelSnap.docs) {
+        final authorId = doc['authorId'] ?? 'Unknown';
+        grouped.putIfAbsent(authorId, () => []);
+        grouped[authorId]!.add(doc);
       }
 
       List<Author> temp = [];
 
       for (var entry in grouped.entries) {
-        final writerId = entry.key;
-        final stories = entry.value;
+        final authorId = entry.key;
+        final novels = entry.value;
 
-        final userSnap =
-            await _firestore.collection('users').doc(writerId).get();
-
-        if (!userSnap.exists) continue;
-
-        final user = userSnap.data()!;
-
-        final novelCount = stories.length;
-
-        final genreCount = <String, int>{};
-        for (var s in stories) {
-          final genre = s['genre'] ?? 'Unknown';
-          genreCount[genre] = (genreCount[genre] ?? 0) + 1;
+        if (authorId == currentUserId) {
+          log('[AUTHOR] Skipping current user: $authorId');
+          continue;
         }
 
-        final topGenre =
-            genreCount.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(authorId)
+            .get();
+
+        if (!userDoc.exists) {
+          log('[AUTHOR] User not found for author: $authorId');
+          continue;
+        }
+
+        final user = userDoc.data() ?? {};
+        final userId = userDoc.id;
+
+        final novelCount = novels.length;
+
+        final genreCount = <String, int>{};
+        for (var n in novels) {
+          final genre = n['genre'] ?? 'Unknown';
+          if (genre is String) {
+            genreCount[genre] = (genreCount[genre] ?? 0) + 1;
+          } else if (genre is List) {
+            for (var g in genre) {
+              genreCount[g] = (genreCount[g] ?? 0) + 1;
+            }
+          }
+        }
+
+        final topGenre = genreCount.isNotEmpty
+            ? genreCount.entries.reduce((a, b) => a.value > b.value ? a : b).key
+            : 'Unknown';
 
         final createdAt =
-            (user['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+            (((user['createdAt'] ?? user['created_at']) as Timestamp?)
+                    ?.toDate()) ??
+                DateTime.now();
 
         final isNew = DateTime.now().difference(createdAt).inDays <= 30;
-        final followerCount = user['followers'] ?? 0;
-        final isPopular = followerCount >= 1000;
+        final followerCount = (user['followers'] ?? 0) as int;
+        final isPopular = followerCount >= 100;
 
         temp.add(
           Author(
-            id: writerId,
+            id: userId,
             name: user['name'] ?? '-',
+            username: user['username'] ?? user['name'] ?? '-',
+            email: user['email'] ?? '',
             biodata: user['biodata'] ?? '',
             novelCount: novelCount,
             followerCount: followerCount,
             category: topGenre,
             isNew: isNew,
             isPopular: isPopular,
-            imageUrl: user['imagesURL'],
+            isPremium: (user['isPremium'] ?? false) as bool,
+            imageUrl: user['imageUrl'],
           ),
         );
       }
