@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
 import 'package:terra_brain/presentation/controllers/author/author_controller.dart';
 import 'package:terra_brain/presentation/controllers/author/author_profile_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/edit_chapter_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/edit_novel_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile/edit_profile_controller.dart';
 import 'package:terra_brain/presentation/controllers/premium_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile/profile_controller.dart';
@@ -148,5 +150,19 @@ class NovelChaptersBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<NovelChaptersController>(() => NovelChaptersController());
+  }
+}
+
+class EditNovelBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<EditNovelController>(() => EditNovelController());
+  }
+}
+
+class EditChapterBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<EditChapterController>(() => EditChapterController());
   }
 }

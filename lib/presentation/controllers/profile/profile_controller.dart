@@ -236,6 +236,11 @@ class ProfileController extends GetxController {
   }
 
   Future<void> logout() async {
+    await _firestore.collection('users').doc(userId).update(
+      {
+        'last_logout_at': DateTime.now(),
+      },
+    );
     await _auth.signOut();
 
     final prefs = await SharedPreferences.getInstance();

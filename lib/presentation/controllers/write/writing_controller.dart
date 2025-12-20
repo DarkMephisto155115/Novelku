@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,16 +26,49 @@ class WritingController extends GetxController {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _imagePicker = ImagePicker();
 
-  List<String> listGenre = [
-    "Romance", "Action", "Drama", "Fantasy", "Comedy", "Thriller", "Fanfiction"
-  ];
+  List<String> listGenre = [];
 
   @override
   void onInit() {
     super.onInit();
+    fetchGenres();
     ceritaC.addListener(() {
       jumlahHuruf.value = ceritaC.text.length;
     });
+  }
+
+
+  Future<void> fetchGenres() async {
+    try {
+      log("start fetching genres");
+      isLoading.value = true;
+
+      final snapshot = await _firestore.collection('genres').get();
+      log("genres fetched: ${snapshot.docs.length}");
+
+
+      if (snapshot.docs.isEmpty) {
+        Get.snackbar('Error', 'Tidak ada genre yang tersedia');
+        return;
+      }
+
+      listGenre = snapshot.docs
+          .map((doc) => doc.data()['name'] as String)
+          .toList();
+
+      if (!listGenre.contains(genreC.value)) {
+        genreC.value = '';
+      }
+
+      if (kDebugMode) {
+        print("Genres: $listGenre");
+      }
+
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal mengambil data genre');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> pickCoverImage() async {
@@ -117,10 +151,11 @@ class WritingController extends GetxController {
 
 
       // Save novel document
-      await _firestore.collection('novels').doc(novelId).set({
+      final novelRef = _firestore.collection('novels').doc(novelId);
+
+      await novelRef.set({
         'id': novelId,
         'title': judulNovelC.text.trim(),
-        'subtitle': judulBabC.text.trim(),
         'description': deskripsiC.text.trim(),
         'genre': genreC.value,
         'category': genreC.value,
@@ -130,15 +165,21 @@ class WritingController extends GetxController {
         'likeCount': 0,
         'viewCount': 0,
         'isOngoing': true,
-        'chapters': [
-          {
-            'chapter': 1,
-            'title': judulBabC.text.trim(),
-            'content': ceritaC.text.trim(),
-            'createdAt': DateTime.now(),
-            'imageUrl': null,
-          }
-        ],
+        'createdAt': DateTime.now(),
+        'updatedAt': DateTime.now(),
+      });
+
+      final chapterRef = novelRef
+          .collection('chapters')
+          .doc();
+
+      await chapterRef.set({
+        'id': chapterRef.id,
+        'chapterNumber': 1,
+        'title': judulBabC.text.trim(),
+        'content': ceritaC.text.trim(),
+        'isPublished': 'Draft',
+        'imageUrl': null,
         'createdAt': DateTime.now(),
         'updatedAt': DateTime.now(),
       });
@@ -187,7 +228,7 @@ class WritingController extends GetxController {
       _showErrorSnackbar('Cerita harus diisi');
       return false;
     }
-    if (jumlahHuruf.value < 50) {
+    if (jumlahHuruf.value < 200) {
       _showErrorSnackbar('Cerita minimal 200 karakter');
       return false;
     }

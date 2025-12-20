@@ -5,13 +5,14 @@ import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import 'package:terra_brain/presentation/pages/novel/novel_chapters_page.dart';
+import 'package:terra_brain/presentation/pages/novel/edit_chapter_page.dart';
+import 'package:terra_brain/presentation/pages/novel/edit_novel_page.dart';
 import 'package:terra_brain/presentation/pages/novel/reading_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/home/home_page.dart';
 import 'package:terra_brain/presentation/pages/auth/login_page.dart';
 import 'package:terra_brain/presentation/pages/profil/profile_page.dart';
-import 'package:terra_brain/presentation/pages/profil/profile_story_page.dart';
 import 'package:terra_brain/presentation/pages/auth/registration_page.dart';
 import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
 import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
@@ -101,6 +102,16 @@ class AppPages {
       name: Routes.NOVEL_CHAPTERS,
       page: () => const NovelChaptersPage(),
       binding: NovelChaptersBinding(),
+    ),
+    GetPage(
+      name: '/edit_novel/:id',
+      page: () => EditNovelPage(),
+      binding: EditNovelBinding(),
+    ),
+    GetPage(
+      name: '/edit_chapter',
+      page: () => EditChapterPage(),
+      binding: EditChapterBinding(),
     ),
   ];
 }

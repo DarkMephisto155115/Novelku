@@ -108,19 +108,19 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
             child: CircleAvatar(
               radius: 55,
               backgroundColor: AppThemeData.darkHintText,
-              child: author.profileImage != null &&
-                      author.profileImage!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 52,
-                      backgroundImage: NetworkImage(author.profileImage!),
-                      onBackgroundImageError: (exception, stackTrace) {},
-                    )
-                  : CircleAvatar(
-                      radius: 52,
-                      backgroundImage: const AssetImage(
-                        'assets/images/default_profile.jpeg',
-                      ),
-                    ),
+              child:
+                  author.profileImage != null && author.profileImage!.isNotEmpty
+                      ? CircleAvatar(
+                          radius: 52,
+                          backgroundImage: NetworkImage(author.profileImage!),
+                          onBackgroundImageError: (exception, stackTrace) {},
+                        )
+                      : CircleAvatar(
+                          radius: 52,
+                          backgroundImage: const AssetImage(
+                            'assets/images/default_profile.jpeg',
+                          ),
+                        ),
             ),
           ),
           const SizedBox(height: 4),
@@ -328,12 +328,27 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/images/book.jpg',
-                width: 60,
-                height: 80,
-                fit: BoxFit.cover,
-              ),
+              child: novel.imageUrl != null && novel.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      novel.imageUrl!,
+                      width: 60,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        return Image.asset(
+                          'assets/images/book.jpg',
+                          width: 60,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      'assets/images/book.jpg',
+                      width: 60,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
