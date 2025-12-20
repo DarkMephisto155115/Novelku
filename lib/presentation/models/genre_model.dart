@@ -20,11 +20,11 @@ class Genre {
     );
   }
 
-  factory Genre.fromMap(Map<String, dynamic> map) {
+  factory Genre.fromMap(Map<String, dynamic> map, String docId) {
     return Genre(
-      id: map['id'],
-      name: map['name'],
-      emoji: map['emoji'],
+      id: docId,
+      name: map['name'] ?? '',
+      emoji: map['emoji'] ?? '',
     );
   }
 }
