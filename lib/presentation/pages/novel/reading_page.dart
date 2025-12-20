@@ -218,12 +218,12 @@ class ReadingPage extends GetView<ReadingController> {
                         ),
                       ),
                       SizedBox(height: 4),
-                      Text(
-                        controller.currentChapter.value.author,
+                      Obx(() => Text(
+                        controller.novelAuthor.value,
                         style: Get.theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
+                      )),
                     ],
                   ),
                 ),
@@ -233,16 +233,14 @@ class ReadingPage extends GetView<ReadingController> {
                     minWidth: 80,
                     maxWidth: 120,
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.snackbar(
-                        'Mengikuti',
-                        'Anda sekarang mengikuti ${controller.currentChapter.value.author}',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                  child: Obx(() => ElevatedButton(
+                    onPressed: controller.isFollowingAuthor.value 
+                        ? null 
+                        : () => controller.followAuthor(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Get.theme.primaryColor,
+                      backgroundColor: controller.isFollowingAuthor.value
+                          ? Colors.grey
+                          : Get.theme.primaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -251,13 +249,13 @@ class ReadingPage extends GetView<ReadingController> {
                       padding: EdgeInsets.symmetric(vertical: 10),
                     ),
                     child: Text(
-                      'Ikuti',
+                      controller.isFollowingAuthor.value ? 'Sudah Diikuti' : 'Ikuti',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
+                  )),
                 ),
               ],
             ),
@@ -311,7 +309,7 @@ class ReadingPage extends GetView<ReadingController> {
                             ? Colors.red
                             : Get.theme.iconTheme.color,
                       ),
-                      onPressed: controller.toggleLike,
+                      onPressed: controller.isLikeProcessing.value ? null : controller.toggleLike,
                     ),
                     Text(
                       controller.formatNumber(chapter.likeCount),

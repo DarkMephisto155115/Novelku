@@ -23,5 +23,6 @@ abstract class Routes {
   static const READING = '/reading';
   static const GENRE_SELECTION = '/genre_selection';
   static const WRITING = '/writing';
+  static const NOVEL_CHAPTERS = '/novel_chapters';
 
 }

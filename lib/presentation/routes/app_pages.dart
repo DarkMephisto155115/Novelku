@@ -4,6 +4,7 @@ import 'package:terra_brain/presentation/pages/auth/genre_selection_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
+import 'package:terra_brain/presentation/pages/novel/novel_chapters_page.dart';
 import 'package:terra_brain/presentation/pages/novel/reading_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
@@ -95,6 +96,11 @@ class AppPages {
       name: Routes.WRITING,
       page: () => WritingPage(),
       binding: WritingBinding(),
+    ),
+    GetPage(
+      name: Routes.NOVEL_CHAPTERS,
+      page: () => const NovelChaptersPage(),
+      binding: NovelChaptersBinding(),
     ),
   ];
 }

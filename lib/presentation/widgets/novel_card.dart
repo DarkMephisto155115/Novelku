@@ -17,7 +17,7 @@ class NovelCardHorizontal extends StatelessWidget {
     return GestureDetector(
       onTap: onTap ??
           () {
-            Get.toNamed('/reading', arguments: {'novelId': item.id});
+            Get.toNamed('/novel_chapters', arguments: {'novelId': item.id});
           },
       child: Card(
         // elevation: 9,
@@ -83,7 +83,7 @@ class NovelCardVertical extends StatelessWidget {
     return GestureDetector(
       onTap: onTap ??
           () {
-            Get.toNamed('/reading', arguments: {'novelId': item.id});
+            Get.toNamed('/novel_chapters', arguments: {'novelId': item.id});
           },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -128,15 +128,29 @@ class NovelCardVertical extends StatelessWidget {
                               style: const TextStyle(fontSize: 12)),
                         ),
                         Row(children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
+                          const Icon(Icons.favorite, size: 14, color: Colors.red),
                           const SizedBox(width: 4),
-                          Text(item.rating.toString(),
-                              style: const TextStyle(fontSize: 13)),
+                          Expanded(
+                            child: Text('${item.likeCount}',
+                                style: const TextStyle(fontSize: 13)),
+                          ),
                         ]),
-                        Text('${item.chapters} Bab',
-                            style: const TextStyle(fontSize: 12)),
-                        Text('${(item.readers / 1000).toStringAsFixed(1)}K',
-                            style: const TextStyle(fontSize: 12)),
+                        Row(
+                          children: [
+                            const Icon(Icons.menu_book, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text('${item.chapters} Bab',
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.visibility, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(item.readers.toString(),
+                                style: const TextStyle(fontSize: 12)),
+                          ],
+                        ),
                       ],
                     )
                   ],
@@ -158,7 +172,7 @@ class AllNovelGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.toNamed('/reading', arguments: {'novelId': novel.id});
+        Get.toNamed('/novel_chapters', arguments: {'novelId': novel.id});
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +190,7 @@ class AllNovelGridItem extends StatelessWidget {
           const SizedBox(height: 8),
           Text(novel.title,
               style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text('Penulis: ${novel.author}',
+          Text('${novel.author}',
               style: const TextStyle(fontSize: 12)),
           const SizedBox(height: 4),
           Wrap(
@@ -189,8 +203,28 @@ class AllNovelGridItem extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.star, size: 16, color: Colors.amber),
-              Text(novel.rating.toString()),
+              const Icon(Icons.favorite, size: 12, color: Colors.red),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text('${novel.likeCount}',
+                    style: const TextStyle(fontSize: 11)),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Icon(Icons.menu_book, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text('${novel.chapters} Bab',
+                  style: const TextStyle(fontSize: 11)),
+            ],
+          ),
+          Row(
+            children: [
+              const Icon(Icons.visibility, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(novel.readers.toString(),
+                  style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],

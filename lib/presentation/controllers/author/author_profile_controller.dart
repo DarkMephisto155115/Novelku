@@ -45,6 +45,12 @@ class AuthorProfileController extends GetxController {
     checkIsFollowing();
   }
 
+  @override
+  void onResumed() {
+    // super.onResumed();
+    fetchAuthorProfile();
+  }
+
   Future<void> fetchAuthorProfile() async {
     try {
       isLoading.value = true;

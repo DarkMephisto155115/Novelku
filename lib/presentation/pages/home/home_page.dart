@@ -110,55 +110,60 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
-                    itemBuilder: (_, idx) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(newNovels[idx].coverUrl,
-                                  height: 140,
-                                  width: 140,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                      height: 140,
-                                      width: 140,
-                                      color: Colors.grey[300])),
-                            ),
-                            if (newNovels[idx].isNew)
-                              Positioned(
-                                left: 8,
-                                top: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: const Text('Baru',
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 12)),
-                                ),
-                              )
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                            width: 140,
-                            child: Text(newNovels[idx].title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600))),
-                        SizedBox(
-                            width: 140,
-                            child: Text(newNovels[idx].author,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey))),
-                      ],
+                    itemBuilder: (_, idx) => GestureDetector(
+                      onTap: () {
+                        Get.toNamed('/novel_chapters', arguments: {'novelId': newNovels[idx].id});
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(newNovels[idx].coverUrl,
+                                    height: 140,
+                                    width: 140,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                        height: 140,
+                                        width: 140,
+                                        color: Colors.grey[300])),
+                              ),
+                              if (newNovels[idx].isNew)
+                                Positioned(
+                                  left: 8,
+                                  top: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.circular(8)),
+                                    child: const Text('Baru',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
+                                  ),
+                                )
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                              width: 140,
+                              child: Text(newNovels[idx].title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600))),
+                          SizedBox(
+                              width: 140,
+                              child: Text(newNovels[idx].author,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey))),
+                        ],
+                      ),
                     ),
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemCount: newNovels.length,
@@ -360,10 +365,10 @@ class _HomePageState extends State<HomePage> {
                                 title: favs[i].title ?? 'Unknown',
                                 author: favs[i].author ?? '-',
                                 coverUrl: favs[i].coverUrl ?? '',
-                                genre: favs[i].genre ?? 'Unknown',
-                                rating: favs[i].rating ?? 0.0,
-                                chapters: favs[i].chapters ?? 0,
-                                readers: favs[i].readers ?? 0))),
+                                genre: [favs[i].genre ?? 'Unknown'],
+                                likeCount: 0,
+                                chapters: favs[i].chapterCount ?? 0,
+                                readers: favs[i].views ?? 0))),
                   );
                 })
               else
@@ -446,7 +451,7 @@ class _HomePageState extends State<HomePage> {
 
                 if (selectedFilter == 'Trending') {
                   filteredNovels = List<NovelItem>.from(allNovels)
-                    ..sort((a, b) => b.rating.compareTo(a.rating));
+                    ..sort((a, b) => b.likeCount.compareTo(a.likeCount));
                 } else if (selectedFilter == 'Terbaru') {
                   filteredNovels = List<NovelItem>.from(allNovels);
                 } else if (selectedFilter == 'Terlaris') {

@@ -30,7 +30,7 @@ class AllNovelController extends GetxController {
             author: data['authorName'] ?? 'Tidak diketahui',
             coverUrl: data['imageUrl'] ?? '',
             genre: _parseGenre(data['genre']),
-            rating: (data['likeCount'] ?? 0).toDouble(),
+            likeCount: (data['likeCount'] ?? 0) as int,
             chapters: chapters.length,
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),

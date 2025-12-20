@@ -5,10 +5,11 @@ class NovelItem {
   final String? authorId;
   final String coverUrl;
   final List<String> genre;
-  final double rating;
+  final int likeCount;
   final int chapters;
   final int readers;
   final bool isNew;
+  final String? description;
 
 
   NovelItem({
@@ -18,9 +19,10 @@ class NovelItem {
     this.authorId,
     required this.coverUrl,
     required this.genre,
-    required this.rating,
+    required this.likeCount,
     required this.chapters,
     required this.readers,
     this.isNew = false,
+    this.description,
   });
 }

@@ -116,6 +116,8 @@ class Chapter {
     );
   }
 
+  get chapterNumber => null;
+
   Map<String, dynamic> toMap() {
     return {
       'chapter': chapter,

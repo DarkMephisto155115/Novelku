@@ -12,7 +12,6 @@ class AuthorProfile {
   final int novelCount;
   final int followerCount;
   final int followingCount;
-  final int totalLikes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final DateTime? lastLoginAt;
@@ -30,13 +29,16 @@ class AuthorProfile {
     required this.novelCount,
     required this.followerCount,
     required this.followingCount,
-    required this.totalLikes,
     this.createdAt,
     this.updatedAt,
     this.lastLoginAt,
     this.lastLogoutAt,
     required this.novels,
   });
+
+  int get totalLikes {
+    return novels.fold(0, (sum, novel) => sum + novel.likeCount);
+  }
 
   AuthorProfile copyWith({
     String? id,
@@ -49,7 +51,6 @@ class AuthorProfile {
     int? novelCount,
     int? followerCount,
     int? followingCount,
-    int? totalLikes,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? lastLoginAt,
@@ -67,7 +68,6 @@ class AuthorProfile {
       novelCount: novelCount ?? this.novelCount,
       followerCount: followerCount ?? this.followerCount,
       followingCount: followingCount ?? this.followingCount,
-      totalLikes: totalLikes ?? this.totalLikes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
@@ -82,11 +82,6 @@ class AuthorProfile {
   ) {
     final data = doc.data()!;
 
-    int totalLikes = 0;
-    for (var novel in novels) {
-      totalLikes += novel.likeCount;
-    }
-
     return AuthorProfile(
       id: doc.id,
       name: data['name'] ?? '',
@@ -98,7 +93,6 @@ class AuthorProfile {
       novelCount: novels.length,
       followerCount: (data['followers'] ?? 0) as int,
       followingCount: (data['following'] ?? 0) as int,
-      totalLikes: totalLikes,
       createdAt:
           ((data['createdAt'] ?? data['created_at']) as Timestamp?)?.toDate(),
       updatedAt: ((data['updated_at']) as Timestamp?)?.toDate(),

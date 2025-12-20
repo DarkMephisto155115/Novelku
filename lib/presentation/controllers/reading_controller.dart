@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -7,6 +8,7 @@ import 'package:terra_brain/presentation/models/novel_item.dart';
 
 class ReadingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final GetStorage _storage = GetStorage();
 
   late Rx<Chapter> currentChapter;
@@ -19,12 +21,16 @@ class ReadingController extends GetxController {
 
   late String novelId;
   late String currentChapterId;
+  late String authorId;
+  late RxString novelAuthor = ''.obs;
+  late RxBool isFollowingAuthor = false.obs;
 
   final RxList<Comment> comments = <Comment>[].obs;
 
   final RxList<NovelItem> recommendedNovels = <NovelItem>[].obs;
 
   final RxBool isLiked = false.obs;
+  final RxBool isLikeProcessing = false.obs;
   final RxString newComment = ''.obs;
   final RxBool isLoadingChapters = false.obs;
   final RxInt scrollPosition = 0.obs;
@@ -59,10 +65,13 @@ class ReadingController extends GetxController {
 
   Future<void> _initializeReading() async {
     await fetchChaptersFromFirestore();
+    // _loadChapterLikeState();
     loadReadingHistory();
+    _incrementViewCount();
     loadBookmarks();
     fetchRecommendedNovels();
     loadChapterComments();
+    _loadFollowState();
   }
 
   void _loadReadingSettings() {
@@ -126,6 +135,8 @@ class ReadingController extends GetxController {
       }
 
       final data = doc.data() ?? {};
+      novelAuthor.value = data['authorName'] ?? 'Unknown';
+      authorId = data['authorId'] ?? '';
       final chaptersData = data['chapters'] as List<dynamic>? ?? [];
       
       if (kDebugMode) {
@@ -156,11 +167,14 @@ class ReadingController extends GetxController {
           final foundChapter = chapters.firstWhereOrNull((ch) => ch.id == currentChapterId);
           if (foundChapter != null) {
             currentChapter.value = foundChapter;
+            _loadChapterLikeState();
           } else {
             currentChapter.value = chapters.first;
+            _loadChapterLikeState();
           }
         } else {
           currentChapter.value = chapters.first;
+          _loadChapterLikeState();
         }
       }
       
@@ -192,7 +206,7 @@ class ReadingController extends GetxController {
           author: data['authorName'] ?? 'Unknown',
           coverUrl: data['imageUrl'] ?? '',
           genre: _parseGenre(data['genre']),
-          rating: (data['likeCount'] ?? 0).toDouble(),
+          likeCount: (data['likeCount'] ?? 0) as int,
           chapters: chapters.length,
           readers: data['viewCount'] ?? 0,
           isNew: false,
@@ -408,7 +422,12 @@ class ReadingController extends GetxController {
   }
 
   void toggleLike() {
+    if (isLikeProcessing.value) return;
+    
+    isLikeProcessing.value = true;
     final chapter = currentChapter.value;
+    final increment = isLiked.value ? -1 : 1;
+    
     if (isLiked.value) {
       currentChapter.value = Chapter(
         id: chapter.id,
@@ -437,6 +456,107 @@ class ReadingController extends GetxController {
       );
     }
     isLiked.value = !isLiked.value;
+    _saveChapterLikeState();
+    _updateChapterLikeCount(increment);
+    isLikeProcessing.value = false;
+  }
+  
+  void _loadChapterLikeState() {
+    try {
+      final liked = _storage.read('chapter_liked_${currentChapter.value.id}') ?? false;
+      isLiked.value = liked as bool;
+    } catch (e) {
+      if (kDebugMode) print('Error loading chapter like state: $e');
+      isLiked.value = false;
+    }
+  }
+
+  void _saveChapterLikeState() {
+    try {
+      _storage.write('chapter_liked_${currentChapter.value.id}', isLiked.value);
+    } catch (e) {
+      if (kDebugMode) print('Error saving chapter like state: $e');
+    }
+  }
+
+  Future<void> _refreshCurrentChapterData() async {
+    try {
+      if (novelId.isEmpty) return;
+      
+      final doc = await _firestore.collection('novels').doc(novelId).get();
+      if (!doc.exists) return;
+      
+      final data = doc.data() ?? {};
+      final chaptersData = data['chapters'] as List<dynamic>? ?? [];
+      
+      final updatedChapterData = chaptersData.cast<Map<String, dynamic>>().firstWhereOrNull(
+        (ch) => ch['id'] == currentChapter.value.id || ch['title'] == currentChapter.value.title,
+      );
+      
+      if (updatedChapterData != null) {
+        currentChapter.value = Chapter(
+          id: updatedChapterData['id'] ?? currentChapter.value.id,
+          title: updatedChapterData['title'] ?? currentChapter.value.title,
+          content: currentChapter.value.content,
+          author: updatedChapterData['author'] ?? currentChapter.value.author,
+          chapterNumber: updatedChapterData['chapterNumber'] ?? currentChapter.value.chapterNumber,
+          likeCount: updatedChapterData['likeCount'] ?? currentChapter.value.likeCount,
+          commentCount: updatedChapterData['commentCount'] ?? currentChapter.value.commentCount,
+          publishedAt: updatedChapterData['publishedAt'] is Timestamp
+              ? (updatedChapterData['publishedAt'] as Timestamp).toDate()
+              : currentChapter.value.publishedAt,
+          novelId: novelId,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error refreshing chapter data: $e');
+    }
+  }
+
+  void _updateChapterLikeCount(int increment) {
+    try {
+      if (novelId.isEmpty) return;
+      
+      _firestore.collection('novels').doc(novelId).get().then((doc) {
+        if (!doc.exists) return;
+        
+        final data = doc.data() ?? {};
+        final chaptersData = List<Map<String, dynamic>>.from(
+          (data['chapters'] as List<dynamic>? ?? [])
+              .map((ch) => Map<String, dynamic>.from(ch as Map))
+        );
+        
+        final chapterIndex = chaptersData.indexWhere(
+          (ch) => ch['id'] == currentChapter.value.id || ch['title'] == currentChapter.value.title,
+        );
+        
+        if (chapterIndex != -1) {
+          final currentLikeCount = (chaptersData[chapterIndex]['likeCount'] as int?) ?? 0;
+          chaptersData[chapterIndex]['likeCount'] = currentLikeCount + increment;
+          
+          _firestore.collection('novels').doc(novelId).update({
+            'chapters': chaptersData,
+            'likeCount': FieldValue.increment(increment),
+          }).then((_) {
+            if (kDebugMode) {
+              print('✅ Chapter like count updated and novel likeCount incremented');
+            }
+          }).catchError((e) {
+            if (kDebugMode) {
+              print('❌ Error updating chapter like count: $e');
+            }
+          });
+        }
+      }).catchError((e) {
+        if (kDebugMode) {
+          print('❌ Error fetching document: $e');
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error in _updateChapterLikeCount: $e');
+      }
+    }
   }
 
   void addComment() {
@@ -516,6 +636,7 @@ class ReadingController extends GetxController {
         chapterList.indexWhere((ch) => ch.id == currentChapter.value.id);
     if (currentIndex < chapterList.length - 1) {
       currentChapter.value = chapterList[currentIndex + 1];
+      _loadChapterLikeState();
       scrollPosition.value = 0;
       saveReadingProgress(0);
       loadChapterComments();
@@ -534,6 +655,7 @@ class ReadingController extends GetxController {
         chapterList.indexWhere((ch) => ch.id == currentChapter.value.id);
     if (currentIndex > 0) {
       currentChapter.value = chapterList[currentIndex - 1];
+      _loadChapterLikeState();
       scrollPosition.value = 0;
       saveReadingProgress(0);
       loadChapterComments();
@@ -544,6 +666,7 @@ class ReadingController extends GetxController {
 
   void jumpToChapter(Chapter chapter) {
     currentChapter.value = chapter;
+    _loadChapterLikeState();
     scrollPosition.value = 0;
     saveReadingProgress(0);
     loadChapterComments();
@@ -579,5 +702,119 @@ class ReadingController extends GetxController {
       return '$hours jam $minutes menit';
     }
     return '$minutes menit';
+  }
+
+  void _incrementViewCount() {
+    try {
+      if (novelId.isEmpty) return;
+      
+      _firestore.collection('novels').doc(novelId).update({
+        'viewCount': FieldValue.increment(1),
+      }).then((_) {
+        if (kDebugMode) {
+          print('✅ View count incremented for novel: $novelId');
+        }
+      }).catchError((e) {
+        if (kDebugMode) {
+          print('❌ Error incrementing view count: $e');
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error in _incrementViewCount: $e');
+      }
+    }
+  }
+
+  Future<void> _loadFollowState() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null || authorId.isEmpty) {
+        isFollowingAuthor.value = false;
+        return;
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(authorId)
+          .collection('followers')
+          .doc(currentUser.uid)
+          .get();
+
+      isFollowingAuthor.value = doc.exists;
+    } catch (e) {
+      if (kDebugMode) print('Error loading follow state: $e');
+      isFollowingAuthor.value = false;
+    }
+  }
+
+  Future<void> followAuthor() async {
+    if (isFollowingAuthor.value) return;
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      Get.snackbar(
+        'Error',
+        'Anda harus login terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    if (authorId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Author ID tidak ditemukan',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      final batch = _firestore.batch();
+
+      final authorRef = _firestore.collection('users').doc(authorId);
+      final followerRef =
+          authorRef.collection('followers').doc(currentUser.uid);
+
+      final followingRef = _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('following')
+          .doc(authorId);
+
+      batch.set(followerRef, {
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      batch.set(followingRef, {
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      batch.update(authorRef, {
+        'followers': FieldValue.increment(1),
+      });
+      batch.update(_firestore.collection('users').doc(currentUser.uid), {
+        'following': FieldValue.increment(1),
+      });
+
+      await batch.commit();
+
+      isFollowingAuthor.value = true;
+      Get.snackbar(
+        'Mengikuti',
+        'Anda sekarang mengikuti ${novelAuthor.value}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (kDebugMode) {
+        print('✅ Successfully followed author: $authorId');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error following author: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal mengikuti penulis',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 }
