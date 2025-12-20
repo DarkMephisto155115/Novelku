@@ -98,16 +98,16 @@ class ProfilePage extends GetView<ProfileController> {
               ),
               child: ClipOval(
                 child:
-                    user.profileImage != null && user.profileImage!.isNotEmpty
-                        ? Image.network(
-                            user.profileImage!,
-                            fit: BoxFit.cover,
-                          )
-                        : Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Get.theme.primaryColor,
-                          ),
+                user.profileImage != null && user.profileImage!.isNotEmpty
+                    ? Image.network(
+                  user.profileImage!,
+                  fit: BoxFit.cover,
+                )
+                    : Icon(
+                  Icons.person,
+                  size: 40,
+                  color: Get.theme.primaryColor,
+                ),
               ),
             ),
 
@@ -363,16 +363,16 @@ class ProfilePage extends GetView<ProfileController> {
         ],
       ),
       child: Obx(() => Row(
-            children: [
-              Expanded(
-                child: _buildTabButton('Novel Saya', 0),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: _buildTabButton('Favorit', 1),
-              ),
-            ],
-          )),
+        children: [
+          Expanded(
+            child: _buildTabButton('Novel Saya', 0),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: _buildTabButton('Favorit', 1),
+          ),
+        ],
+      )),
     );
   }
 

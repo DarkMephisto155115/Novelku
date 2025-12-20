@@ -14,6 +14,7 @@ import '../controllers/all_novel_controller.dart';
 import '../controllers/edit_story_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
 import '../controllers/home_controller.dart';
+import '../controllers/novel_chapters_controller.dart';
 import '../controllers/write/writing_controller.dart';
 
 class MainBinding extends Bindings {
@@ -140,5 +141,12 @@ class WritingBinding implements Bindings {
   @override
   void dependencies() {
     Get.lazyPut<WritingController>(() => WritingController());
+  }
+}
+
+class NovelChaptersBinding implements Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<NovelChaptersController>(() => NovelChaptersController());
   }
 }

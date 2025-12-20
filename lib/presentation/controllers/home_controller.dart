@@ -73,7 +73,7 @@ class HomeController extends GetxController {
             authorId: authorId,
             coverUrl: data['imageUrl'] ?? '',
             genre: _parseGenre(data['genre']),
-            rating: (data['likeCount'] ?? 0).toDouble(),
+            likeCount: (data['likeCount'] ?? 0) as int,
             chapters: chapters.length,
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),
@@ -82,9 +82,9 @@ class HomeController extends GetxController {
 
         allNovels.assignAll(novels);
         
-        // Recommended novels - top rated (first 3)
+        // Recommended novels - top liked (first 3)
         final sorted = List<NovelItem>.from(novels);
-        sorted.sort((a, b) => b.rating.compareTo(a.rating));
+        sorted.sort((a, b) => b.likeCount.compareTo(a.likeCount));
         recommendedNovels.assignAll(sorted.take(3).toList());
 
         // New novels - latest created

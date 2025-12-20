@@ -300,78 +300,148 @@ class WritingController extends GetxController {
   }
 
   Widget _buildPreviewContent() {
+    final wordCount = ceritaC.text.split(RegExp(r'\s+')).length;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (coverImagePath.value.isNotEmpty)
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(12),
-              bottomRight: Radius.circular(12),
-            ),
-            child: Image.file(
-              File(coverImagePath.value),
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                judulNovelC.text.trim(),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (genreC.value.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7A4FFF),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    genreC.value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (coverImagePath.value.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(coverImagePath.value),
+                        width: 100,
+                        height: 140,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 100,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                    ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          judulNovelC.text.trim(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Penulis: Author',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (genreC.value.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              genreC.value,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.favorite, size: 14, color: Colors.red),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '0',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(Icons.menu_book, size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '1',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(Icons.visibility, size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '0',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              if (deskripsiC.text.trim().isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  deskripsiC.text.trim(),
+                ],
+              ),
+              const Divider(height: 24),
+            ],
+          ),
+        ),
+        if (deskripsiC.text.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Deskripsi',
                   style: TextStyle(
+                    fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Colors.grey.shade700,
-                    height: 1.5,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  deskripsiC.text.trim(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.justify,
+                ),
+                const Divider(height: 24),
               ],
-              const SizedBox(height: 24),
-              Divider(
-                color: Colors.grey.shade300,
-                height: 1,
-              ),
-              const SizedBox(height: 24),
+            ),
+          ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
                 judulBabC.text.trim(),
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  height: 1.2,
                 ),
               ),
               const SizedBox(height: 8),
@@ -386,7 +456,7 @@ class WritingController extends GetxController {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${ceritaC.text.length} karakter',
+                    '$wordCount kata',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade600,
@@ -394,22 +464,13 @@ class WritingController extends GetxController {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${(ceritaC.text.length / 200).ceil()} menit',
+                    '${(wordCount / 200).ceil()} menit',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade600,
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-              SelectableText(
-                ceritaC.text.trim(),
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.8,
-                  color: Colors.grey.shade900,
-                ),
               ),
             ],
           ),
