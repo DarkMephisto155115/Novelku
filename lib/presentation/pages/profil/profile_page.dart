@@ -13,7 +13,14 @@ class ProfilePage extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       body: Obx(() {
+
         final user = controller.user.value;
+        final isLoading = controller.isLoading.value;
+
+        if (isLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
+
         return CustomScrollView(
           slivers: [
             // App Bar
