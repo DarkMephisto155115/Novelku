@@ -4,7 +4,7 @@ import 'package:terra_brain/presentation/models/novel_model.dart';
 
 class EditChapterController extends GetxController {
   late Chapter chapter;
-  late bool isEditMode;
+  final RxBool isEditMode = false.obs;
 
   final titleController = TextEditingController();
   final contentController = TextEditingController();
@@ -15,6 +15,7 @@ class EditChapterController extends GetxController {
   final RxInt wordCount = 0.obs;
   final RxInt characterCount = 0.obs;
   final RxBool isDirty = false.obs;
+  final RxBool isValid = false.obs;
   static const int minCharacterCount = 200;
 
 
@@ -26,15 +27,15 @@ class EditChapterController extends GetxController {
 
     if (args != null && args['chapter'] != null) {
       chapter = args['chapter'] as Chapter;
-      isEditMode = true;
+      isEditMode.value = true;
 
       titleController.text = chapter.title;
       contentController.text = chapter.content;
       isPublished.value = chapter.isPublished == 'published';
     } else {
-      isEditMode = false;
+      isEditMode.value = false;
 
-      final chapterNumber = args?['chapterNumber'] ?? 1;
+      final chapterNumber = args?['chapter'] ?? 1;
 
       chapter = Chapter(
         id: '',
@@ -58,8 +59,13 @@ class EditChapterController extends GetxController {
     wordCount.value =
         text.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).length;
 
+    isValid.value =
+        titleController.text.trim().isNotEmpty &&
+            contentController.text.trim().isNotEmpty;
+
     if (!isDirty.value) isDirty.value = true;
   }
+
 
   @override
   void onClose() {
@@ -81,9 +87,9 @@ class EditChapterController extends GetxController {
     if (!isDirty.value) isDirty.value = true;
   }
 
-  bool get isValid =>
-      titleController.text.trim().isNotEmpty &&
-          contentController.text.trim().isNotEmpty;
+  // isValid.value = () =>value
+  //     titleController.text.trim().isNotEmpty &&
+  //         contentController.text.trim().isNotEmpty;isPreviewModesNotEmpty
 
 
   void saveChapter() {
@@ -117,13 +123,13 @@ class EditChapterController extends GetxController {
     );
 
     Get.back(result: {
-      'action': isEditMode ? 'update' : 'create',
+      'action': isEditMode.value ? 'update' : 'create',
       'chapter': updatedChapter,
     });
 
     Get.snackbar(
       'Berhasil',
-      isEditMode ? 'Chapter diperbarui' : 'Chapter ditambahkan',
+      isEditMode.value ? 'Chapter diperbarui' : 'Chapter ditambahkan',
       snackPosition: SnackPosition.BOTTOM,
     );
   }

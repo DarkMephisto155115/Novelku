@@ -116,6 +116,7 @@ class EditNovelController extends GetxController {
 
   Future<void> fetchChapters() async {
     try {
+      log('start fetching chapter');
       final snapshot = await _firestore
           .collection('novels')
           .doc(novelId)
@@ -126,6 +127,15 @@ class EditNovelController extends GetxController {
       chapters.value = snapshot.docs
           .map((doc) => Chapter.fromJson(doc.id, doc.data()))
           .toList();
+
+      // Log data yang di-fetch
+      log('[FETCH_CHAPTERS] Berhasil mengambil ${chapters.length} chapter');
+
+      for (var i = 0; i < chapters.length; i++) {
+        final chapter = chapters[i];
+        log('Chapter ${i+1}: No.${chapter.chapter} - ${chapter.title} (ID: ${chapter.id})');
+      }
+
     } catch (e, s) {
       log('[FETCH_CHAPTERS] $e', stackTrace: s);
       Get.snackbar('Error', 'Gagal memuat chapter');
@@ -208,13 +218,11 @@ class EditNovelController extends GetxController {
     'Selesai': false,
   };
 
-
-
   Future<void> openAddChapter() async {
     final result = await Get.toNamed(
       '/edit_chapter',
       arguments: {
-        'chapterNumber': chapters.length + 1,
+        'chapter': chapters.length + 1,
       },
     );
 
