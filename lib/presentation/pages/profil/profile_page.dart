@@ -199,7 +199,6 @@ class ProfilePage extends GetView<ProfileController> {
                           user.followingCount.toString(), Icons.person_add),
                     ],
                   ),
-
                 ],
               ),
             ),
@@ -427,58 +426,107 @@ class ProfilePage extends GetView<ProfileController> {
         itemCount: user.myNovels.length,
         itemBuilder: (context, index) {
           final novel = user.myNovels[index];
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // COVER
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      novel.coverUrl,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return Image.asset(
-                          'assets/images/book.jpg',
-                          height: 120,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        );
-                      },
-                    ),
+          return InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Get.bottomSheet(
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Get.theme.scaffoldBackgroundColor,
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-
-                  SizedBox(height: 6),
-
-                  // JUDUL
-                  Text(
-                    novel.title,
-                    style: Get.theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        novel.title,
+                        style: Get.theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: Icon(Icons.menu_book),
+                          label: Text('Baca Novel'),
+                          onPressed: () {
+                            Get.back();
+                            Get.toNamed('/reading',
+                                arguments: {'novelId': novel.id});
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: Icon(Icons.edit),
+                          label: Text('Edit Novel'),
+                          onPressed: () {
+                            Get.back();
+                            Get.toNamed(
+                              '/edit_novel/${novel.id}',
+                              arguments: novel,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-
-                  // PENULIS
-                  Text(
-                    novel.author,
-                    style: Get.theme.textTheme.bodySmall?.copyWith(
-                      color: Get.theme.textTheme.bodySmall?.color
-                          ?.withOpacity(0.6),
+                ),
+              );
+            },
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        novel.coverUrl,
+                        height: 120,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return Image.asset(
+                            'assets/images/book.jpg',
+                            height: 120,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    SizedBox(height: 6),
+                    Text(
+                      novel.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Get.theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      novel.author,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Get.theme.textTheme.bodySmall?.copyWith(
+                        color: Get.theme.textTheme.bodySmall?.color
+                            ?.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -492,134 +540,143 @@ class ProfilePage extends GetView<ProfileController> {
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: user.favoriteNovels.map((novel) {
-          return Container(
-            margin: EdgeInsets.only(bottom: 16),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
-                )
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // COVER
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    novel.coverUrl,
-                    width: 75,
-                    height: 105,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        'assets/images/book.jpg',
-                        width: 75,
-                        height: 105,
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  ),
-                ),
-
-                SizedBox(width: 12),
-
-                // INFORMATION
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // TITLE + EDIT ICON
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              novel.title,
-                              style: Get.theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          Icon(Icons.edit,
-                              size: 18,
-                              color: Get.theme.primaryColor.withOpacity(0.8)),
-                        ],
-                      ),
-
-                      SizedBox(height: 4),
-
-                      // GENRE TAG
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          novel.genre,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 6),
-
-                      // CHAPTER + VIEWS
-                      Row(
-                        children: [
-                          Icon(Icons.menu_book, size: 14, color: Colors.grey),
-                          SizedBox(width: 4),
-                          Text(
-                            '${novel.chapterCount} chapter',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          SizedBox(width: 12),
-                          Icon(Icons.favorite, size: 14, color: Colors.grey),
-                          SizedBox(width: 4),
-                          Text(
-                            controller.formatNumber(novel.views) + ' views',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(width: 8),
-
-                // STATUS BADGE
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: novel.status == 'Selesai'
-                        ? Colors.green.shade100
-                        : Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    novel.status,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: novel.status == 'Selesai'
-                          ? Colors.green.shade700
-                          : Colors.blue.shade700,
-                      fontWeight: FontWeight.w700,
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Get.toNamed(
+                '/reading',
+                arguments: novel.id,
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // COVER
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      novel.coverUrl,
+                      width: 75,
+                      height: 105,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/book.jpg',
+                          width: 75,
+                          height: 105,
+                          fit: BoxFit.cover,
+                        );
+                      },
                     ),
                   ),
-                ),
-              ],
+
+                  SizedBox(width: 12),
+
+                  // INFORMATION
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                novel.title,
+                                style:
+                                    Get.theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Icon(Icons.edit,
+                                size: 18,
+                                color: Get.theme.primaryColor.withOpacity(0.8)),
+                          ],
+                        ),
+
+                        SizedBox(height: 4),
+
+                        // GENRE TAG
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            novel.genre,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 6),
+
+                        // CHAPTER + VIEWS
+                        Row(
+                          children: [
+                            Icon(Icons.menu_book, size: 14, color: Colors.grey),
+                            SizedBox(width: 4),
+                            Text(
+                              '${novel.chapterCount} chapter',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            SizedBox(width: 12),
+                            Icon(Icons.favorite, size: 14, color: Colors.grey),
+                            SizedBox(width: 4),
+                            Text(
+                              controller.formatNumber(novel.views) + ' views',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(width: 8),
+
+                  // STATUS BADGE
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: novel.status == 'Selesai'
+                          ? Colors.green.shade100
+                          : Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      novel.status,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: novel.status == 'Selesai'
+                            ? Colors.green.shade700
+                            : Colors.blue.shade700,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),

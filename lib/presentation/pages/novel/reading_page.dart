@@ -13,13 +13,14 @@ class ReadingPage extends GetView<ReadingController> {
 
   @override
   Widget build(BuildContext context) {
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      PremiumPopupManager.showPopupBeforeReading();
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
-      }
-    });
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        PremiumPopupManager.showPopupBeforeReading();
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+        }
+      },
+    );
 
     return Scaffold(
       backgroundColor: _getBackgroundColor(),
@@ -30,26 +31,32 @@ class ReadingPage extends GetView<ReadingController> {
             pinned: true,
             backgroundColor: _getThemeColor(),
             elevation: 0,
-            title: Obx(() => Text(
-              controller.currentChapter.value.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Get.theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            )),
-            actions: [
-              Obx(() => IconButton(
-                icon: Icon(
-                  controller.isChapterBookmarked(controller.currentChapter.value.id)
-                      ? Icons.bookmark
-                      : Icons.bookmark_outline,
-                  color: controller.isChapterBookmarked(controller.currentChapter.value.id)
-                      ? Get.theme.primaryColor
-                      : null,
+            title: Obx(
+              () => Text(
+                controller.currentChapter.value.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Get.theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                onPressed: () => _showBookmarkDialog(context),
-              )),
+              ),
+            ),
+            actions: [
+              Obx(
+                () => IconButton(
+                  icon: Icon(
+                    controller.isChapterBookmarked(
+                            controller.currentChapter.value.id)
+                        ? Icons.bookmark
+                        : Icons.bookmark_outline,
+                    color: controller.isChapterBookmarked(
+                            controller.currentChapter.value.id)
+                        ? Get.theme.primaryColor
+                        : null,
+                  ),
+                  onPressed: () => _showBookmarkDialog(context),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.menu_book),
                 onPressed: () => _showTableOfContents(context),
@@ -112,21 +119,24 @@ class ReadingPage extends GetView<ReadingController> {
                 Text(
                   'Bab ${chapter.chapterNumber}',
                   style: Get.theme.textTheme.bodySmall?.copyWith(
-                    color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color:
+                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                   ),
                 ),
                 SizedBox(width: 12),
                 Text(
                   '${chapter.wordCount} kata',
                   style: Get.theme.textTheme.bodySmall?.copyWith(
-                    color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color:
+                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                   ),
                 ),
                 SizedBox(width: 12),
                 Text(
                   '${chapter.estimatedReadTime} menit',
                   style: Get.theme.textTheme.bodySmall?.copyWith(
-                    color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    color:
+                        Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                   ),
                 ),
               ],
@@ -142,7 +152,8 @@ class ReadingPage extends GetView<ReadingController> {
               textAlign: _getTextAlign(settings.textAlignment),
               onSelectionChanged: (selection, _) {
                 if (selection != null) {
-                  controller.saveReadingProgress(_scrollController.offset.toInt());
+                  controller
+                      .saveReadingProgress(_scrollController.offset.toInt());
                 }
               },
             ),
@@ -550,8 +561,8 @@ class ReadingPage extends GetView<ReadingController> {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
-                itemBuilder: (_, idx) =>
-                    NovelCardHorizontal(item: controller.recommendedNovels[idx]),
+                itemBuilder: (_, idx) => NovelCardHorizontal(
+                    item: controller.recommendedNovels[idx]),
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemCount: controller.recommendedNovels.length,
               ),
@@ -632,8 +643,8 @@ class ReadingPage extends GetView<ReadingController> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: ReadingTheme.values.map((theme) {
                       final isSelected = settings.theme == theme;
-                      final themeLabel = theme.name[0].toUpperCase() +
-                          theme.name.substring(1);
+                      final themeLabel =
+                          theme.name[0].toUpperCase() + theme.name.substring(1);
                       return GestureDetector(
                         onTap: () => controller.updateTheme(theme),
                         child: Container(
@@ -681,8 +692,7 @@ class ReadingPage extends GetView<ReadingController> {
                           break;
                       }
                       return GestureDetector(
-                        onTap: () =>
-                            controller.updateTextAlignment(alignment),
+                        onTap: () => controller.updateTextAlignment(alignment),
                         child: Container(
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -769,9 +779,8 @@ class ReadingPage extends GetView<ReadingController> {
           ElevatedButton(
             onPressed: () {
               if (isBookmarked) {
-                final bookmark = controller.bookmarks
-                    .firstWhere((b) =>
-                        b.chapterId == controller.currentChapter.value.id);
+                final bookmark = controller.bookmarks.firstWhere(
+                    (b) => b.chapterId == controller.currentChapter.value.id);
                 controller.removeBookmark(bookmark.id);
                 Get.back();
               } else {

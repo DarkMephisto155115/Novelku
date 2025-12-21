@@ -16,11 +16,16 @@ class GenreSelectionController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadUserId();
-    fetchGenres();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await loadUserId();
+    await fetchGenres();
 
     ever(genres, (_) {
-      selectedCount.value = genres.where((genre) => genre.isSelected).length;
+      selectedCount.value =
+          genres.where((genre) => genre.isSelected).length;
     });
   }
 
@@ -39,13 +44,18 @@ class GenreSelectionController extends GetxController {
     try {
       final snapshot = await _firestore.collection('genres').get();
 
+      if (snapshot.docs.isEmpty) {
+        Get.snackbar("Info", "Genre belum tersedia");
+        genres.clear();
+        return;
+      }
+
       final list = snapshot.docs.map((doc) {
         final data = doc.data();
-        return Genre.fromMap({
-          "id": doc.id,
-          "name": data["name"],
-          "emoji": data["emoji"],
-        });
+        return Genre.fromMap(
+          data,
+          doc.id,
+        );
       }).toList();
 
       genres.assignAll(list);
@@ -79,6 +89,11 @@ class GenreSelectionController extends GetxController {
   Future<void> saveSelectedGenres(List<Genre> selectedGenres) async {
     try {
       final userRef = _firestore.collection('users').doc(userID);
+      final old = await userRef.collection("selectedGenres").get();
+
+      for (var doc in old.docs) {
+        await doc.reference.delete();
+      }
 
       for (var genre in selectedGenres) {
         await userRef.collection("selectedGenres").doc(genre.id).set({
