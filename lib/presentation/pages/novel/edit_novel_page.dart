@@ -431,6 +431,12 @@ class EditNovelPage extends GetView<EditNovelController> {
                   ),
                 ),
                 SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 20),
+                  color: Colors.red,
+                  onPressed: () => controller.confirmDeleteChapter(chapter),
+                ),
+
                 // Edit Button
                 IconButton(
                   icon: Icon(Icons.edit, size: 20),
@@ -491,6 +497,26 @@ class EditNovelPage extends GetView<EditNovelController> {
             ),
           ),
         ),
+        SizedBox(width: 16,),
+        Expanded(
+          child: Obx(
+                () => ElevatedButton(
+              onPressed: controller.isLoading.value
+                  ? null
+                  : controller.confirmDeleteNovel,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Hapus Novel'),
+            ),
+          ),
+        ),
+
       ],
     );
   }

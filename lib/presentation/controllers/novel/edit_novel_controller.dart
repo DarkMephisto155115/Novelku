@@ -116,6 +116,7 @@ class EditNovelController extends GetxController {
 
   Future<void> fetchChapters() async {
     try {
+      log('start fetching chapter');
       final snapshot = await _firestore
           .collection('novels')
           .doc(novelId)
@@ -126,6 +127,14 @@ class EditNovelController extends GetxController {
       chapters.value = snapshot.docs
           .map((doc) => Chapter.fromJson(doc.id, doc.data()))
           .toList();
+
+      // Log data yang di-fetch
+      log('[FETCH_CHAPTERS] Berhasil mengambil ${chapters.length} chapter');
+
+      for (var i = 0; i < chapters.length; i++) {
+        final chapter = chapters[i];
+        log('Chapter ${i + 1}: No.${chapter.chapter} - ${chapter.title} (ID: ${chapter.id})');
+      }
     } catch (e, s) {
       log('[FETCH_CHAPTERS] $e', stackTrace: s);
       Get.snackbar('Error', 'Gagal memuat chapter');
@@ -208,13 +217,11 @@ class EditNovelController extends GetxController {
     'Selesai': false,
   };
 
-
-
   Future<void> openAddChapter() async {
     final result = await Get.toNamed(
       '/edit_chapter',
       arguments: {
-        'chapterNumber': chapters.length + 1,
+        'chapter': chapters.length + 1,
       },
     );
 
@@ -264,6 +271,20 @@ class EditNovelController extends GetxController {
 
   Future<void> deleteChapter(Chapter chapter) async {
     try {
+      isLoading.value = true;
+
+      // 1. Hapus chapter dari Firestore
+      await _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc(chapter.id)
+          .delete();
+
+      // 2. Hapus dari state lokal
+      chapters.removeWhere((c) => c.id == chapter.id);
+
+      // 3. Reorder nomor chapter (lokal + firestore)
       final batch = _firestore.batch();
 
       for (int i = 0; i < chapters.length; i++) {
@@ -276,15 +297,112 @@ class EditNovelController extends GetxController {
             .collection('chapters')
             .doc(updated.id);
 
-        batch.update(ref, {'chapterNumber': i + 1});
+        batch.update(ref, {'chapter': i + 1});
       }
 
       await batch.commit();
+
+      // 4. Paksa refresh RxList
+      chapters.refresh();
 
       Get.snackbar('Dihapus', 'Chapter berhasil dihapus');
     } catch (e, s) {
       log('[DELETE_CHAPTER] $e', stackTrace: s);
       Get.snackbar('Error', 'Gagal menghapus chapter');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+
+  void confirmDeleteChapter(Chapter chapter) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Hapus Chapter'),
+        content: Text(
+          'Yakin ingin menghapus chapter "${chapter.title}"?\nTindakan ini tidak bisa dibatalkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              deleteChapter(chapter);
+            },
+            child: const Text(
+              'Hapus',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void confirmDeleteNovel() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Hapus Novel'),
+        content: const Text(
+          'Semua chapter akan ikut terhapus.\nTindakan ini tidak bisa dibatalkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              deleteNovel();
+            },
+            child: const Text(
+              'Hapus',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> deleteNovel() async {
+    try {
+      isLoading.value = true;
+
+      final novelId = novel.value!.id;
+
+      // Hapus semua chapter dulu
+      final chaptersSnapshot = await _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .get();
+
+      for (final doc in chaptersSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Hapus novel
+      await _firestore.collection('novels').doc(novelId).delete();
+
+      Get.back(result: 'deleted');
+      Get.snackbar(
+        'Berhasil',
+        'Novel berhasil dihapus',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Gagal',
+        'Gagal menghapus novel',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
     }
   }
 

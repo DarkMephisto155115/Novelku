@@ -11,8 +11,11 @@ class EditChapterPage extends GetView<EditChapterController> {
       appBar: AppBar(
         title: Obx(
           () => Text(
-            controller.isPreviewMode.value ? 'Preview Chapter' : 'Edit Chapter',
+              controller.isEditMode.value ? 'Edit Chapter' : 'Tambah Chapter',
           ),
+          // () => Text(
+          //   controller.isPreviewMode.value ? 'Preview Chapter' : 'Edit Chapter',
+          // ),
         ),
         actions: [
           Obx(
@@ -31,7 +34,7 @@ class EditChapterPage extends GetView<EditChapterController> {
           Obx(
             () => IconButton(
               icon: const Icon(Icons.save),
-              onPressed: controller.isDirty.value && controller.isValid
+              onPressed: controller.isDirty.value && controller.isValid.value
                   ? controller.saveChapter
                   : null,
             ),
@@ -74,6 +77,19 @@ class EditChapterPage extends GetView<EditChapterController> {
               }),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Obx(() => ElevatedButton(
+            onPressed: controller.isDirty.value && controller.isValid.value
+                ? controller.saveChapter
+                : null,
+            child: Obx(
+                () => Text(controller.isEditMode.value ? 'Simpan Perubahan' : 'Tambah Chapter')
+            ),
+          )),
         ),
       ),
     );
@@ -134,6 +150,17 @@ class EditChapterPage extends GetView<EditChapterController> {
             style: const TextStyle(height: 1.7),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buttonSave() {
+    return Obx(
+      () => ElevatedButton(
+        onPressed: controller.isDirty.value && controller.isValid.value
+            ? controller.saveChapter
+            : null,
+        child: const Text('Simpan'),
       ),
     );
   }

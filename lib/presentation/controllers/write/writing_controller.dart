@@ -174,8 +174,7 @@ class WritingController extends GetxController {
           .doc();
 
       await chapterRef.set({
-        'id': chapterRef.id,
-        'chapterNumber': 1,
+        'chapter': 1,
         'title': judulBabC.text.trim(),
         'content': ceritaC.text.trim(),
         'isPublished': 'Draft',
