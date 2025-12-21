@@ -13,7 +13,6 @@ class ProfilePage extends GetView<ProfileController> {
     return Scaffold(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       body: Obx(() {
-
         final user = controller.user.value;
         final isLoading = controller.isLoading.value;
 
@@ -98,16 +97,16 @@ class ProfilePage extends GetView<ProfileController> {
               ),
               child: ClipOval(
                 child:
-                user.profileImage != null && user.profileImage!.isNotEmpty
-                    ? Image.network(
-                  user.profileImage!,
-                  fit: BoxFit.cover,
-                )
-                    : Icon(
-                  Icons.person,
-                  size: 40,
-                  color: Get.theme.primaryColor,
-                ),
+                    user.profileImage != null && user.profileImage!.isNotEmpty
+                        ? Image.network(
+                            user.profileImage!,
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Get.theme.primaryColor,
+                          ),
               ),
             ),
 
@@ -362,16 +361,16 @@ class ProfilePage extends GetView<ProfileController> {
         ],
       ),
       child: Obx(() => Row(
-        children: [
-          Expanded(
-            child: _buildTabButton('Novel Saya', 0),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: _buildTabButton('Favorit', 1),
-          ),
-        ],
-      )),
+            children: [
+              Expanded(
+                child: _buildTabButton('Novel Saya', 0),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _buildTabButton('Favorit', 1),
+              ),
+            ],
+          )),
     );
   }
 
@@ -468,10 +467,7 @@ class ProfilePage extends GetView<ProfileController> {
                           label: Text('Edit Novel'),
                           onPressed: () {
                             Get.back();
-                            Get.toNamed(
-                              '/edit_novel/${novel.id}',
-                              arguments: novel,
-                            );
+                            controller.editNovel(novel.id);
                           },
                         ),
                       ),

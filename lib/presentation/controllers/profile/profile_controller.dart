@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 
@@ -210,6 +211,17 @@ class ProfileController extends GetxController {
       log('[PROFILE] Returned from edit profile');
     } else {
       log('Eror: ?');
+    }
+  }
+
+  Future<void> editNovel(String novelId) async {
+    final result = await Get.toNamed(
+      '/edit_novel',
+      parameters: {'id': novelId},
+    );
+
+    if (result == 'deleted') {
+      _fetchStaticData();
     }
   }
 
