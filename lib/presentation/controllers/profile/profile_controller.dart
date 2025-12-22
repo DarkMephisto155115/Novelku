@@ -242,8 +242,8 @@ class ProfileController extends GetxController {
 
   Future<void> editNovel(String novelId) async {
     final result = await Get.toNamed(
-      '/edit_novel',
-      parameters: {'id': novelId},
+      '/edit_novel/$novelId',
+      // parameters: {'id': novelId},
     );
 
     if (result == 'deleted') {
