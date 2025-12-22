@@ -20,6 +20,7 @@ class WritingController extends GetxController {
   var coverImagePath = ''.obs;
   var isLoading = false.obs;
   var uploadProgress = 0.0.obs;
+  var errorMessage = ''.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,6 +28,7 @@ class WritingController extends GetxController {
   final ImagePicker _imagePicker = ImagePicker();
 
   List<String> listGenre = [];
+  static const int minCharacterCount = 200;
 
   @override
   void onInit() {
@@ -42,13 +44,13 @@ class WritingController extends GetxController {
     try {
       log("start fetching genres");
       isLoading.value = true;
+      errorMessage.value = '';
 
       final snapshot = await _firestore.collection('genres').get();
       log("genres fetched: ${snapshot.docs.length}");
 
-
       if (snapshot.docs.isEmpty) {
-        Get.snackbar('Error', 'Tidak ada genre yang tersedia');
+        errorMessage.value = 'Tidak ada genre yang tersedia';
         return;
       }
 
@@ -64,8 +66,10 @@ class WritingController extends GetxController {
         print("Genres: $listGenre");
       }
 
-    } catch (e) {
-      Get.snackbar('Error', 'Gagal mengambil data genre');
+      errorMessage.value = '';
+    } catch (e, s) {
+      log('[FETCH_GENRES] $e', stackTrace: s);
+      errorMessage.value = 'Gagal mengambil data genre';
     } finally {
       isLoading.value = false;
     }
@@ -86,11 +90,12 @@ class WritingController extends GetxController {
           print("Cover image selected: ${pickedFile.path}");
         }
       }
-    } catch (e) {
+    } catch (e, s) {
       if (kDebugMode) {
         print('Error picking image: $e');
       }
-      Get.snackbar('Error', 'Gagal memilih gambar');
+      log('[PICK_IMAGE] $e', stackTrace: s);
+      _showSnackbar('Gagal', 'Gagal memilih gambar', isError: true);
     }
   }
 
@@ -119,7 +124,7 @@ class WritingController extends GetxController {
     try {
       User? currentUser = _auth.currentUser;
       if (currentUser == null) {
-        Get.snackbar('Error', 'Anda harus login terlebih dahulu');
+        _showSnackbar('Gagal', 'Anda harus login terlebih dahulu', isError: true);
         return;
       }
 
@@ -149,8 +154,6 @@ class WritingController extends GetxController {
         print('[WRITING] Final Author Name: $authorName');
       }
 
-
-      // Save novel document
       final novelRef = _firestore.collection('novels').doc(novelId);
 
       await novelRef.set({
@@ -169,9 +172,7 @@ class WritingController extends GetxController {
         'updatedAt': DateTime.now(),
       });
 
-      final chapterRef = novelRef
-          .collection('chapters')
-          .doc();
+      final chapterRef = novelRef.collection('chapters').doc();
 
       await chapterRef.set({
         'chapter': 1,
@@ -183,28 +184,17 @@ class WritingController extends GetxController {
         'updatedAt': DateTime.now(),
       });
 
-      // Update user's novels array
       await _firestore.collection('users').doc(currentUser.uid).update({
         'novels': FieldValue.arrayUnion([novelId])
-      }).catchError((e) {
-        if (kDebugMode) {
-          print('Error updating user novels: $e');
-        }
+      }).catchError((e, s) {
+        log('[UPDATE_USER_NOVELS] $e', stackTrace: s);
       });
 
-      isLoading.value = false;
-
-      // Clear form
       _clearForm();
-
-      // Show success dialog
       _showSuccessDialog();
-    } catch (e) {
-      isLoading.value = false;
-      if (kDebugMode) {
-        print('Error saving novel: $e');
-      }
-      Get.snackbar('Error', 'Gagal menyimpan novel: $e');
+    } catch (e, s) {
+      log('[SAVE_NOVEL] $e', stackTrace: s);
+      _showSnackbar('Gagal', 'Gagal menyimpan novel', isError: true);
     } finally {
       isLoading.value = false;
     }
@@ -212,37 +202,48 @@ class WritingController extends GetxController {
 
   bool _validateInput() {
     if (judulNovelC.text.trim().isEmpty) {
-      _showErrorSnackbar('Judul novel harus diisi');
+      _showSnackbar('Gagal', 'Judul novel harus diisi', isError: true);
       return false;
     }
     if (genreC.value.isEmpty) {
-      _showErrorSnackbar('Genre harus dipilih');
+      _showSnackbar('Gagal', 'Genre harus dipilih', isError: true);
       return false;
     }
     if (judulBabC.text.trim().isEmpty) {
-      _showErrorSnackbar('Judul bab harus diisi');
+      _showSnackbar('Gagal', 'Judul bab harus diisi', isError: true);
       return false;
     }
     if (ceritaC.text.trim().isEmpty) {
-      _showErrorSnackbar('Cerita harus diisi');
+      _showSnackbar('Gagal', 'Cerita harus diisi', isError: true);
       return false;
     }
-    if (jumlahHuruf.value < 200) {
-      _showErrorSnackbar('Cerita minimal 200 karakter');
+    if (jumlahHuruf.value < minCharacterCount) {
+      _showSnackbar(
+        'Cerita terlalu pendek',
+        'Minimal $minCharacterCount karakter (sekarang ${jumlahHuruf.value})',
+        isError: true,
+      );
       return false;
     }
     return true;
   }
 
-  void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(Get.context!).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-      ),
+  void _showSnackbar(String title, String message, {bool isError = false}) {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: isError ? Colors.red : Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 8,
+      isDismissible: true,
+      dismissDirection: DismissDirection.horizontal,
+      forwardAnimationCurve: Curves.easeOutBack,
     );
   }
 
@@ -293,12 +294,12 @@ class WritingController extends GetxController {
 
   void showPreview() {
     if (judulNovelC.text.trim().isEmpty) {
-      _showErrorSnackbar('Masukkan judul novel terlebih dahulu');
+      _showSnackbar('Gagal', 'Masukkan judul novel terlebih dahulu', isError: true);
       return;
     }
     
     if (ceritaC.text.trim().isEmpty) {
-      _showErrorSnackbar('Masukkan cerita terlebih dahulu');
+      _showSnackbar('Gagal', 'Masukkan cerita terlebih dahulu', isError: true);
       return;
     }
 

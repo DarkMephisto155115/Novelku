@@ -10,7 +10,7 @@ class NovelItem {
   final int readers;
   final bool isNew;
   final String? description;
-
+  final DateTime? createdAt;
 
   NovelItem({
     required this.id,
@@ -24,5 +24,6 @@ class NovelItem {
     required this.readers,
     this.isNew = false,
     this.description,
+    this.createdAt,
   });
 }

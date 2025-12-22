@@ -1,8 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
-import 'package:terra_brain/presentation/models/novel_item.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/widgets/novel_card.dart';
 
@@ -374,8 +374,6 @@ class ReadingPage extends GetView<ReadingController> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
-              controller:
-                  TextEditingController(text: controller.newComment.value),
               onChanged: controller.setNewComment,
               decoration: InputDecoration(
                 hintText: 'Tulis komentarmu...',
@@ -394,17 +392,51 @@ class ReadingPage extends GetView<ReadingController> {
           SizedBox(height: 16),
 
           // Comments List
-          Obx(() => Column(
-                children: controller.comments
+          Obx(() {
+            final displayedComments = controller.getDisplayedComments();
+            final remainingCount = controller.getRemainingCommentsCount();
+
+            return Column(
+              children: [
+                ...displayedComments
                     .map((comment) => _buildCommentCard(comment))
                     .toList(),
-              )),
+                if (remainingCount > 0)
+                  Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: controller.toggleCommentsExpanded,
+                        icon: Icon(
+                          controller.isCommentsExpanded.value
+                              ? Icons.expand_less
+                              : Icons.expand_more,
+                        ),
+                        label: Text(
+                          controller.isCommentsExpanded.value
+                              ? 'Sembunyikan Komentar'
+                              : 'Lihat $remainingCount Komentar Lainnya',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Get.theme.primaryColor,
+                          side: BorderSide(color: Get.theme.primaryColor),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
         ],
       ),
     );
   }
 
   Widget _buildCommentCard(Comment comment) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isOwnComment = currentUser?.uid == comment.userId;
+
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       color: Get.theme.cardColor,
@@ -425,30 +457,70 @@ class ReadingPage extends GetView<ReadingController> {
                   height: 32,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Get.theme.primaryColor.withOpacity(0.2),
+                    color: Get.theme.primaryColor.withValues(alpha: 0.2),
                   ),
-                  child: Icon(
-                    Icons.person,
-                    size: 18,
-                    color: Get.theme.primaryColor,
-                  ),
+                  child: comment.userAvatar.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            comment.userAvatar,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                size: 18,
+                                color: Get.theme.primaryColor,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.person,
+                          size: 18,
+                          color: Get.theme.primaryColor,
+                        ),
                 ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        comment.userName,
-                        style: Get.theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            comment.userName,
+                            style: Get.theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (isOwnComment) ...[
+                            SizedBox(width: 6),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Get.theme.primaryColor,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Anda',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ]
+                        ],
                       ),
                       Text(
                         controller.formatTimeAgo(comment.timestamp),
                         style: Get.theme.textTheme.bodySmall?.copyWith(
                           color: Get.theme.textTheme.bodyMedium?.color
-                              ?.withOpacity(0.5),
+                              ?.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -464,10 +536,10 @@ class ReadingPage extends GetView<ReadingController> {
                         color: Get.theme.textTheme.bodyMedium?.color
                             ?.withOpacity(0.5),
                       ),
-                      onPressed: () => controller.likeComment(comment.id),
+                      onPressed: () async => await controller.likeComment(comment.id),
                     ),
                     Text(
-                      comment.likeCount.toString(),
+                      controller.formatNumber(comment.likeCount),
                       style: Get.theme.textTheme.bodySmall?.copyWith(
                         color: Get.theme.textTheme.bodyMedium?.color
                             ?.withOpacity(0.5),

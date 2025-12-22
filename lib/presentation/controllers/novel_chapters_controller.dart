@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
 
 class NovelChaptersController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   late final String novelId;
 
@@ -13,6 +16,8 @@ class NovelChaptersController extends GetxController {
 
   final isLoading = true.obs;
   final searchQuery = ''.obs;
+  final isFavorite = false.obs;
+  final isFavoriteProcessing = false.obs;
 
   @override
   void onInit() {
@@ -25,47 +30,51 @@ class NovelChaptersController extends GetxController {
       return;
     }
 
-    _fetchNovel();
-    _fetchChapters();
+    _fetchNovelWithChapters();
     _incrementViewCount();
+    _loadFavoriteState();
   }
 
   // =========================
-  // FETCH NOVEL
+  // FETCH NOVEL WITH CHAPTERS FROM SUBCOLLECTION
   // =========================
-  void _fetchNovel() {
-    _firestore
-        .collection('novels')
-        .doc(novelId)
-        .snapshots()
-        .listen((doc) {
-      if (!doc.exists) return;
-
-      novel.value = Novel.fromJson(doc.data()!, doc.id);
-    });
-  }
-
-  // =========================
-  // FETCH CHAPTERS
-  // =========================
-  void _fetchChapters() {
+  void _fetchNovelWithChapters() {
     isLoading.value = true;
 
     _firestore
         .collection('novels')
         .doc(novelId)
-        .collection('chapters')
-        .where('isPublished', isEqualTo: 'published')
-        .orderBy('chapter')
         .snapshots()
-        .listen((snapshot) {
-      final list = snapshot.docs
-          .map((doc) => Chapter.fromJson(doc.id, doc.data()))
-          .toList();
+        .listen((novelDoc) async {
+      if (!novelDoc.exists) {
+        isLoading.value = false;
+        return;
+      }
 
-      chapters.assignAll(list);
-      filteredChapters.assignAll(list);
-      isLoading.value = false;
+      Novel novelData = Novel.fromJson(novelDoc.data()!, novelDoc.id);
+
+      _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .orderBy('chapter')
+          .snapshots()
+          .listen((chaptersSnapshot) {
+        final chapterList = chaptersSnapshot.docs
+            .map((doc) => Chapter.fromJson(doc.id, doc.data()))
+            .where((c) => c.isPublished != null && (c.isPublished!.toLowerCase() == 'published' || c.isPublished == 'true'))
+            .toList();
+
+        chapters.assignAll(chapterList);
+        filteredChapters.assignAll(chapterList);
+
+        novel.value = novelData.copyWith(chapters: chapterList);
+        isLoading.value = false;
+      }, onError: (e) {
+        print('Error loading chapters: $e');
+        novel.value = novelData;
+        isLoading.value = false;
+      });
     }, onError: (_) {
       isLoading.value = false;
     });
@@ -100,5 +109,126 @@ class NovelChaptersController extends GetxController {
     _firestore.collection('novels').doc(novelId).update({
       'viewCount': FieldValue.increment(1),
     });
+  }
+
+  // =========================
+  // FAVORITE
+  // =========================
+  Future<void> _loadFavoriteState() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null || novelId.isEmpty) {
+        isFavorite.value = false;
+        return;
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('favorites')
+          .doc(novelId)
+          .get();
+
+      isFavorite.value = doc.exists;
+    } catch (e) {
+      if (kDebugMode) print('Error loading favorite state: $e');
+      isFavorite.value = false;
+    }
+  }
+
+  Future<void> toggleFavorite() async {
+    if (isFavoriteProcessing.value) return;
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      Get.snackbar(
+        'Error',
+        'Anda harus login terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      isFavoriteProcessing.value = true;
+
+      if (isFavorite.value) {
+        await _removeFromFavorites(currentUser.uid);
+      } else {
+        await _addToFavorites(currentUser.uid);
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error toggling favorite: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal mengubah favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isFavoriteProcessing.value = false;
+    }
+  }
+
+  Future<void> _addToFavorites(String userId) async {
+    try {
+      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      if (!novelDoc.exists) return;
+
+      final novelData = novelDoc.data() ?? {};
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(novelId)
+          .set({
+            'novelRef': _firestore.collection('novels').doc(novelId),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+      isFavorite.value = true;
+      Get.snackbar(
+        'Berhasil',
+        '${novelData['title'] ?? 'Novel'} ditambahkan ke favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (kDebugMode) {
+        print('✅ Novel added to favorites: $novelId');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error adding to favorites: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _removeFromFavorites(String userId) async {
+    try {
+      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      if (!novelDoc.exists) return;
+
+      final novelData = novelDoc.data() ?? {};
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(novelId)
+          .delete();
+
+      isFavorite.value = false;
+      Get.snackbar(
+        'Berhasil',
+        '${novelData['title'] ?? 'Novel'} dihapus dari favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (kDebugMode) {
+        print('✅ Novel removed from favorites: $novelId');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error removing from favorites: $e');
+      rethrow;
+    }
   }
 }

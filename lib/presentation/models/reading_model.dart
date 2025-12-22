@@ -39,6 +39,7 @@ class Chapter {
 
 class Comment {
   final String id;
+  final String userId;
   final String userName;
   final String userAvatar;
   final String content;
@@ -47,12 +48,45 @@ class Comment {
 
   Comment({
     required this.id,
+    required this.userId,
     required this.userName,
     required this.userAvatar,
     required this.content,
     required this.timestamp,
     required this.likeCount,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'userName': userName,
+      'userAvatar': userAvatar,
+      'content': content,
+      'timestamp': timestamp,
+      'likeCount': likeCount,
+    };
+  }
+
+  Comment copyWith({
+    String? id,
+    String? userId,
+    String? userName,
+    String? userAvatar,
+    String? content,
+    DateTime? timestamp,
+    int? likeCount,
+  }) {
+    return Comment(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userAvatar: userAvatar ?? this.userAvatar,
+      content: content ?? this.content,
+      timestamp: timestamp ?? this.timestamp,
+      likeCount: likeCount ?? this.likeCount,
+    );
+  }
 }
 
 class RecommendedNovel {

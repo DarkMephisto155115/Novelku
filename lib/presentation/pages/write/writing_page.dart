@@ -180,35 +180,72 @@ class WritingPage extends StatelessWidget {
           _title("Informasi Novel"),
           const SizedBox(height: 16),
           _label("Judul Novel"),
-          TextField(
-            controller: c.judulNovelC,
-            decoration: _inputDecoration("Masukkan judul novel"),
+          Obx(
+            () => TextField(
+              controller: c.judulNovelC,
+              decoration: _inputDecoration("Masukkan judul novel").copyWith(
+                errorText: c.judulNovelC.text.isEmpty && c.isLoading.value
+                    ? null
+                    : null,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           _label("Genre"),
           Obx(
-            () => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: _fieldDecoration(),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: c.genreC.value.isEmpty ? null : c.genreC.value,
-                  hint: const Text("Pilih Genre"),
-                  isExpanded: true,
-                  onChanged: (val) {
-                    if (val != null) c.genreC.value = val;
-                  },
-                  items: c.listGenre
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e,
-                          child: Text(e),
-                        ),
-                      )
-                      .toList(),
+            () {
+              if (c.errorMessage.value.isNotEmpty && c.listGenre.isEmpty) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.red),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              c.errorMessage.value,
+                              style: const TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }
+              
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: _fieldDecoration(),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: c.genreC.value.isEmpty ? null : c.genreC.value,
+                    hint: const Text("Pilih Genre"),
+                    isExpanded: true,
+                    onChanged: (val) {
+                      if (val != null) c.genreC.value = val;
+                    },
+                    items: c.listGenre
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e,
+                            child: Text(e),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           _label("Judul Bab Pertama"),
@@ -260,22 +297,51 @@ class WritingPage extends StatelessWidget {
           _title("Tulis Cerita"),
           const SizedBox(height: 8),
           Obx(
-            () => Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                "${c.jumlahHuruf} karakter",
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${c.jumlahHuruf} karakter",
+                  style: TextStyle(
+                    color: c.jumlahHuruf.value < WritingController.minCharacterCount
+                        ? Colors.orange
+                        : Colors.grey.shade600,
+                    fontSize: 12,
+                    fontWeight: c.jumlahHuruf.value < WritingController.minCharacterCount
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+                if (c.jumlahHuruf.value < WritingController.minCharacterCount)
+                  Text(
+                    'Kurang ${WritingController.minCharacterCount - c.jumlahHuruf.value} karakter',
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: c.ceritaC,
-            maxLines: 12,
-            decoration: _inputDecoration(
-              "Mulai tulis ceritamu di sini...\n\nContoh:\nDi sebuah desa kecil yang terletak di kaki gunung...",
-            ).copyWith(
-              contentPadding: const EdgeInsets.all(16),
+          Obx(
+            () => TextField(
+              controller: c.ceritaC,
+              maxLines: 12,
+              decoration: _inputDecoration(
+                "Mulai tulis ceritamu di sini...\n\nContoh:\nDi sebuah desa kecil yang terletak di kaki gunung...",
+              ).copyWith(
+                contentPadding: const EdgeInsets.all(16),
+                errorText: c.jumlahHuruf.value < WritingController.minCharacterCount && 
+                    c.ceritaC.text.isNotEmpty
+                    ? 'Minimal ${WritingController.minCharacterCount} karakter'
+                    : null,
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.orange),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),

@@ -450,13 +450,11 @@ class _HomePageState extends State<HomePage> {
                 List<NovelItem> filteredNovels = [];
 
                 if (selectedFilter == 'Trending') {
-                  filteredNovels = List<NovelItem>.from(allNovels)
-                    ..sort((a, b) => b.likeCount.compareTo(a.likeCount));
+                  filteredNovels = homeController.filterByTrending(allNovels);
                 } else if (selectedFilter == 'Terbaru') {
-                  filteredNovels = List<NovelItem>.from(allNovels);
+                  filteredNovels = homeController.filterByLatest(allNovels);
                 } else if (selectedFilter == 'Terlaris') {
-                  filteredNovels = List<NovelItem>.from(allNovels)
-                    ..sort((a, b) => b.readers.compareTo(a.readers));
+                  filteredNovels = homeController.filterByBestselling(allNovels);
                 }
 
                 return Column(
