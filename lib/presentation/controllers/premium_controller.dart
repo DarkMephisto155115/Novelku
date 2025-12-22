@@ -58,13 +58,12 @@ class PremiumController extends GetxController {
     try {
       final data = await getDataFirestore(userId.value);
 
-      if (data != null) {
-        isPremium.value = data['is_premium'] ?? false;
-      } else {
-        isPremium.value = false;
-      }
+      final premium = data?['is_premium'] ?? false;
+      isPremium.value = premium;
+
+      await _savePremiumStatus(premium);
     } catch (e) {
-      rethrow;
+      log('Error load premium status: $e');
     }
   }
 
@@ -116,19 +115,46 @@ class PremiumController extends GetxController {
     }
   }
 
-  void upgradeToPremium() {
-    isPremium.value = true;
-    _savePremiumStatus(true);
-    hidePopup();
+  Future<void> upgradeToPremium() async {
+    try {
+      isPremium.value = true;
 
-    Get.snackbar(
-      'Premium Activated!',
-      'Selamat! Anda sekarang pengguna premium',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: Duration(seconds: 3),
-    );
+      await _savePremiumStatus(true);
+      await _updatePremiumToFirestore(true);
+
+      hidePopup();
+
+      Get.snackbar(
+        'Premium Activated!',
+        'Selamat! Anda sekarang pengguna premium',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Upgrade gagal',
+        'Terjadi kesalahan, coba lagi',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> _updatePremiumToFirestore(bool premium) async {
+    if (userId.value.isEmpty) return;
+
+    try {
+      await _firestore.collection('users').doc(userId.value).update({
+        'is_premium': premium,
+        'premium_updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      log('Error updating premium to firestore: $e');
+      rethrow;
+    }
   }
 
   void setShowPopupOnNextLaunch(bool show) async {

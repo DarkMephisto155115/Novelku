@@ -82,10 +82,43 @@ class ProfilePage extends GetView<ProfileController> {
             children: [
               _buildAvatar(user),
               const SizedBox(height: 12),
-              Text(
-                user.name,
-                style: Get.theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    user.name,
+                    style: Get.theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  if (user.isPremium) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        // color: AppThemeData.premiumColor,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color.fromARGB(255, 251, 255, 34),
+                            AppThemeData.premiumColor,
+                            const Color.fromARGB(255, 203, 108, 0).withOpacity(0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Premium',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -113,18 +146,45 @@ class ProfilePage extends GetView<ProfileController> {
   }
 
   Widget _buildAvatar(UserProfile user) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Get.theme.primaryColor, width: 2),
-      ),
-      child: ClipOval(
-        child: user.profileImage != null && user.profileImage!.isNotEmpty
-            ? Image.network(user.profileImage!, fit: BoxFit.cover)
-            : Icon(Icons.person, size: 40, color: Get.theme.primaryColor),
-      ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: user.isPremium
+                  ? AppThemeData.premiumColor
+                  : Get.theme.primaryColor,
+              width: 2,
+            ),
+          ),
+          child: ClipOval(
+            child: user.profileImage != null && user.profileImage!.isNotEmpty
+                ? Image.network(user.profileImage!, fit: BoxFit.cover)
+                : Icon(Icons.person, size: 40, color: Get.theme.primaryColor),
+          ),
+        ),
+        if (user.isPremium)
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppThemeData.premiumColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.workspace_premium,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -260,42 +320,50 @@ class ProfilePage extends GetView<ProfileController> {
   }
 
   Widget _buildPremiumSection(UserProfile user) {
-    if (user.isPremium) {
-      return Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.amber.shade100,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.verified, color: Colors.orange),
-            SizedBox(width: 12),
-            Expanded(child: Text('Anda adalah pengguna Premium')),
-          ],
-        ),
-      );
-    }
+    if (user.isPremium) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppThemeData.premiumColor,
+            AppThemeData.premiumColor.withOpacity(0.85),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Upgrade ke Premium',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text('Nikmati akses unlimited dan fitur eksklusif'),
+          const Text(
+            '👑 Upgrade ke Premium',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Nikmati akses unlimited dan fitur eksklusif lainnya',
+            style: TextStyle(color: Colors.white70),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppThemeData.premiumColor,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: () {
                 PremiumPopupManager.showPremiumPopup(
                   title: 'Upgrade ke Premium',
