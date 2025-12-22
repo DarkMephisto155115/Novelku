@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/firebase_options.dart';
 import 'package:terra_brain/presentation/app.dart';
 import 'package:terra_brain/presentation/service/notif_handler.dart';
+import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,8 @@ void main() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   Get.put<SharedPreferences>(prefs);
+
+  Get.put<ThemeController>(ThemeController(), permanent: true);
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

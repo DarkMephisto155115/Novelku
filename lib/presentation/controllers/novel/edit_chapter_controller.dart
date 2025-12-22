@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
@@ -24,8 +26,9 @@ class EditChapterController extends GetxController {
     super.onInit();
 
     final args = Get.arguments;
+    log("EditChapterController args: $args");
 
-    if (args != null && args['chapter'] != null) {
+    if (args != null && args['chapter'] is Chapter) {
       chapter = args['chapter'] as Chapter;
       isEditMode.value = true;
 
@@ -33,9 +36,7 @@ class EditChapterController extends GetxController {
       contentController.text = chapter.content;
       isPublished.value = chapter.isPublished == 'published';
     } else {
-      isEditMode.value = false;
-
-      final chapterNumber = args?['chapter'] ?? 1;
+      final chapterNumber = (args?['chapter'] as int?) ?? 1;
 
       chapter = Chapter(
         id: '',

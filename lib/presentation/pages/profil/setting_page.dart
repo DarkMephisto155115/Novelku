@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
-// import '../controllers/settings_controller.dart';
-// import '../themes/theme_controller.dart';
 
 class SettingsPage extends GetView<SettingsController> {
   const SettingsPage({Key? key}) : super(key: key);
@@ -102,11 +100,12 @@ class SettingsPage extends GetView<SettingsController> {
                     ],
                   ),
                 ),
-                Obx(() => Switch(
-                      value: themeController.isDarkMode,
-                      onChanged: controller.toggleDarkMode,
-                      activeColor: Get.theme.primaryColor,
-                    )),
+                Obx(
+                  () => Switch(
+                    value: controller.draftDarkMode.value,
+                    onChanged: controller.toggleDarkMode,
+                  ),
+                ),
               ],
             ),
           ],
