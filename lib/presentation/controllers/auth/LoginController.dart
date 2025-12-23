@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class LoginController extends GetxController {
@@ -15,6 +14,8 @@ class LoginController extends GetxController {
   ThemeController get themeController => Get.find<ThemeController>();
 
   final isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+  final RxBool hasError = false.obs;
 
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
@@ -30,46 +31,56 @@ class LoginController extends GetxController {
     await login();
   }
 
-  Future<void> login() async {
-    String email = emailController.text;
-    String password = passwordController.text;
+  Future<bool> login() async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+    
+    if (email.isEmpty || password.isEmpty) {
+      hasError.value = true;
+      errorMessage.value = 'Email dan password harus diisi';
+      return false;
+    }
+
     isLoading.value = true;
+    hasError.value = false;
+    errorMessage.value = '';
 
-    if (email.isNotEmpty && password.isNotEmpty) {
-      try {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-            email: email, password: password);
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('userId', userCredential.user!.uid);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userId', userCredential.user!.uid);
 
-        isLoading.value = false;
-
-      } on FirebaseAuthException catch (e) {
-        isLoading.value = false;
-        rethrow;
-        // String message;
-        // if (e.code == 'user-not-found') {
-        //   message = ' No user  found for that email. ';
-        // } else if (e.code == 'wrong-password') {
-        //   message = 'Wrong password provider';
-        // } else {
-        //   message = 'Login failed. Please try again!';
-        // }
-        // Get.snackbar('Login Failed ', message,
-        //     backgroundColor: Colors.red, colorText: Colors.white);
-      } catch (e) {
-        isLoading.value = false;
-        rethrow;
-        // Get.snackbar('Error', 'An unexpeted error ocurred.',
-        //     backgroundColor: Colors.red, colorText: Colors.white);
-      }
-    } else {
       isLoading.value = false;
-      throw Exception('Email dan password harus diisi');
-      // Get.snackbar('Error', 'Please enter email and password',
-      //     backgroundColor: Colors.red, colorText: Colors.white);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      isLoading.value = false;
+      hasError.value = true;
+
+      String message;
+      if (e.code == 'user-not-found') {
+        message = 'Email tidak terdaftar';
+      } else if (e.code == 'wrong-password') {
+        message = 'Password salah';
+      } else if (e.code == 'invalid-email') {
+        message = 'Format email tidak valid';
+      } else if (e.code == 'user-disabled') {
+        message = 'Akun ini telah dinonaktifkan';
+      } else {
+        message = 'Login gagal. Silakan coba lagi';
+      }
+
+      errorMessage.value = message;
+      return false;
+    } catch (e) {
+      isLoading.value = false;
+      hasError.value = true;
+      errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi';
+      return false;
     }
   }
 

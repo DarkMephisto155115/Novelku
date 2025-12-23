@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/bindings/main_bindings.dart';
 import 'package:terra_brain/presentation/pages/auth/genre_selection_page.dart';
-import 'package:terra_brain/presentation/pages/author/author_page.dart';
 import 'package:terra_brain/presentation/pages/author/author_profile_page.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import 'package:terra_brain/presentation/pages/novel/novel_chapters_page.dart';
@@ -9,7 +8,6 @@ import 'package:terra_brain/presentation/pages/novel/edit_chapter_page.dart';
 import 'package:terra_brain/presentation/pages/novel/edit_novel_page.dart';
 import 'package:terra_brain/presentation/pages/novel/reading_page.dart';
 import 'package:terra_brain/presentation/pages/profil/edit_profile_page.dart';
-import 'package:terra_brain/presentation/pages/profil/edit_story_page.dart';
 import 'package:terra_brain/presentation/pages/home/home_page.dart';
 import 'package:terra_brain/presentation/pages/auth/login_page.dart';
 import 'package:terra_brain/presentation/pages/profil/profile_page.dart';
@@ -17,6 +15,8 @@ import 'package:terra_brain/presentation/pages/auth/registration_page.dart';
 import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
 import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/write/writing_page.dart';
+
+import '../pages/author/all_author_page.dart';
 
 part 'app_routes.dart';
 
@@ -62,11 +62,6 @@ class AppPages {
       name: Routes.Edit,
       page: () => EditProfilePage(),
       binding: EditProfileBinding(),
-    ),
-    GetPage(
-      name: Routes.EDIT_READ,
-      page: () => EditStoryPage(),
-      binding: EditStoryBinding(),
     ),
     GetPage(
       name: Routes.ALL_NOVEL,

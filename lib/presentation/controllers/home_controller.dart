@@ -46,7 +46,6 @@ class HomeController extends GetxController {
         
         for (var doc in snapshot.docs) {
           final data = doc.data();
-          final chapters = data['chapters'] as List<dynamic>? ?? [];
           final authorName = data['authorName'] ?? 'Tidak diketahui';
 
           String? authorId;
@@ -66,6 +65,33 @@ class HomeController extends GetxController {
             }
           }
 
+          int publishedChapterCount = 0;
+          try {
+            final chaptersSnap = await doc.reference
+                .collection('chapters')
+                .get();
+            
+            publishedChapterCount = chaptersSnap.docs
+                .where((ch) {
+                  final isPublished = ch['isPublished'];
+                  return isPublished != null && 
+                      (isPublished.toString().toLowerCase() == 'published' || 
+                       isPublished.toString() == 'true');
+                })
+                .length;
+          } catch (e) {
+            if (kDebugMode) {
+              print('⚠️ Error fetching chapters for ${data['title']}: $e');
+            }
+          }
+
+          DateTime? createdAtDate;
+          if (data['createdAt'] is Timestamp) {
+            createdAtDate = (data['createdAt'] as Timestamp).toDate();
+          } else if (data['createdAt'] is DateTime) {
+            createdAtDate = data['createdAt'] as DateTime;
+          }
+
           novels.add(NovelItem(
             id: doc.id,
             title: data['title'] ?? 'Tanpa Judul',
@@ -74,9 +100,10 @@ class HomeController extends GetxController {
             coverUrl: data['imageUrl'] ?? '',
             genre: _parseGenre(data['genre']),
             likeCount: (data['likeCount'] ?? 0) as int,
-            chapters: chapters.length,
+            chapters: publishedChapterCount,
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),
+            createdAt: createdAtDate ?? DateTime.now(),
           ));
         }
 
@@ -145,5 +172,31 @@ class HomeController extends GetxController {
 
   void selectCategory(String category) {
     selectedCategory.value = category;
+  }
+
+  List<NovelItem> filterByTrending(List<NovelItem> novels) {
+    final sorted = List<NovelItem>.from(novels);
+    sorted.sort((a, b) {
+      final scoreA = (a.likeCount * 0.6) + (a.readers * 0.4);
+      final scoreB = (b.likeCount * 0.6) + (b.readers * 0.4);
+      return scoreB.compareTo(scoreA);
+    });
+    return sorted;
+  }
+
+  List<NovelItem> filterByLatest(List<NovelItem> novels) {
+    final sorted = List<NovelItem>.from(novels);
+    sorted.sort((a, b) {
+      final dateA = a.createdAt ?? DateTime.now();
+      final dateB = b.createdAt ?? DateTime.now();
+      return dateB.compareTo(dateA);
+    });
+    return sorted;
+  }
+
+  List<NovelItem> filterByBestselling(List<NovelItem> novels) {
+    final sorted = List<NovelItem>.from(novels);
+    sorted.sort((a, b) => b.readers.compareTo(a.readers));
+    return sorted;
   }
 }

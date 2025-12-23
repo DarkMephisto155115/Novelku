@@ -26,11 +26,15 @@ class ReadingController extends GetxController {
   late RxBool isFollowingAuthor = false.obs;
 
   final RxList<Comment> comments = <Comment>[].obs;
+  final RxBool isCommentsExpanded = false.obs;
+  final RxInt commentsDisplayCount = 3.obs;
 
   final RxList<NovelItem> recommendedNovels = <NovelItem>[].obs;
 
   final RxBool isLiked = false.obs;
   final RxBool isLikeProcessing = false.obs;
+  final RxBool isFavorite = false.obs;
+  final RxBool isFavoriteProcessing = false.obs;
   final RxString newComment = ''.obs;
   final RxBool isLoadingChapters = false.obs;
   final RxInt scrollPosition = 0.obs;
@@ -72,6 +76,7 @@ class ReadingController extends GetxController {
     fetchRecommendedNovels();
     loadChapterComments();
     _loadFollowState();
+    _loadFavoriteState();
   }
 
   void _loadReadingSettings() {
@@ -121,12 +126,12 @@ class ReadingController extends GetxController {
         print('📡 Fetching chapters for novel: $novelId');
       }
       
-      final doc = await _firestore
+      final novelDoc = await _firestore
           .collection('novels')
           .doc(novelId)
           .get();
 
-      if (!doc.exists) {
+      if (!novelDoc.exists) {
         if (kDebugMode) {
           print('❌ Novel document not found: $novelId');
         }
@@ -134,31 +139,37 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final data = doc.data() ?? {};
-      novelAuthor.value = data['authorName'] ?? 'Unknown';
-      authorId = data['authorId'] ?? '';
-      final chaptersData = data['chapters'] as List<dynamic>? ?? [];
-      
+      final novelData = novelDoc.data() ?? {};
+      novelAuthor.value = novelData['authorName'] ?? 'Unknown';
+      authorId = novelData['authorId'] ?? '';
+
+      final chaptersSnapshot = await _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .orderBy('chapter')
+          .get();
+
       if (kDebugMode) {
-        print('📡 Found ${chaptersData.length} chapters');
+        print('📡 Found ${chaptersSnapshot.docs.length} chapters');
       }
 
-      final chapters = List.generate(chaptersData.length, (index) {
-        final chapterData = chaptersData[index] as Map<String, dynamic>;
+      final chapters = chaptersSnapshot.docs.map((doc) {
+        final chapterData = doc.data();
         return Chapter(
-          id: chapterData['id'] ?? '$index',
+          id: doc.id,
           title: chapterData['title'] ?? 'Untitled',
           content: chapterData['content'] ?? '',
-          author: chapterData['author'] ?? data['authorName'] ?? 'Unknown',
-          chapterNumber: chapterData['chapterNumber'] ?? index + 1,
+          author: chapterData['author'] ?? novelData['authorName'] ?? 'Unknown',
+          chapterNumber: chapterData['chapter'] ?? 0,
           likeCount: chapterData['likeCount'] ?? 0,
           commentCount: chapterData['commentCount'] ?? 0,
-          publishedAt: chapterData['publishedAt'] is Timestamp
-              ? (chapterData['publishedAt'] as Timestamp).toDate()
+          publishedAt: chapterData['createdAt'] is Timestamp
+              ? (chapterData['createdAt'] as Timestamp).toDate()
               : DateTime.now(),
           novelId: novelId,
         );
-      });
+      }).toList();
 
       chapterList.assignAll(chapters);
       
@@ -239,34 +250,20 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final doc = await _firestore
+      final commentsSnapshot = await _firestore
           .collection('novels')
           .doc(novelId)
+          .collection('chapters')
+          .doc(currentChapter.value.id)
+          .collection('komentar')
+          .orderBy('timestamp', descending: true)
           .get();
 
-      if (!doc.exists) {
-        comments.clear();
-        return;
-      }
-
-      final data = doc.data() ?? {};
-      final chaptersData = data['chapters'] as List<dynamic>? ?? [];
-      
-      final currentChapterData = chaptersData.cast<Map<String, dynamic>>().firstWhereOrNull(
-        (ch) => ch['id'] == currentChapter.value.id || ch['title'] == currentChapter.value.title,
-      );
-
-      if (currentChapterData == null) {
-        comments.clear();
-        return;
-      }
-
-      final commentsData = currentChapterData['comments'] as List<dynamic>? ?? [];
-
-      final loadedComments = commentsData.map((commentData) {
-        final cData = commentData as Map<String, dynamic>;
+      final loadedComments = commentsSnapshot.docs.map((doc) {
+        final cData = doc.data();
         return Comment(
-          id: cData['id'] ?? '${DateTime.now().millisecondsSinceEpoch}',
+          id: doc.id,
+          userId: cData['userId'] ?? '',
           userName: cData['userName'] ?? 'Anonymous',
           userAvatar: cData['userAvatar'] ?? '',
           content: cData['content'] ?? '',
@@ -277,13 +274,14 @@ class ReadingController extends GetxController {
         );
       }).toList();
 
+      loadedComments.sort((a, b) => b.likeCount.compareTo(a.likeCount));
       comments.assignAll(loadedComments);
 
       if (kDebugMode) {
-        print('✅ Loaded ${loadedComments.length} comments from Firestore');
+        print('✅ Loaded ${loadedComments.length} komentar from Firestore');
       }
     } catch (e) {
-      if (kDebugMode) print('❌ Error loading comments: $e');
+      if (kDebugMode) print('❌ Error loading komentar: $e');
     }
   }
 
@@ -481,33 +479,34 @@ class ReadingController extends GetxController {
 
   Future<void> _refreshCurrentChapterData() async {
     try {
-      if (novelId.isEmpty) return;
+      if (novelId.isEmpty || currentChapter.value.id.isEmpty) return;
       
-      final doc = await _firestore.collection('novels').doc(novelId).get();
-      if (!doc.exists) return;
-      
-      final data = doc.data() ?? {};
-      final chaptersData = data['chapters'] as List<dynamic>? ?? [];
-      
-      final updatedChapterData = chaptersData.cast<Map<String, dynamic>>().firstWhereOrNull(
-        (ch) => ch['id'] == currentChapter.value.id || ch['title'] == currentChapter.value.title,
+      final chapterDoc = await _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc(currentChapter.value.id)
+          .get();
+
+      if (!chapterDoc.exists) return;
+
+      final chapterData = chapterDoc.data() ?? {};
+      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      final novelData = novelDoc.data() ?? {};
+
+      currentChapter.value = Chapter(
+        id: chapterDoc.id,
+        title: chapterData['title'] ?? currentChapter.value.title,
+        content: currentChapter.value.content,
+        author: chapterData['author'] ?? currentChapter.value.author,
+        chapterNumber: chapterData['chapter'] ?? currentChapter.value.chapterNumber,
+        likeCount: chapterData['likeCount'] ?? currentChapter.value.likeCount,
+        commentCount: chapterData['commentCount'] ?? currentChapter.value.commentCount,
+        publishedAt: chapterData['createdAt'] is Timestamp
+            ? (chapterData['createdAt'] as Timestamp).toDate()
+            : currentChapter.value.publishedAt,
+        novelId: novelId,
       );
-      
-      if (updatedChapterData != null) {
-        currentChapter.value = Chapter(
-          id: updatedChapterData['id'] ?? currentChapter.value.id,
-          title: updatedChapterData['title'] ?? currentChapter.value.title,
-          content: currentChapter.value.content,
-          author: updatedChapterData['author'] ?? currentChapter.value.author,
-          chapterNumber: updatedChapterData['chapterNumber'] ?? currentChapter.value.chapterNumber,
-          likeCount: updatedChapterData['likeCount'] ?? currentChapter.value.likeCount,
-          commentCount: updatedChapterData['commentCount'] ?? currentChapter.value.commentCount,
-          publishedAt: updatedChapterData['publishedAt'] is Timestamp
-              ? (updatedChapterData['publishedAt'] as Timestamp).toDate()
-              : currentChapter.value.publishedAt,
-          novelId: novelId,
-        );
-      }
     } catch (e) {
       if (kDebugMode) print('❌ Error refreshing chapter data: $e');
     }
@@ -515,43 +514,32 @@ class ReadingController extends GetxController {
 
   void _updateChapterLikeCount(int increment) {
     try {
-      if (novelId.isEmpty) return;
+      if (novelId.isEmpty || currentChapter.value.id.isEmpty) return;
       
-      _firestore.collection('novels').doc(novelId).get().then((doc) {
-        if (!doc.exists) return;
-        
-        final data = doc.data() ?? {};
-        final chaptersData = List<Map<String, dynamic>>.from(
-          (data['chapters'] as List<dynamic>? ?? [])
-              .map((ch) => Map<String, dynamic>.from(ch as Map))
-        );
-        
-        final chapterIndex = chaptersData.indexWhere(
-          (ch) => ch['id'] == currentChapter.value.id || ch['title'] == currentChapter.value.title,
-        );
-        
-        if (chapterIndex != -1) {
-          final currentLikeCount = (chaptersData[chapterIndex]['likeCount'] as int?) ?? 0;
-          chaptersData[chapterIndex]['likeCount'] = currentLikeCount + increment;
-          
-          _firestore.collection('novels').doc(novelId).update({
-            'chapters': chaptersData,
+      _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc(currentChapter.value.id)
+          .update({
             'likeCount': FieldValue.increment(increment),
           }).then((_) {
-            if (kDebugMode) {
-              print('✅ Chapter like count updated and novel likeCount incremented');
-            }
+            _firestore.collection('novels').doc(novelId).update({
+              'likeCount': FieldValue.increment(increment),
+            }).then((_) {
+              if (kDebugMode) {
+                print('✅ Chapter like count updated and novel likeCount incremented');
+              }
+            }).catchError((e) {
+              if (kDebugMode) {
+                print('❌ Error updating novel like count: $e');
+              }
+            });
           }).catchError((e) {
             if (kDebugMode) {
               print('❌ Error updating chapter like count: $e');
             }
           });
-        }
-      }).catchError((e) {
-        if (kDebugMode) {
-          print('❌ Error fetching document: $e');
-        }
-      });
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error in _updateChapterLikeCount: $e');
@@ -559,46 +547,99 @@ class ReadingController extends GetxController {
     }
   }
 
-  void addComment() {
+  void addComment() async {
     if (newComment.value.trim().isEmpty) return;
 
     try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        Get.snackbar(
+          'Error',
+          'Anda harus login terlebih dahulu',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      
+      final userData = userDoc.data() ?? {};
+      final userName = userData['name'] ?? userData['username'] ?? 'Anonymous';
+      final userAvatar = userData['imageUrl'] ?? '';
+
       final commentText = newComment.value;
       final timestamp = DateTime.now();
+      final commentId = DateTime.now().millisecondsSinceEpoch.toString();
 
       final newCommentObj = Comment(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userName: 'Anda',
-        userAvatar: '',
+        id: commentId,
+        userId: currentUser.uid,
+        userName: userName,
+        userAvatar: userAvatar,
         content: commentText,
         timestamp: timestamp,
         likeCount: 0,
       );
 
-      comments.insert(0, newCommentObj);
+      _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc(currentChapter.value.id)
+          .collection('komentar')
+          .doc(commentId)
+          .set({
+            'userId': currentUser.uid,
+            'userName': userName,
+            'userAvatar': userAvatar,
+            'content': commentText,
+            'timestamp': FieldValue.serverTimestamp(),
+            'likeCount': 0,
+          }).then((_) {
+            comments.insert(0, newCommentObj);
 
-      final chapter = currentChapter.value;
-      currentChapter.value = Chapter(
-        id: chapter.id,
-        title: chapter.title,
-        content: chapter.content,
-        author: chapter.author,
-        chapterNumber: chapter.chapterNumber,
-        likeCount: chapter.likeCount,
-        commentCount: chapter.commentCount + 1,
-        publishedAt: chapter.publishedAt,
-        novelId: chapter.novelId,
-        imageUrl: chapter.imageUrl,
-      );
+            final chapter = currentChapter.value;
+            currentChapter.value = Chapter(
+              id: chapter.id,
+              title: chapter.title,
+              content: chapter.content,
+              author: chapter.author,
+              chapterNumber: chapter.chapterNumber,
+              likeCount: chapter.likeCount,
+              commentCount: chapter.commentCount + 1,
+              publishedAt: chapter.publishedAt,
+              novelId: chapter.novelId,
+              imageUrl: chapter.imageUrl,
+            );
 
-      newComment.value = '';
-      Get.snackbar(
-        'Berhasil',
-        'Komentar berhasil ditambahkan',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+            _firestore
+                .collection('novels')
+                .doc(novelId)
+                .collection('chapters')
+                .doc(currentChapter.value.id)
+                .update({
+                  'commentCount': FieldValue.increment(1),
+                });
+
+            newComment.value = '';
+            Get.snackbar(
+              'Berhasil',
+              'Komentar berhasil ditambahkan',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }).catchError((e) {
+            if (kDebugMode) print('❌ Error saving komentar: $e');
+            Get.snackbar(
+              'Error',
+              'Gagal menambahkan komentar',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          });
     } catch (e) {
-      if (kDebugMode) print('❌ Error adding comment: $e');
+      if (kDebugMode) print('❌ Error adding komentar: $e');
       Get.snackbar(
         'Error',
         'Gagal menambahkan komentar',
@@ -607,23 +648,57 @@ class ReadingController extends GetxController {
     }
   }
 
-  void likeComment(String commentId) {
+  Future<void> likeComment(String commentId) async {
     final index = comments.indexWhere((comment) => comment.id == commentId);
     if (index != -1) {
       final comment = comments[index];
-      comments[index] = Comment(
-        id: comment.id,
-        userName: comment.userName,
-        userAvatar: comment.userAvatar,
-        content: comment.content,
-        timestamp: comment.timestamp,
+      final updatedComment = comment.copyWith(
         likeCount: comment.likeCount + 1,
       );
+      comments[index] = updatedComment;
+
+      try {
+        await _firestore
+            .collection('novels')
+            .doc(novelId)
+            .collection('chapters')
+            .doc(currentChapter.value.id)
+            .collection('komentar')
+            .doc(commentId)
+            .update({
+              'likeCount': FieldValue.increment(1),
+            });
+
+        if (kDebugMode) {
+          print('✅ Komentar like count updated');
+        }
+      } catch (e) {
+        if (kDebugMode) print('❌ Error liking komentar: $e');
+        comments[index] = comment;
+      }
     }
   }
 
   void setNewComment(String value) {
     newComment.value = value;
+  }
+
+  void toggleCommentsExpanded() {
+    isCommentsExpanded.value = !isCommentsExpanded.value;
+  }
+
+  List<Comment> getDisplayedComments() {
+    if (isCommentsExpanded.value) {
+      return comments;
+    }
+    return comments.take(commentsDisplayCount.value).toList();
+  }
+
+  int getRemainingCommentsCount() {
+    if (comments.length <= commentsDisplayCount.value) {
+      return 0;
+    }
+    return comments.length - commentsDisplayCount.value;
   }
 
   void navigateToNextChapter() {
@@ -640,6 +715,7 @@ class ReadingController extends GetxController {
       scrollPosition.value = 0;
       saveReadingProgress(0);
       loadChapterComments();
+      isCommentsExpanded.value = false;
     } else {
       Get.snackbar('Info', 'Anda sudah di bab terakhir');
     }
@@ -659,6 +735,7 @@ class ReadingController extends GetxController {
       scrollPosition.value = 0;
       saveReadingProgress(0);
       loadChapterComments();
+      isCommentsExpanded.value = false;
     } else {
       Get.snackbar('Info', 'Anda sudah di bab pertama');
     }
@@ -670,6 +747,7 @@ class ReadingController extends GetxController {
     scrollPosition.value = 0;
     saveReadingProgress(0);
     loadChapterComments();
+    isCommentsExpanded.value = false;
   }
 
   String formatTimeAgo(DateTime date) {
@@ -815,6 +893,124 @@ class ReadingController extends GetxController {
         'Gagal mengikuti penulis',
         snackPosition: SnackPosition.BOTTOM,
       );
+    }
+  }
+
+  Future<void> _loadFavoriteState() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null || novelId.isEmpty) {
+        isFavorite.value = false;
+        return;
+      }
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('favorites')
+          .doc(novelId)
+          .get();
+
+      isFavorite.value = doc.exists;
+    } catch (e) {
+      if (kDebugMode) print('Error loading favorite state: $e');
+      isFavorite.value = false;
+    }
+  }
+
+  Future<void> toggleFavorite() async {
+    if (isFavoriteProcessing.value) return;
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      Get.snackbar(
+        'Error',
+        'Anda harus login terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      isFavoriteProcessing.value = true;
+
+      if (isFavorite.value) {
+        await _removeFromFavorites(currentUser.uid);
+      } else {
+        await _addToFavorites(currentUser.uid);
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error toggling favorite: $e');
+      Get.snackbar(
+        'Error',
+        'Gagal mengubah favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isFavoriteProcessing.value = false;
+    }
+  }
+
+  Future<void> _addToFavorites(String userId) async {
+    try {
+      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      if (!novelDoc.exists) return;
+
+      final novelData = novelDoc.data() ?? {};
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(novelId)
+          .set({
+            'novelRef': _firestore.collection('novels').doc(novelId),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+      isFavorite.value = true;
+      Get.snackbar(
+        'Berhasil',
+        '${novelData['title'] ?? 'Novel'} ditambahkan ke favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (kDebugMode) {
+        print('✅ Novel added to favorites: $novelId');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error adding to favorites: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _removeFromFavorites(String userId) async {
+    try {
+      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      if (!novelDoc.exists) return;
+
+      final novelData = novelDoc.data() ?? {};
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(novelId)
+          .delete();
+
+      isFavorite.value = false;
+      Get.snackbar(
+        'Berhasil',
+        '${novelData['title'] ?? 'Novel'} dihapus dari favorit',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (kDebugMode) {
+        print('✅ Novel removed from favorites: $novelId');
+      }
+    } catch (e) {
+      if (kDebugMode) print('❌ Error removing from favorites: $e');
+      rethrow;
     }
   }
 }

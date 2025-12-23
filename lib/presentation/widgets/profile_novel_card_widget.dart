@@ -44,7 +44,7 @@ class NovelCard extends StatelessWidget {
                     onPressed: () {
                       Get.back();
                       Get.toNamed(
-                        '/reading',
+                        '/novel_chapters',
                         arguments: {'novelId': novel.id},
                       );
                     },
@@ -134,7 +134,7 @@ class FavoriteNovelTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: () {
         Get.toNamed(
-          '/reading',
+          '/novel_chapters',
           arguments: {'novelId': novel.id},
         );
       },
@@ -219,7 +219,7 @@ class FavoriteNovelTile extends StatelessWidget {
                           size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
-                        '${novel.chapterCount} chapter',
+                        '${novel.chapterCount} bab',
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(width: 12),
