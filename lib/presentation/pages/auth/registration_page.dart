@@ -95,66 +95,69 @@ class RegistrationPage extends GetView<RegistrationController> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          // Label Daftar
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Daftar',
-              style: Get.theme.textTheme.displayMedium,
-            ),
-          ),
-          SizedBox(height: 24),
-
-          // Email Field
-          _buildEmailField(),
-          SizedBox(height: 16),
-
-          // Username Field
-          _buildUsernameField(),
-          SizedBox(height: 16),
-
-          // Password Field
-          _buildPasswordField(),
-          SizedBox(height: 16),
-
-          // Confirm Password Field
-          _buildConfirmPasswordField(),
-          SizedBox(height: 20),
-
-          _buildRegisterButton(),
-          SizedBox(height: 12),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Sudah punya akun? ',
-                style: Get.theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 14,
-                ),
+      child: Form(
+        key: controller.formKey,
+        child: Column(
+          children: [
+            // Label Daftar
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Daftar',
+                style: Get.theme.textTheme.displayMedium,
               ),
-              TextButton(
-                onPressed: () {
-                  Get.offNamed(Routes.LOGIN);
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Masuk',
-                  style: TextStyle(
-                    color: Get.theme.primaryColor,
+            ),
+            SizedBox(height: 24),
+
+            // Email Field
+            _buildEmailField(),
+            SizedBox(height: 16),
+
+            // Username Field
+            _buildUsernameField(),
+            SizedBox(height: 16),
+
+            // Password Field
+            _buildPasswordField(),
+            SizedBox(height: 16),
+
+            // Confirm Password Field
+            _buildConfirmPasswordField(),
+            SizedBox(height: 20),
+
+            _buildRegisterButton(),
+            SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Sudah punya akun? ',
+                  style: Get.theme.textTheme.bodyMedium?.copyWith(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                TextButton(
+                  onPressed: () {
+                    Get.offNamed(Routes.LOGIN);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Masuk',
+                    style: TextStyle(
+                      color: Get.theme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -190,7 +193,15 @@ class RegistrationPage extends GetView<RegistrationController> {
             hintStyle: TextStyle(color: Get.theme.hintColor),
           ),
           keyboardType: TextInputType.emailAddress,
-          // validator: controller.validateEmail,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Email harus diisi';
+            }
+            if (!GetUtils.isEmail(value)) {
+              return 'Format email tidak valid';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -226,7 +237,12 @@ class RegistrationPage extends GetView<RegistrationController> {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             hintStyle: TextStyle(color: Get.theme.hintColor),
           ),
-          // validator: controller.validateUsername,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Username harus diisi';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -269,13 +285,22 @@ class RegistrationPage extends GetView<RegistrationController> {
                         ? Icons.visibility_off
                         : Icons.visibility,
                     color: controller.passwordHidden.value
-                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        ? Get.theme.textTheme.bodyMedium?.color
+                            ?.withOpacity(0.6)
                         : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.togglePasswordVisibility,
                 ),
               ),
-              // validator: controller.validatePassword,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Password harus diisi';
+                }
+                if (value.length < 6) {
+                  return 'Password minimal 6 karakter';
+                }
+                return null;
+              },
             )),
       ],
     );
@@ -318,13 +343,22 @@ class RegistrationPage extends GetView<RegistrationController> {
                         ? Icons.visibility_off
                         : Icons.visibility,
                     color: controller.confirmPasswordHidden.value
-                        ? Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6)
+                        ? Get.theme.textTheme.bodyMedium?.color
+                            ?.withOpacity(0.6)
                         : AppThemeData.primaryColor.withOpacity(0.8),
                   ),
                   onPressed: controller.toggleConfirmPasswordVisibility,
                 ),
               ),
-              // validator: controller.validateConfirmPassword,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Konfirmasi password harus diisi';
+                }
+                if (value != controller.password.value) {
+                  return 'Password tidak cocok';
+                }
+                return null;
+              },
             )),
       ],
     );
@@ -339,11 +373,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                 : () async {
                     final success = await controller.register();
                     if (success) {
-                      _showSuccessSnackbar('Berhasil mendaftar akun');
-                      await Future.delayed(const Duration(milliseconds: 800));
+                      // _showSuccessSnackbar('Berhasil mendaftar akun');
+                      // await Future.delayed(const Duration(milliseconds: 800));
                       Get.offAllNamed('/genre_selection');
-                    } else {
-                      _showErrorSnackbar(controller.errorMessage.value);
                     }
                   },
             style: ElevatedButton.styleFrom(
@@ -383,37 +415,37 @@ class RegistrationPage extends GetView<RegistrationController> {
         ));
   }
 
-  void _showSuccessSnackbar(String message) {
-    Future.microtask(() {
-      Get.snackbar(
-        'Berhasil',
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.all(12),
-        borderRadius: 12,
-        isDismissible: true,
-        dismissDirection: DismissDirection.horizontal,
-      );
-    });
-  }
+  // void _showSuccessSnackbar(String message) {
+  //   Future.microtask(() {
+  //     Get.snackbar(
+  //       'Berhasil',
+  //       message,
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: Colors.green,
+  //       colorText: Colors.white,
+  //       duration: const Duration(seconds: 2),
+  //       margin: const EdgeInsets.all(12),
+  //       borderRadius: 12,
+  //       isDismissible: true,
+  //       dismissDirection: DismissDirection.horizontal,
+  //     );
+  //   });
+  // }
 
-  void _showErrorSnackbar(String message) {
-    Future.microtask(() {
-      Get.snackbar(
-        'Registrasi Gagal',
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-        margin: const EdgeInsets.all(12),
-        borderRadius: 12,
-        isDismissible: true,
-        dismissDirection: DismissDirection.horizontal,
-      );
-    });
-  }
+  // void _showErrorSnackbar(String message) {
+  //   Future.microtask(() {
+  //     Get.snackbar(
+  //       'Registrasi Gagal',
+  //       message,
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: Colors.red,
+  //       colorText: Colors.white,
+  //       duration: const Duration(seconds: 3),
+  //       margin: const EdgeInsets.all(12),
+  //       borderRadius: 12,
+  //       isDismissible: true,
+  //       dismissDirection: DismissDirection.horizontal,
+  //     );
+  //   });
+  // }
 }

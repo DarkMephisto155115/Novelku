@@ -22,6 +22,7 @@ class ProfileController extends GetxController {
     readCount: 0,
     followerCount: 0,
     followingCount: 0,
+    totalLikes: 0,
     myNovels: const [],
     favoriteNovels: const [],
   ).obs;
@@ -91,19 +92,36 @@ class ProfileController extends GetxController {
       if (!doc.exists) return;
 
       final data = doc.data()!;
+
+      // Fetch all novels to calculate stats
+      final novelSnap = await _firestore
+          .collection('novels')
+          .where('authorId', isEqualTo: userId)
+          .get();
+
+      final novels =
+          novelSnap.docs.where((d) => d['status'] != 'Draft').toList();
+
+      final int calculatedNovelCount = novels.length;
+      final int calculatedReadCount =
+          novels.fold(0, (sum, doc) => sum + (doc['viewCount'] as int? ?? 0));
+      final int calculatedTotalLikes =
+          novels.fold(0, (sum, doc) => sum + (doc['likeCount'] as int? ?? 0));
+
       user.value = user.value.copyWith(
         name: data['name'] ?? '',
         username: data['username'] ?? '',
-        bio: data['bio'] ?? '',
+        bio: data['bio'] ?? data['biodata'] ?? '',
         profileImage:
-        (data['imageUrl'] is String && data['imageUrl'].isNotEmpty)
-            ? data['imageUrl']
-            : null,
+            (data['imageUrl'] is String && data['imageUrl'].isNotEmpty)
+                ? data['imageUrl']
+                : null,
         isPremium: data['is_premium'] ?? false,
-        novelCount: data['novelCount'] ?? 0,
-        readCount: data['readCount'] ?? 0,
-        followerCount: data['followerCount'] ?? 0,
-        followingCount: data['followingCount'] ?? 0,
+        novelCount: calculatedNovelCount,
+        readCount: calculatedReadCount,
+        followerCount: data['followers'] ?? 0,
+        followingCount: data['following'] ?? 0,
+        totalLikes: calculatedTotalLikes,
       );
     } catch (e, s) {
       log('[PROFILE] fetchUserProfile error', error: e, stackTrace: s);
@@ -205,6 +223,9 @@ class ProfileController extends GetxController {
             }
 
             final d = novelDoc.data() as Map<String, dynamic>;
+            
+            // Filter out drafts from favorites
+            if (d['status'] == 'Draft') continue;
             
             final chaptersSnap = await ref
                 .collection('chapters')

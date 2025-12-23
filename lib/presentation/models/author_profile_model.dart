@@ -12,6 +12,7 @@ class AuthorProfile {
   final int novelCount;
   final int followerCount;
   final int followingCount;
+  final int readCount;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final DateTime? lastLoginAt;
@@ -29,6 +30,7 @@ class AuthorProfile {
     required this.novelCount,
     required this.followerCount,
     required this.followingCount,
+    required this.readCount,
     this.createdAt,
     this.updatedAt,
     this.lastLoginAt,
@@ -51,6 +53,7 @@ class AuthorProfile {
     int? novelCount,
     int? followerCount,
     int? followingCount,
+    int? readCount,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? lastLoginAt,
@@ -68,6 +71,7 @@ class AuthorProfile {
       novelCount: novelCount ?? this.novelCount,
       followerCount: followerCount ?? this.followerCount,
       followingCount: followingCount ?? this.followingCount,
+      readCount: readCount ?? this.readCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
@@ -89,10 +93,11 @@ class AuthorProfile {
       email: data['email'] ?? '',
       bio: data['biodata'] ?? data['bio'] ?? '',
       profileImage: data['imageUrl'],
-      isPremium: (data['isPremium'] ?? false) as bool,
+      isPremium: (data['is_premium'] ?? false) as bool,
       novelCount: novels.length,
       followerCount: (data['followers'] ?? 0) as int,
       followingCount: (data['following'] ?? 0) as int,
+      readCount: novels.fold(0, (sum, novel) => sum + novel.viewCount),
       createdAt:
           ((data['createdAt'] ?? data['created_at']) as Timestamp?)?.toDate(),
       updatedAt: ((data['updated_at']) as Timestamp?)?.toDate(),

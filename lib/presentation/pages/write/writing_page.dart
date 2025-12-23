@@ -75,18 +75,21 @@ class WritingPage extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _cardCoverImage(),
-            const SizedBox(height: 16),
-            _cardInformasiNovel(),
-            const SizedBox(height: 16),
-            _cardDeskripsi(),
-            const SizedBox(height: 16),
-            _cardTulisCerita(),
-            const SizedBox(height: 16),
-            _cardTipsMenulis(),
-          ],
+        child: Form(
+          key: c.formKey,
+          child: Column(
+            children: [
+              _cardCoverImage(),
+              const SizedBox(height: 16),
+              _cardInformasiNovel(),
+              const SizedBox(height: 16),
+              _cardDeskripsi(),
+              const SizedBox(height: 16),
+              _cardTulisCerita(),
+              const SizedBox(height: 16),
+              _cardTipsMenulis(),
+            ],
+          ),
         ),
       ),
     );
@@ -181,13 +184,19 @@ class WritingPage extends StatelessWidget {
           const SizedBox(height: 16),
           _label("Judul Novel"),
           Obx(
-            () => TextField(
+            () => TextFormField(
               controller: c.judulNovelC,
               decoration: _inputDecoration("Masukkan judul novel").copyWith(
                 errorText: c.judulNovelC.text.isEmpty && c.isLoading.value
                     ? null
                     : null,
               ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Judul novel harus diisi';
+                }
+                return null;
+              },
             ),
           ),
           const SizedBox(height: 16),
@@ -223,35 +232,65 @@ class WritingPage extends StatelessWidget {
                 );
               }
               
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: _fieldDecoration(),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: c.genreC.value.isEmpty ? null : c.genreC.value,
-                    hint: const Text("Pilih Genre"),
-                    isExpanded: true,
-                    onChanged: (val) {
-                      if (val != null) c.genreC.value = val;
-                    },
-                    items: c.listGenre
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e,
-                            child: Text(e),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
+              return DropdownButtonFormField<String>(
+                value: c.genreC.value.isEmpty ? null : c.genreC.value,
+                decoration: _inputDecoration("Pilih Genre"),
+                items: c.listGenre
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e,
+                        child: Text(e),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val != null) c.genreC.value = val;
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Genre harus dipilih';
+                  }
+                  return null;
+                },
               );
             },
           ),
           const SizedBox(height: 16),
+          _label("Status Publikasi"),
+          Obx(
+            () => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: _fieldDecoration(),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: c.selectedStatus.value,
+                  isExpanded: true,
+                  onChanged: (val) {
+                    if (val != null) c.selectedStatus.value = val;
+                  },
+                  items: c.statusOptions
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e,
+                          child: Text(e),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           _label("Judul Bab Pertama"),
-          TextField(
+          TextFormField(
             controller: c.judulBabC,
             decoration: _inputDecoration("Masukkan judul bab"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Judul bab harus diisi';
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -326,7 +365,7 @@ class WritingPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Obx(
-            () => TextField(
+            () => TextFormField(
               controller: c.ceritaC,
               maxLines: 12,
               decoration: _inputDecoration(
@@ -342,6 +381,15 @@ class WritingPage extends StatelessWidget {
                   borderSide: const BorderSide(color: Colors.orange),
                 ),
               ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Cerita harus diisi';
+                }
+                if (value.length < WritingController.minCharacterCount) {
+                  return 'Minimal ${WritingController.minCharacterCount} karakter';
+                }
+                return null;
+              },
             ),
           ),
           const SizedBox(height: 8),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -28,6 +29,7 @@ class ReadingController extends GetxController {
   final RxList<Comment> comments = <Comment>[].obs;
   final RxBool isCommentsExpanded = false.obs;
   final RxInt commentsDisplayCount = 3.obs;
+  final RxList<String> likedCommentIds = <String>[].obs;
 
   final RxList<NovelItem> recommendedNovels = <NovelItem>[].obs;
 
@@ -36,6 +38,7 @@ class ReadingController extends GetxController {
   final RxBool isFavorite = false.obs;
   final RxBool isFavoriteProcessing = false.obs;
   final RxString newComment = ''.obs;
+  final TextEditingController commentController = TextEditingController();
   final RxBool isLoadingChapters = false.obs;
   final RxInt scrollPosition = 0.obs;
 
@@ -74,6 +77,7 @@ class ReadingController extends GetxController {
     _incrementViewCount();
     loadBookmarks();
     fetchRecommendedNovels();
+    _loadLikedComments();
     loadChapterComments();
     _loadFollowState();
     _loadFavoriteState();
@@ -116,6 +120,25 @@ class ReadingController extends GetxController {
       _storage.write('reading_stats', readingStats.value.toMap());
     } catch (e) {
       if (kDebugMode) print('Error saving reading stats: $e');
+    }
+  }
+
+  void _loadLikedComments() {
+    try {
+      final List<dynamic>? storedLikes = _storage.read('liked_comments');
+      if (storedLikes != null) {
+        likedCommentIds.assignAll(storedLikes.cast<String>());
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error loading liked comments: $e');
+    }
+  }
+
+  void _saveLikedComments() {
+    try {
+      _storage.write('liked_comments', likedCommentIds.toList());
+    } catch (e) {
+      if (kDebugMode) print('Error saving liked comments: $e');
     }
   }
 
@@ -271,6 +294,8 @@ class ReadingController extends GetxController {
               ? (cData['timestamp'] as Timestamp).toDate()
               : DateTime.now(),
           likeCount: cData['likeCount'] ?? 0,
+          isPremium: cData['isPremium'] ?? false,
+          isLiked: likedCommentIds.contains(doc.id),
         );
       }).toList();
 
@@ -569,6 +594,7 @@ class ReadingController extends GetxController {
       final userData = userDoc.data() ?? {};
       final userName = userData['name'] ?? userData['username'] ?? 'Anonymous';
       final userAvatar = userData['imageUrl'] ?? '';
+      final isPremium = userData['is_premium'] ?? false;
 
       final commentText = newComment.value;
       final timestamp = DateTime.now();
@@ -582,6 +608,7 @@ class ReadingController extends GetxController {
         content: commentText,
         timestamp: timestamp,
         likeCount: 0,
+        isPremium: isPremium,
       );
 
       _firestore
@@ -598,6 +625,7 @@ class ReadingController extends GetxController {
             'content': commentText,
             'timestamp': FieldValue.serverTimestamp(),
             'likeCount': 0,
+            'isPremium': isPremium,
           }).then((_) {
             comments.insert(0, newCommentObj);
 
@@ -625,11 +653,12 @@ class ReadingController extends GetxController {
                 });
 
             newComment.value = '';
-            Get.snackbar(
-              'Berhasil',
-              'Komentar berhasil ditambahkan',
-              snackPosition: SnackPosition.BOTTOM,
-            );
+            commentController.clear();
+            // Get.snackbar(
+            //   'Berhasil',
+            //   'Komentar berhasil ditambahkan',
+            //   snackPosition: SnackPosition.BOTTOM,
+            // );
           }).catchError((e) {
             if (kDebugMode) print('❌ Error saving komentar: $e');
             Get.snackbar(
@@ -652,29 +681,68 @@ class ReadingController extends GetxController {
     final index = comments.indexWhere((comment) => comment.id == commentId);
     if (index != -1) {
       final comment = comments[index];
-      final updatedComment = comment.copyWith(
-        likeCount: comment.likeCount + 1,
-      );
-      comments[index] = updatedComment;
+      final isLiked = likedCommentIds.contains(commentId);
+      
+      if (isLiked) {
+        // Unlike
+        likedCommentIds.remove(commentId);
+        final updatedComment = comment.copyWith(
+          likeCount: comment.likeCount > 0 ? comment.likeCount - 1 : 0,
+          isLiked: false,
+        );
+        comments[index] = updatedComment;
+        _saveLikedComments();
 
-      try {
-        await _firestore
-            .collection('novels')
-            .doc(novelId)
-            .collection('chapters')
-            .doc(currentChapter.value.id)
-            .collection('komentar')
-            .doc(commentId)
-            .update({
-              'likeCount': FieldValue.increment(1),
-            });
-
-        if (kDebugMode) {
-          print('✅ Komentar like count updated');
+        try {
+          await _firestore
+              .collection('novels')
+              .doc(novelId)
+              .collection('chapters')
+              .doc(currentChapter.value.id)
+              .collection('komentar')
+              .doc(commentId)
+              .update({
+                'likeCount': FieldValue.increment(-1),
+              });
+        } catch (e) {
+          if (kDebugMode) print('❌ Error unliking komentar: $e');
+          // Revert if error
+          comments[index] = comment;
+          likedCommentIds.add(commentId);
+          _saveLikedComments();
         }
-      } catch (e) {
-        if (kDebugMode) print('❌ Error liking komentar: $e');
-        comments[index] = comment;
+      } else {
+        // Like
+        likedCommentIds.add(commentId);
+        final updatedComment = comment.copyWith(
+          likeCount: comment.likeCount + 1,
+          isLiked: true,
+        );
+        comments[index] = updatedComment;
+        _saveLikedComments();
+
+        try {
+          await _firestore
+              .collection('novels')
+              .doc(novelId)
+              .collection('chapters')
+              .doc(currentChapter.value.id)
+              .collection('komentar')
+              .doc(commentId)
+              .update({
+                'likeCount': FieldValue.increment(1),
+              });
+
+          if (kDebugMode) {
+            print('✅ Komentar like count updated');
+          }
+        } catch (e) {
+          if (kDebugMode) print('❌ Error liking komentar: $e');
+          // Revert if error
+          comments[index] = comment;
+          likedCommentIds.remove(commentId);
+          _saveLikedComments();
+        }
       }
     }
   }
@@ -877,11 +945,11 @@ class ReadingController extends GetxController {
       await batch.commit();
 
       isFollowingAuthor.value = true;
-      Get.snackbar(
-        'Mengikuti',
-        'Anda sekarang mengikuti ${novelAuthor.value}',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Mengikuti',
+      //   'Anda sekarang mengikuti ${novelAuthor.value}',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
 
       if (kDebugMode) {
         print('✅ Successfully followed author: $authorId');

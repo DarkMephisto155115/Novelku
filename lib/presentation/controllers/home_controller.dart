@@ -6,6 +6,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:video_player/video_player.dart';
 import '../models/novel_item.dart';
 
+import 'package:terra_brain/presentation/models/author_model.dart';
+
 class HomeController extends GetxController {
   final box = GetStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -25,11 +27,80 @@ class HomeController extends GetxController {
 
   final TextEditingController searchController = TextEditingController();
 
+  var searchResults = <NovelItem>[].obs;
+  var authorSearchResults = <Author>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     selectedCategory.value = 'All';
     _fetchNovelsFromFirestore();
+    
+    // Listen to search query changes
+    debounce(searchQuery, (query) {
+      _performSearch(query);
+    }, time: const Duration(milliseconds: 500));
+  }
+
+  void _performSearch(String query) async {
+    if (query.isEmpty) {
+      searchResults.clear();
+      authorSearchResults.clear();
+      return;
+    }
+
+    final lowerQuery = query.toLowerCase();
+    
+    // Search Novels
+    final novelResults = allNovels.where((novel) {
+      final titleMatch = novel.title.toLowerCase().contains(lowerQuery);
+      final authorMatch = novel.author.toLowerCase().contains(lowerQuery);
+      return titleMatch || authorMatch;
+    }).toList();
+
+    searchResults.assignAll(novelResults);
+
+    // Search Authors
+    try {
+      final userSnap = await _firestore.collection('users').get();
+      final authors = userSnap.docs.map((doc) {
+        final data = doc.data();
+        return Author(
+          id: doc.id,
+          name: data['name'] ?? '-',
+          username: data['username'] ?? data['name'] ?? '-',
+          email: data['email'] ?? '',
+          biodata: data['biodata'] ?? '',
+          novelCount: data['novelCount'] ?? 0,
+          followerCount: data['followers'] ?? 0,
+          category: '',
+          isNew: false,
+          isPopular: false,
+          isPremium: data['is_premium'] ?? false,
+          imageUrl: data['imageUrl'],
+        );
+      }).where((author) {
+        return author.name.toLowerCase().contains(lowerQuery) ||
+               author.username.toLowerCase().contains(lowerQuery);
+      }).toList();
+
+      authorSearchResults.assignAll(authors);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error searching authors: $e');
+      }
+    }
+  }
+
+  void updateSearchQuery(String query) {
+    searchQuery.value = query;
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
+    searchResults.clear();
+    authorSearchResults.clear();
   }
 
   @override
@@ -46,6 +117,10 @@ class HomeController extends GetxController {
         
         for (var doc in snapshot.docs) {
           final data = doc.data();
+          
+          // Filter out drafts
+          if (data['status'] == 'Draft') continue;
+
           final authorName = data['authorName'] ?? 'Tidak diketahui';
 
           String? authorId;

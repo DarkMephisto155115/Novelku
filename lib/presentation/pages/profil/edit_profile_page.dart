@@ -180,38 +180,42 @@ class EditProfilePage extends GetView<EditProfileController> {
   }
 
   Widget _buildFormSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFormField(
-          label: 'Nama Lengkap',
-          controller: controller.nameController,
-          hintText: 'Masukkan nama lengkap',
-          validator: controller.validateName,
-          prefixIcon: Icons.person_outline,
-        ),
-        SizedBox(height: 20),
-        _buildFormField(
-          label: 'Username',
-          controller: controller.usernameController,
-          hintText: 'Masukkan username',
-          validator: controller.validateUsername,
-          prefixText: '@',
-          helperText:
-              'Username hanya boleh mengandung huruf, angka, dan underscore',
-        ),
-        SizedBox(height: 20),
-        _buildFormField(
-          label: 'Email',
-          controller: controller.emailController,
-          hintText: 'Masukkan email',
-          validator: controller.validateEmail,
-          prefixIcon: Icons.email_outlined,
-          keyboardType: TextInputType.emailAddress,
-        ),
-        SizedBox(height: 20),
-        _buildBioField(),
-      ],
+    return Form(
+      key: controller.formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildFormField(
+            label: 'Nama Lengkap',
+            controller: controller.nameController,
+            hintText: 'Masukkan nama lengkap',
+            validator: controller.validateName,
+            prefixIcon: Icons.person_outline,
+          ),
+          SizedBox(height: 20),
+          _buildFormField(
+            label: 'Username',
+            controller: controller.usernameController,
+            hintText: 'Masukkan username',
+            validator: controller.validateUsername,
+            prefixText: '@',
+            helperText:
+                'Username hanya boleh mengandung huruf, angka, dan underscore',
+          ),
+          SizedBox(height: 20),
+          _buildFormField(
+            label: 'Email',
+            controller: controller.emailController,
+            hintText: 'Masukkan email',
+            validator: controller.validateEmail,
+            prefixIcon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+            readOnly: true,
+          ),
+          SizedBox(height: 20),
+          _buildBioField(),
+        ],
+      ),
     );
   }
 
@@ -224,6 +228,7 @@ class EditProfilePage extends GetView<EditProfileController> {
     String? prefixText,
     String? helperText,
     TextInputType keyboardType = TextInputType.text,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,8 +253,11 @@ class EditProfilePage extends GetView<EditProfileController> {
           ),
         TextFormField(
           controller: controller,
+          readOnly: readOnly,
           style: TextStyle(
-            color: Get.theme.textTheme.bodyLarge?.color,
+            color: readOnly 
+                ? Get.theme.textTheme.bodyLarge?.color?.withOpacity(0.6) 
+                : Get.theme.textTheme.bodyLarge?.color,
             fontSize: 16,
           ),
           decoration: InputDecoration(
@@ -278,7 +286,9 @@ class EditProfilePage extends GetView<EditProfileController> {
               ),
             ),
             filled: true,
-            fillColor: Get.theme.inputDecorationTheme.fillColor,
+            fillColor: readOnly 
+                ? Get.theme.disabledColor.withOpacity(0.1) 
+                : Get.theme.inputDecorationTheme.fillColor,
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,

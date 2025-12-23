@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../controllers/author/author_controller.dart' as home_ctrl_pkg;
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
 import '../../controllers/author/author_controller.dart';
@@ -65,8 +66,14 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
-                    itemBuilder: (_, idx) =>
-                        NovelCardHorizontal(item: recommended[idx]),
+                    itemBuilder: (_, idx) => NovelCardHorizontal(
+                      item: recommended[idx],
+                      onTap: () {
+                        Get.find<home_ctrl_pkg.HomeController>().clearSearch();
+                        Get.toNamed('/novel_chapters',
+                            arguments: {'novelId': recommended[idx].id});
+                      },
+                    ),
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemCount: recommended.length,
                   ),
@@ -86,6 +93,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     TextButton(
                         onPressed: () {
+                          Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                           Get.toNamed('/all_novel');
                         },
                         child: const Text('Lihat Semua'))
@@ -112,6 +120,7 @@ class _HomePageState extends State<HomePage> {
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (_, idx) => GestureDetector(
                       onTap: () {
+                        Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                         Get.toNamed('/novel_chapters', arguments: {'novelId': newNovels[idx].id});
                       },
                       child: Column(
@@ -184,6 +193,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     TextButton(
                         onPressed: () {
+                          Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                           Get.toNamed('/list_author');
                         },
                         child: const Text('Lihat Semua'))
@@ -210,6 +220,7 @@ class _HomePageState extends State<HomePage> {
                           final author = newAuthors[idx];
                           return GestureDetector(
                             onTap: () {
+                              Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                               Get.toNamed('/author_profile/${author.id}');
                             },
                             child: Column(
@@ -460,7 +471,14 @@ class _HomePageState extends State<HomePage> {
                 return Column(
                   children: [
                     for (var e in filteredNovels.take(6))
-                      NovelCardVertical(item: e)
+                      NovelCardVertical(
+                        item: e,
+                        onTap: () {
+                          Get.find<home_ctrl_pkg.HomeController>().clearSearch();
+                          Get.toNamed('/novel_chapters',
+                              arguments: {'novelId': e.id});
+                        },
+                      )
                   ],
                 );
               }),
@@ -473,6 +491,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final homeController = Get.find<home_ctrl_pkg.HomeController>();
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -507,15 +527,207 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: const TextField(
-              decoration: InputDecoration(
+            child: TextField(
+              controller: homeController.searchController,
+              onChanged: homeController.updateSearchQuery,
+              decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Cari novel atau penulis...',
                   prefixIcon: Icon(Icons.search)),
             ),
           ),
+          Obx(() {
+            if (homeController.searchQuery.value.isNotEmpty) {
+              return _buildSearchResults(homeController);
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
+    );
+  }
+
+  Widget _buildSearchResults(home_ctrl_pkg.HomeController controller) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      constraints: const BoxConstraints(maxHeight: 400),
+      child: Obx(() {
+        if (controller.searchResults.isEmpty && controller.authorSearchResults.isEmpty) {
+          return const Center(
+            child: Text('Tidak ada hasil ditemukan'),
+          );
+        }
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (controller.searchResults.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Novel',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.searchResults.length,
+                  separatorBuilder: (_, __) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final novel = controller.searchResults[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          novel.coverUrl,
+                          width: 40,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 40,
+                            height: 60,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        novel.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        novel.author,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      onTap: () {
+                        Get.toNamed('/novel_chapters', arguments: {'novelId': novel.id});
+                      },
+                    );
+                  },
+                ),
+              ],
+              
+              if (controller.searchResults.isNotEmpty && controller.authorSearchResults.isNotEmpty)
+                const Divider(height: 24),
+
+              if (controller.authorSearchResults.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Penulis',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.authorSearchResults.length,
+                  separatorBuilder: (_, __) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final author = controller.authorSearchResults[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: author.imageUrl != null && author.imageUrl!.isNotEmpty
+                            ? Image.network(
+                                author.imageUrl!,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 40,
+                                  height: 40,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.person, color: Colors.white),
+                                ),
+                              )
+                            : Container(
+                                width: 40,
+                                height: 40,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.person, color: Colors.white),
+                              ),
+                      ),
+                      title: Row(
+                        children: [
+                          Text(
+                            author.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          if (author.isPremium) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    const Color.fromARGB(255, 251, 255, 34),
+                                    AppThemeData.premiumColor,
+                                    const Color.fromARGB(255, 203, 108, 0)
+                                        .withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Premium',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      subtitle: Text(
+                        '${author.followerCount} Pengikut',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      onTap: () {
+                        Get.toNamed('/author_profile/${author.id}');
+                      },
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -549,6 +761,7 @@ class _HomePageState extends State<HomePage> {
             selected: false,
             onTap: () {
               print("Novel Clicked");
+              Get.find<home_ctrl_pkg.HomeController>().clearSearch();
               Get.to(SemuaNovelPage());
             },
           ),
@@ -558,6 +771,7 @@ class _HomePageState extends State<HomePage> {
             selected: false,
             onTap: () {
               print("Tulis Clicked");
+              Get.find<home_ctrl_pkg.HomeController>().clearSearch();
               // Get.to(WritePage());
               Get.toNamed('/writing');
             },
@@ -568,6 +782,7 @@ class _HomePageState extends State<HomePage> {
             selected: false,
             onTap: () {
               print("Profil Clicked");
+              Get.find<home_ctrl_pkg.HomeController>().clearSearch();
               // Get.to(ProfilePage());
               Get.toNamed('/profile_page');
             },

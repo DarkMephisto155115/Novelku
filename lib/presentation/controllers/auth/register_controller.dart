@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegistrationController extends GetxController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   var email = ''.obs;
   var username = ''.obs;
   var password = ''.obs;
@@ -18,7 +19,6 @@ class RegistrationController extends GetxController {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LoginController loginController = Get.find<LoginController>();
 
   TextEditingController birthDateController = TextEditingController();
 
@@ -31,31 +31,16 @@ class RegistrationController extends GetxController {
   }
 
   Future<bool> register() async {
+    if (!formKey.currentState!.validate()) {
+      return false;
+    }
+
     hasError.value = false;
     errorMessage.value = '';
 
     String emailVal = email.value.trim();
     String usernameVal = username.value.trim();
     String passwordVal = password.value;
-    String confirmPasswordVal = confirmPassword.value;
-
-    if (emailVal.isEmpty || usernameVal.isEmpty || passwordVal.isEmpty) {
-      hasError.value = true;
-      errorMessage.value = 'Semua field harus diisi';
-      return false;
-    }
-
-    if (passwordVal != confirmPasswordVal) {
-      hasError.value = true;
-      errorMessage.value = 'Password dan konfirmasi password tidak sesuai';
-      return false;
-    }
-
-    if (passwordVal.length < 6) {
-      hasError.value = true;
-      errorMessage.value = 'Password minimal 6 karakter';
-      return false;
-    }
 
     bool usernameExists = await _checkUsernameExists(usernameVal);
     if (usernameExists) {
@@ -88,9 +73,12 @@ class RegistrationController extends GetxController {
         'updated_at': FieldValue.serverTimestamp(),
       });
 
-      await loginController.bypassLogin(emailVal, passwordVal);
-      isLoading.value = false;
+      // Save session locally
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userId', uid);
 
+      isLoading.value = false;
       return true;
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
@@ -113,6 +101,9 @@ class RegistrationController extends GetxController {
       isLoading.value = false;
       hasError.value = true;
       errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi';
+      if (kDebugMode) {
+        print("Registration error: $e");
+      }
       return false;
     }
   }

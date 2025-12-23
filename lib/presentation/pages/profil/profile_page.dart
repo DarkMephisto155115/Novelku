@@ -210,7 +210,10 @@ class ProfilePage extends GetView<ProfileController> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _stat('Novel', user.novelCount.toString(), Icons.book),
-          _stat('Dibaca', user.readCount.toString(), Icons.visibility),
+          _stat('Dibaca', controller.formatNumber(user.readCount),
+              Icons.visibility),
+          _stat('Likes', controller.formatNumber(user.totalLikes),
+              Icons.favorite),
           _stat('Followers', controller.formatNumber(user.followerCount),
               Icons.people),
           _stat('Following', user.followingCount.toString(), Icons.person_add),

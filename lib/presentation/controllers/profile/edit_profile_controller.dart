@@ -17,6 +17,7 @@ class EditProfileController extends GetxController {
   // ==========================
   // TEXT CONTROLLERS
   // ==========================
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
@@ -170,16 +171,7 @@ class EditProfileController extends GetxController {
   // SAVE CHANGES
   // ==========================
   Future<void> saveChanges() async {
-    if (validateName(nameController.text) != null ||
-        validateUsername(usernameController.text) != null ||
-        validateEmail(emailController.text) != null ||
-        validateBio(bioController.text) != null) {
-      Get.snackbar(
-        'Error',
-        'Periksa kembali input Anda',
-        backgroundColor: AppThemeData.errorColor,
-        colorText: Colors.white,
-      );
+    if (!formKey.currentState!.validate()) {
       return;
     }
 

@@ -13,6 +13,7 @@ class EditNovelController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late final TextEditingController titleController = TextEditingController();
   late final TextEditingController descriptionController =
       TextEditingController();
@@ -30,7 +31,7 @@ class EditNovelController extends GetxController {
   final RxString selectedStatus = 'Berlanjut'.obs;
   final RxList<Genre> genres = <Genre>[].obs;
 
-  final List<String> status = ['Berlanjut', 'Selesai', 'Hiatus'];
+  final List<String> status = ['Berlanjut', 'Selesai', 'Hiatus', 'Draft'];
 
   @override
   void onInit() {
@@ -215,6 +216,7 @@ class EditNovelController extends GetxController {
     'Berlanjut': true,
     'Hiatus': false,
     'Selesai': false,
+    'Draft': false,
   };
 
   Future<void> openAddChapter() async {
@@ -437,6 +439,15 @@ class EditNovelController extends GetxController {
         await doc.reference.delete();
       }
 
+      // Delete cover image from storage if exists
+      if (novel.value?.imageUrl != null && novel.value!.imageUrl!.isNotEmpty) {
+        try {
+          await _storage.refFromURL(novel.value!.imageUrl!).delete();
+        } catch (e) {
+          log('Gagal hapus cover image (aman diabaikan): $e');
+        }
+      }
+
       await _firestore.collection('novels').doc(novelId).delete();
 
       Get.snackbar(
@@ -448,7 +459,8 @@ class EditNovelController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
-      Get.back(result: 'deleted');
+      Get.back(); // Close dialog
+      Get.back(result: 'deleted'); // Back to previous page
     } catch (e, s) {
       log('[DELETE_NOVEL] $e', stackTrace: s);
       Get.snackbar(
@@ -465,6 +477,10 @@ class EditNovelController extends GetxController {
   }
 
   Future<void> saveChanges() async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
     try {
       isLoading.value = true;
 

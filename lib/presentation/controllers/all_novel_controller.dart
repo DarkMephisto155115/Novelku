@@ -22,6 +22,10 @@ class AllNovelController extends GetxController {
       _firestore.collection('novels').snapshots().listen((snapshot) {
         final List<NovelItem> novels = snapshot.docs.map((doc) {
           final data = doc.data();
+          
+          // Filter out drafts
+          if (data['status'] == 'Draft') return null;
+
           final chapters = data['chapters'] as List<dynamic>? ?? [];
 
           return NovelItem(
@@ -35,7 +39,7 @@ class AllNovelController extends GetxController {
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),
           );
-        }).toList();
+        }).whereType<NovelItem>().toList();
 
         this.novels.assignAll(novels);
         filteredNovels.assignAll(novels);

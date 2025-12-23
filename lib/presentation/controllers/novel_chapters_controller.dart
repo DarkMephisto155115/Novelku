@@ -18,6 +18,7 @@ class NovelChaptersController extends GetxController {
   final searchQuery = ''.obs;
   final isFavorite = false.obs;
   final isFavoriteProcessing = false.obs;
+  final isAuthorPremium = false.obs;
 
   @override
   void onInit() {
@@ -31,7 +32,6 @@ class NovelChaptersController extends GetxController {
     }
 
     _fetchNovelWithChapters();
-    _incrementViewCount();
     _loadFavoriteState();
   }
 
@@ -52,6 +52,18 @@ class NovelChaptersController extends GetxController {
       }
 
       Novel novelData = Novel.fromJson(novelDoc.data()!, novelDoc.id);
+
+      if (novelData.authorId != null) {
+        _firestore
+            .collection('users')
+            .doc(novelData.authorId)
+            .get()
+            .then((userDoc) {
+          if (userDoc.exists) {
+            isAuthorPremium.value = userDoc.data()?['is_premium'] ?? false;
+          }
+        });
+      }
 
       _firestore
           .collection('novels')
@@ -100,15 +112,6 @@ class NovelChaptersController extends GetxController {
             c.chapter.toString().contains(lower),
       ),
     );
-  }
-
-  // =========================
-  // VIEW COUNT
-  // =========================
-  void _incrementViewCount() {
-    _firestore.collection('novels').doc(novelId).update({
-      'viewCount': FieldValue.increment(1),
-    });
   }
 
   // =========================
@@ -187,11 +190,11 @@ class NovelChaptersController extends GetxController {
           });
 
       isFavorite.value = true;
-      Get.snackbar(
-        'Berhasil',
-        '${novelData['title'] ?? 'Novel'} ditambahkan ke favorit',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Berhasil',
+      //   '${novelData['title'] ?? 'Novel'} ditambahkan ke favorit',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
 
       if (kDebugMode) {
         print('✅ Novel added to favorites: $novelId');
@@ -217,11 +220,11 @@ class NovelChaptersController extends GetxController {
           .delete();
 
       isFavorite.value = false;
-      Get.snackbar(
-        'Berhasil',
-        '${novelData['title'] ?? 'Novel'} dihapus dari favorit',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Berhasil',
+      //   '${novelData['title'] ?? 'Novel'} dihapus dari favorit',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
 
       if (kDebugMode) {
         print('✅ Novel removed from favorites: $novelId');

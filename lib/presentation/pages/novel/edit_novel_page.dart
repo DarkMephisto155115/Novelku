@@ -58,17 +58,20 @@ class EditNovelPage extends GetView<EditNovelController> {
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNovelInfoSection(),
-                const SizedBox(height: 24),
-                _buildGenreStatusSection(),
-                const SizedBox(height: 24),
-                _buildChaptersSection(),
-                const SizedBox(height: 32),
-                _buildActionButtons(),
-              ],
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildNovelInfoSection(),
+                  const SizedBox(height: 24),
+                  _buildGenreStatusSection(),
+                  const SizedBox(height: 24),
+                  _buildChaptersSection(),
+                  const SizedBox(height: 32),
+                  _buildActionButtons(),
+                ],
+              ),
             ),
           );
         },
@@ -193,7 +196,7 @@ class EditNovelPage extends GetView<EditNovelController> {
           ),
         ),
         SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller.titleController,
           onChanged: controller.updateTitle,
           decoration: InputDecoration(
@@ -204,6 +207,12 @@ class EditNovelPage extends GetView<EditNovelController> {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           style: Get.theme.textTheme.bodyLarge,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Judul novel harus diisi';
+            }
+            return null;
+          },
         ),
       ],
     );

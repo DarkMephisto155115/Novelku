@@ -48,6 +48,7 @@ class UserProfile {
   final int readCount;
   final int followerCount;
   final int followingCount;
+  final int totalLikes;
 
 
   final List<UserNovel> myNovels;
@@ -64,6 +65,7 @@ class UserProfile {
     required this.readCount,
     required this.followerCount,
     required this.followingCount,
+    required this.totalLikes,
     required this.myNovels,
     required this.favoriteNovels,
   });
@@ -78,6 +80,7 @@ class UserProfile {
     int? readCount,
     int? followerCount,
     int? followingCount,
+    int? totalLikes,
     int? totalChaptersRead,
     int? totalWordsRead,
     int? readingStreak,
@@ -95,6 +98,7 @@ class UserProfile {
       readCount: readCount ?? this.readCount,
       followerCount: followerCount ?? this.followerCount,
       followingCount: followingCount ?? this.followingCount,
+      totalLikes: totalLikes ?? this.totalLikes,
       myNovels: myNovels ?? this.myNovels,
       favoriteNovels: favoriteNovels ?? this.favoriteNovels,
     );

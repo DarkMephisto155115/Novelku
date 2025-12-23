@@ -112,7 +112,7 @@ class AuthorsController extends GetxController {
             category: topGenre,
             isNew: isNew,
             isPopular: isPopular,
-            isPremium: (user['isPremium'] ?? false) as bool,
+            isPremium: (user['is_premium'] ?? false) as bool,
             imageUrl: user['imageUrl'],
           ),
         );

@@ -72,7 +72,10 @@ class AuthorProfileController extends GetxController {
           .get();
 
       final novels =
-          novelSnap.docs.map((d) => Novel.fromJson(d.data(), d.id)).toList();
+          novelSnap.docs
+              .map((d) => Novel.fromJson(d.data(), d.id))
+              .where((n) => n.status != 'Draft')
+              .toList();
 
       author.value = AuthorProfile.fromFirestore(authorDoc, novels);
 

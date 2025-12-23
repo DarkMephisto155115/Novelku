@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class LoginController extends GetxController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   var isPasswordHidden = false.obs;
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -28,19 +29,26 @@ class LoginController extends GetxController {
   Future<void> bypassLogin(String email, String password) async {
     emailController.text = email;
     passwordController.text = password;
-    await login();
+    
+    if (_auth.currentUser != null) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userId', _auth.currentUser!.uid);
+      return;
+    }
+
+    await performLogin(email, password);
   }
 
   Future<bool> login() async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
-    
-    if (email.isEmpty || password.isEmpty) {
-      hasError.value = true;
-      errorMessage.value = 'Email dan password harus diisi';
+    if (!formKey.currentState!.validate()) {
       return false;
     }
+    
+    return await performLogin(emailController.text.trim(), passwordController.text.trim());
+  }
 
+  Future<bool> performLogin(String email, String password) async {
     isLoading.value = true;
     hasError.value = false;
     errorMessage.value = '';

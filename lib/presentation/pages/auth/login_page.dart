@@ -98,55 +98,58 @@ class LoginPage extends GetView<LoginController> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: Text(
-              'Masuk',
-              style: Get.theme.textTheme.headlineMedium,
-            ),
-          ),
-          SizedBox(height: 24),
-          _buildEmailField(),
-          SizedBox(height: 16),
-          _buildPasswordField(),
-          SizedBox(height: 16),
-          _buildForgotPassword(),
-          SizedBox(height: 16),
-          _buildLoginButton(),
-          SizedBox(
-            height: 12,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Belum punya akun? ',
-                style: Get.theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 14,
-                ),
+      child: Form(
+        key: controller.formKey,
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                'Masuk',
+                style: Get.theme.textTheme.headlineMedium,
               ),
-              TextButton(
-                onPressed: () {
-                  Get.offNamed(Routes.REGISTRATION);
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Daftar Sekarang',
-                  style: TextStyle(
-                    color: Get.theme.primaryColor,
+            ),
+            SizedBox(height: 24),
+            _buildEmailField(),
+            SizedBox(height: 16),
+            _buildPasswordField(),
+            SizedBox(height: 16),
+            _buildForgotPassword(),
+            SizedBox(height: 16),
+            _buildLoginButton(),
+            SizedBox(
+              height: 12,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Belum punya akun? ',
+                  style: Get.theme.textTheme.bodyMedium?.copyWith(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                TextButton(
+                  onPressed: () {
+                    Get.offNamed(Routes.REGISTRATION);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Daftar Sekarang',
+                    style: TextStyle(
+                      color: Get.theme.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -163,7 +166,7 @@ class LoginPage extends GetView<LoginController> {
           ),
         ),
         SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller.emailController,
           style: TextStyle(
             color: Get.theme.textTheme.bodyLarge?.color,
@@ -181,6 +184,15 @@ class LoginPage extends GetView<LoginController> {
             hintStyle: TextStyle(color: Get.theme.hintColor),
           ),
           keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Email harus diisi';
+            }
+            if (!GetUtils.isEmail(value)) {
+              return 'Format email tidak valid';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -199,7 +211,7 @@ class LoginPage extends GetView<LoginController> {
         ),
         SizedBox(height: 8),
         Obx(
-          () => TextField(
+          () => TextFormField(
             controller: controller.passwordController,
             obscureText: !controller.isPasswordHidden.value,
             style: TextStyle(
@@ -229,6 +241,12 @@ class LoginPage extends GetView<LoginController> {
                 onPressed: controller.togglePasswordVisibility,
               ),
             ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password harus diisi';
+              }
+              return null;
+            },
           ),
         ),
       ],
@@ -269,12 +287,7 @@ class LoginPage extends GetView<LoginController> {
                   final success = await controller.login();
                   
                   if (success) {
-                    _showSuccessSnackbar('Login berhasil');
-                    // Tunggu snackbar tampil sebelum navigasi
-                    await Future.delayed(const Duration(seconds: 1));
                     Get.offAllNamed(Routes.HOME);
-                  } else {
-                    _showErrorSnackbar(controller.errorMessage.value);
                   }
                 },
           style: ElevatedButton.styleFrom(
@@ -315,39 +328,39 @@ class LoginPage extends GetView<LoginController> {
     );
   }
 
-  void _showSuccessSnackbar(String message) {
-    if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
-    }
-    Get.snackbar(
-      'Berhasil',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(12),
-      borderRadius: 12,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
-    );
-  }
+  // void _showSuccessSnackbar(String message) {
+  //   if (Get.isSnackbarOpen) {
+  //     Get.closeCurrentSnackbar();
+  //   }
+  //   Get.snackbar(
+  //     'Berhasil',
+  //     message,
+  //     snackPosition: SnackPosition.BOTTOM,
+  //     backgroundColor: Colors.green,
+  //     colorText: Colors.white,
+  //     duration: const Duration(seconds: 2),
+  //     margin: const EdgeInsets.all(12),
+  //     borderRadius: 12,
+  //     isDismissible: true,
+  //     dismissDirection: DismissDirection.horizontal,
+  //   );
+  // }
 
-  void _showErrorSnackbar(String message) {
-    if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
-    }
-    Get.snackbar(
-      'Login Gagal',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(12),
-      borderRadius: 12,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
-    );
-  }
+  // void _showErrorSnackbar(String message) {
+  //   if (Get.isSnackbarOpen) {
+  //     Get.closeCurrentSnackbar();
+  //   }
+  //   Get.snackbar(
+  //     'Login Gagal',
+  //     message,
+  //     snackPosition: SnackPosition.BOTTOM,
+  //     backgroundColor: Colors.red,
+  //     colorText: Colors.white,
+  //     duration: const Duration(seconds: 3),
+  //     margin: const EdgeInsets.all(12),
+  //     borderRadius: 12,
+  //     isDismissible: true,
+  //     dismissDirection: DismissDirection.horizontal,
+  //   );
+  // }
 }

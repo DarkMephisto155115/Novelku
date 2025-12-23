@@ -10,11 +10,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WritingController extends GetxController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final judulNovelC = TextEditingController();
   final genreC = ''.obs;
   final judulBabC = TextEditingController();
   final ceritaC = TextEditingController();
   final deskripsiC = TextEditingController();
+  final selectedStatus = 'Berlanjut'.obs;
+  final List<String> statusOptions = ['Berlanjut', 'Draft'];
 
   RxInt jumlahHuruf = 0.obs;
   var coverImagePath = ''.obs;
@@ -116,7 +119,7 @@ class WritingController extends GetxController {
   }
 
   Future<void> saveNovel() async {
-    if (!_validateInput()) {
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
@@ -167,7 +170,8 @@ class WritingController extends GetxController {
         'imageUrl': coverImageUrl ?? '',
         'likeCount': 0,
         'viewCount': 0,
-        'isOngoing': true,
+        'isOngoing': selectedStatus.value == 'Berlanjut',
+        'status': selectedStatus.value,
         'createdAt': DateTime.now(),
         'updatedAt': DateTime.now(),
       });
@@ -200,33 +204,7 @@ class WritingController extends GetxController {
     }
   }
 
-  bool _validateInput() {
-    if (judulNovelC.text.trim().isEmpty) {
-      _showSnackbar('Gagal', 'Judul novel harus diisi', isError: true);
-      return false;
-    }
-    if (genreC.value.isEmpty) {
-      _showSnackbar('Gagal', 'Genre harus dipilih', isError: true);
-      return false;
-    }
-    if (judulBabC.text.trim().isEmpty) {
-      _showSnackbar('Gagal', 'Judul bab harus diisi', isError: true);
-      return false;
-    }
-    if (ceritaC.text.trim().isEmpty) {
-      _showSnackbar('Gagal', 'Cerita harus diisi', isError: true);
-      return false;
-    }
-    if (jumlahHuruf.value < minCharacterCount) {
-      _showSnackbar(
-        'Cerita terlalu pendek',
-        'Minimal $minCharacterCount karakter (sekarang ${jumlahHuruf.value})',
-        isError: true,
-      );
-      return false;
-    }
-    return true;
-  }
+
 
   void _showSnackbar(String title, String message, {bool isError = false}) {
     if (Get.isSnackbarOpen) {
@@ -255,6 +233,7 @@ class WritingController extends GetxController {
     deskripsiC.clear();
     coverImagePath.value = '';
     jumlahHuruf.value = 0;
+    selectedStatus.value = 'Berlanjut';
   }
 
   void _showSuccessDialog() {

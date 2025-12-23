@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/novel_chapters_controller.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 class NovelChaptersPage extends StatelessWidget {
   const NovelChaptersPage({super.key});
@@ -79,9 +80,42 @@ class NovelChaptersPage extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Penulis: ${novel.authorName ?? 'Tidak diketahui'}',
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  Row(
+                    children: [
+                      Text(
+                        'Penulis: ${novel.authorName ?? 'Tidak diketahui'}',
+                        style:
+                            const TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      if (controller.isAuthorPremium.value) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color.fromARGB(255, 251, 255, 34),
+                                AppThemeData.premiumColor,
+                                const Color.fromARGB(255, 203, 108, 0)
+                                    .withOpacity(0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Premium',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -115,7 +149,7 @@ class NovelChaptersPage extends StatelessWidget {
                       const Icon(Icons.menu_book,
                           size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text('${novel.chapterCount}',
+                      Text('${controller.chapters.length}',
                           style: const TextStyle(fontSize: 12)),
                       const SizedBox(width: 16),
                       const Icon(Icons.visibility,
@@ -237,6 +271,11 @@ class NovelChaptersPage extends StatelessWidget {
           statusColor = Colors.red;
           statusBgColor = Colors.red[50]!;
           break;
+        case 'draft':
+          status = 'Draft';
+          statusColor = Colors.grey;
+          statusBgColor = Colors.grey[200]!;
+          break;
         default:
           status = novel.status!;
           statusColor = Colors.grey;
@@ -296,11 +335,12 @@ class NovelChaptersPage extends StatelessWidget {
     final wordCount =
         chapter.content.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
     final estimatedReadTime = (wordCount / 200).ceil();
+    final chapterIndex = controller.chapters.indexWhere((c) => c.id == chapter.id) + 1;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       title: Text(
-        'Bab ${chapter.chapter}: ${chapter.title}',
+        'Bab $chapterIndex: ${chapter.title}',
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
       subtitle: Column(
@@ -324,7 +364,7 @@ class NovelChaptersPage extends StatelessWidget {
           '/reading',
           arguments: {
             'novelId': controller.novelId,
-            'chapter': chapter.chapter,
+            'chapterId': chapter.id,
           },
         );
       },

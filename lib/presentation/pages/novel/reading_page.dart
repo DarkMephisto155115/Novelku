@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/reading_controller.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
+import 'package:terra_brain/presentation/themes/theme_data.dart';
 import 'package:terra_brain/presentation/widgets/novel_card.dart';
 
 class ReadingPage extends GetView<ReadingController> {
@@ -117,7 +118,7 @@ class ReadingPage extends GetView<ReadingController> {
             Row(
               children: [
                 Text(
-                  'Bab ${chapter.chapterNumber}',
+                  'Bab ${controller.chapterList.indexWhere((c) => c.id == chapter.id) + 1}',
                   style: Get.theme.textTheme.bodySmall?.copyWith(
                     color:
                         Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
@@ -374,6 +375,7 @@ class ReadingPage extends GetView<ReadingController> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
+              controller: controller.commentController,
               onChanged: controller.setNewComment,
               decoration: InputDecoration(
                 hintText: 'Tulis komentarmu...',
@@ -452,33 +454,61 @@ class ReadingPage extends GetView<ReadingController> {
             // User Info and Time
             Row(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Get.theme.primaryColor.withValues(alpha: 0.2),
-                  ),
-                  child: comment.userAvatar.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            comment.userAvatar,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.person,
-                                size: 18,
-                                color: Get.theme.primaryColor,
-                              );
-                            },
-                          ),
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 18,
-                          color: Get.theme.primaryColor,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Get.theme.primaryColor.withValues(alpha: 0.2),
+                        border: Border.all(
+                          color: comment.isPremium
+                              ? AppThemeData.premiumColor
+                              : Colors.transparent,
+                          width: 1.5,
                         ),
+                      ),
+                      child: comment.userAvatar.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                comment.userAvatar,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.person,
+                                    size: 18,
+                                    color: Get.theme.primaryColor,
+                                  );
+                                },
+                              ),
+                            )
+                          : Icon(
+                              Icons.person,
+                              size: 18,
+                              color: Get.theme.primaryColor,
+                            ),
+                    ),
+                    if (comment.isPremium)
+                      Positioned(
+                        bottom: -2,
+                        right: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: AppThemeData.premiumColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.workspace_premium,
+                            size: 8,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(width: 8),
                 Expanded(
@@ -493,6 +523,34 @@ class ReadingPage extends GetView<ReadingController> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          if (comment.isPremium) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    const Color.fromARGB(255, 251, 255, 34),
+                                    AppThemeData.premiumColor,
+                                    const Color.fromARGB(255, 203, 108, 0)
+                                        .withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Premium',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                           if (isOwnComment) ...[
                             SizedBox(width: 6),
                             Container(
@@ -531,12 +589,15 @@ class ReadingPage extends GetView<ReadingController> {
                   children: [
                     IconButton(
                       icon: Icon(
-                        Icons.favorite_border,
+                        comment.isLiked ? Icons.favorite : Icons.favorite_border,
                         size: 16,
-                        color: Get.theme.textTheme.bodyMedium?.color
-                            ?.withOpacity(0.5),
+                        color: comment.isLiked
+                            ? Colors.red
+                            : Get.theme.textTheme.bodyMedium?.color
+                                ?.withOpacity(0.5),
                       ),
-                      onPressed: () async => await controller.likeComment(comment.id),
+                      onPressed: () async =>
+                          await controller.likeComment(comment.id),
                     ),
                     Text(
                       controller.formatNumber(comment.likeCount),
@@ -629,7 +690,7 @@ class ReadingPage extends GetView<ReadingController> {
               );
             }
             return SizedBox(
-              height: 220,
+              height: 260,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,

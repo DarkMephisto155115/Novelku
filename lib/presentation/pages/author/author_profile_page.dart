@@ -105,22 +105,59 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
         children: [
           Transform.translate(
             offset: const Offset(0, 0),
-            child: CircleAvatar(
-              radius: 55,
-              backgroundColor: AppThemeData.darkHintText,
-              child:
-                  author.profileImage != null && author.profileImage!.isNotEmpty
-                      ? CircleAvatar(
-                          radius: 52,
-                          backgroundImage: NetworkImage(author.profileImage!),
-                          onBackgroundImageError: (exception, stackTrace) {},
-                        )
-                      : CircleAvatar(
-                          radius: 52,
-                          backgroundImage: const AssetImage(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: author.isPremium
+                          ? AppThemeData.premiumColor
+                          : AppThemeData.darkHintText,
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: author.profileImage != null &&
+                            author.profileImage!.isNotEmpty
+                        ? Image.network(
+                            author.profileImage!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/default_profile.jpeg',
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          )
+                        : Image.asset(
                             'assets/images/default_profile.jpeg',
+                            fit: BoxFit.cover,
                           ),
-                        ),
+                  ),
+                ),
+                if (author.isPremium)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppThemeData.premiumColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 4),
@@ -142,29 +179,26 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
                 const SizedBox(width: 8),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                    gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
+                      colors: [
+                        const Color.fromARGB(255, 251, 255, 34),
+                        AppThemeData.premiumColor,
+                        const Color.fromARGB(255, 203, 108, 0).withOpacity(0.8),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.star, size: 14, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text(
-                        'Premium',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                  child: const Text(
+                    'Premium',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -239,6 +273,10 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
       children: [
         _statItem('Novel', author.novelCount.toString()),
         _statItem(
+          'Dibaca',
+          controller.formatNumber(author.readCount),
+        ),
+        _statItem(
           'Followers',
           controller.formatNumber(author.followerCount),
         ),
@@ -308,58 +346,62 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
   }
 
   Widget _buildNovelCard(Novel novel) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: novel.imageUrl != null && novel.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      novel.imageUrl!,
-                      width: 60,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return Image.asset(
-                          'assets/images/book.jpg',
-                          width: 60,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        );
-                      },
-                    )
-                  : Image.asset(
-                      'assets/images/book.jpg',
-                      width: 60,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          novel.title,
+    return GestureDetector(
+      onTap: () {
+        Get.toNamed('/novel_chapters', arguments: {'novelId': novel.id});
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Get.theme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: novel.imageUrl != null && novel.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        novel.imageUrl!,
+                        width: 60,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return Image.asset(
+                            'assets/images/book.jpg',
+                            width: 60,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        'assets/images/book.jpg',
+                        width: 60,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            novel.title,
                           style: Get.theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -405,7 +447,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildStatusBadge(String text, Color color) {

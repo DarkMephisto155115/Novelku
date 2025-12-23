@@ -45,6 +45,8 @@ class Comment {
   final String content;
   final DateTime timestamp;
   final int likeCount;
+  final bool isPremium;
+  final bool isLiked;
 
   Comment({
     required this.id,
@@ -54,6 +56,8 @@ class Comment {
     required this.content,
     required this.timestamp,
     required this.likeCount,
+    this.isPremium = false,
+    this.isLiked = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -65,6 +69,8 @@ class Comment {
       'content': content,
       'timestamp': timestamp,
       'likeCount': likeCount,
+      'isPremium': isPremium,
+      'isLiked': isLiked,
     };
   }
 
@@ -76,6 +82,8 @@ class Comment {
     String? content,
     DateTime? timestamp,
     int? likeCount,
+    bool? isPremium,
+    bool? isLiked,
   }) {
     return Comment(
       id: id ?? this.id,
@@ -85,6 +93,8 @@ class Comment {
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       likeCount: likeCount ?? this.likeCount,
+      isPremium: isPremium ?? this.isPremium,
+      isLiked: isLiked ?? this.isLiked,
     );
   }
 }
