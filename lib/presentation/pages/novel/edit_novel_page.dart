@@ -25,8 +25,30 @@ class EditNovelPage extends GetView<EditNovelController> {
       ),
       body: Obx(
         () {
-          if (controller.isLoading.value) {
+          if (controller.isLoading.value && controller.novel.value == null) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.errorMessage.value.isNotEmpty && controller.novel.value == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    controller.errorMessage.value,
+                    textAlign: TextAlign.center,
+                    style: Get.theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => Get.back(),
+                    child: const Text('Kembali'),
+                  ),
+                ],
+              ),
+            );
           }
 
           if (controller.novel.value == null) {
@@ -45,7 +67,7 @@ class EditNovelPage extends GetView<EditNovelController> {
                 const SizedBox(height: 24),
                 _buildChaptersSection(),
                 const SizedBox(height: 32),
-                _buildActionButtons(), // TANPA Spacer
+                _buildActionButtons(),
               ],
             ),
           );
@@ -339,7 +361,7 @@ class EditNovelPage extends GetView<EditNovelController> {
             children: [
               Expanded(
                 child: Text(
-                  'Chapter (${controller.chapters.length})',
+                  'Bab (${controller.chapters.length})',
                   style: Get.theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -354,7 +376,7 @@ class EditNovelPage extends GetView<EditNovelController> {
                       ? null
                       : controller.openAddChapter,
                   icon: const Icon(Icons.add, size: 20),
-                  label: const Text('Tambah Chapter'),
+                  label: const Text('Tambah Bab'),
                 ),
               ),
             ],
@@ -366,12 +388,31 @@ class EditNovelPage extends GetView<EditNovelController> {
               padding: const EdgeInsets.symmetric(vertical: 24),
               alignment: Alignment.center,
               child: Text(
-                'Belum ada chapter.\nTambahkan chapter pertama.',
+                'Belum ada bab.\nTambahkan bab pertama.',
                 textAlign: TextAlign.center,
                 style: Get.theme.textTheme.bodyMedium?.copyWith(
                   color:
                       Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                 ),
+              ),
+            )
+          else if (controller.errorMessage.value.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, size: 32, color: Colors.red),
+                  const SizedBox(height: 8),
+                  Text(
+                    controller.errorMessage.value,
+                    textAlign: TextAlign.center,
+                    style: Get.theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               ),
             )
           else
@@ -462,28 +503,15 @@ class EditNovelPage extends GetView<EditNovelController> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => Get.back(),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Get.theme.textTheme.bodyLarge?.color,
-              side: BorderSide(color: Get.theme.dividerColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: Text('Batal'),
-          ),
-        ),
-        SizedBox(width: 16),
-        Expanded(
-          child: Obx(
-            () => ElevatedButton(
-              onPressed:
-                  controller.isDirty.value ? controller.saveChanges : null,
+        Obx(
+          () => SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: controller.isDirty.value && !controller.isLoading.value
+                  ? controller.saveChanges
+                  : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Get.theme.primaryColor,
                 foregroundColor: Colors.white,
@@ -493,30 +521,59 @@ class EditNovelPage extends GetView<EditNovelController> {
                 elevation: 0,
                 padding: EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text('Simpan Perubahan'),
+              child: controller.isLoading.value
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : Text('Simpan Perubahan'),
             ),
           ),
         ),
-        SizedBox(width: 16,),
-        Expanded(
-          child: Obx(
-                () => ElevatedButton(
-              onPressed: controller.isLoading.value
-                  ? null
-                  : controller.confirmDeleteNovel,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+        SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Obx(
+                () => OutlinedButton(
+                  onPressed: controller.isLoading.value ? null : () => Get.back(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Get.theme.textTheme.bodyLarge?.color,
+                    side: BorderSide(color: Get.theme.dividerColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text('Batal'),
                 ),
               ),
-              child: const Text('Hapus Novel'),
             ),
-          ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed: controller.isLoading.value
+                      ? null
+                      : controller.confirmDeleteNovel,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Hapus Novel'),
+                ),
+              ),
+            ),
+          ],
         ),
-
       ],
     );
   }

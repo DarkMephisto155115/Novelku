@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
@@ -128,16 +127,17 @@ class EditNovelController extends GetxController {
           .map((doc) => Chapter.fromJson(doc.id, doc.data()))
           .toList();
 
-      // Log data yang di-fetch
       log('[FETCH_CHAPTERS] Berhasil mengambil ${chapters.length} chapter');
 
       for (var i = 0; i < chapters.length; i++) {
         final chapter = chapters[i];
         log('Chapter ${i + 1}: No.${chapter.chapter} - ${chapter.title} (ID: ${chapter.id})');
       }
+
+      errorMessage.value = '';
     } catch (e, s) {
       log('[FETCH_CHAPTERS] $e', stackTrace: s);
-      Get.snackbar('Error', 'Gagal memuat chapter');
+      errorMessage.value = 'Gagal memuat chapter';
     }
   }
 
@@ -229,18 +229,39 @@ class EditNovelController extends GetxController {
 
     if (result['action'] != 'create') return;
 
-    final Chapter chapter = result['chapter'];
+    try {
+      final Chapter chapter = result['chapter'];
 
-    final docRef = _firestore
-        .collection('novels')
-        .doc(novelId)
-        .collection('chapters')
-        .doc();
+      final docRef = _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc();
 
-    final chapterWithId = chapter.copyWith(id: docRef.id);
+      final chapterWithId = chapter.copyWith(id: docRef.id);
 
-    await docRef.set(chapterWithId.toJson());
-    chapters.add(chapterWithId);
+      await docRef.set(chapterWithId.toJson());
+      chapters.add(chapterWithId);
+
+      Get.snackbar(
+        'Berhasil',
+        'Chapter berhasil ditambahkan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e, s) {
+      log('[ADD_CHAPTER] $e', stackTrace: s);
+      Get.snackbar(
+        'Gagal',
+        'Tidak bisa menambahkan chapter',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   Future<void> openEditChapter(Chapter chapter) async {
@@ -257,23 +278,43 @@ class EditNovelController extends GetxController {
 
     if (result['action'] != 'update') return;
 
-    final Chapter updated = result['chapter'];
+    try {
+      final Chapter updated = result['chapter'];
 
-    await _firestore
-        .collection('novels')
-        .doc(novelId)
-        .collection('chapters')
-        .doc(updated.id)
-        .update(updated.toJson());
+      await _firestore
+          .collection('novels')
+          .doc(novelId)
+          .collection('chapters')
+          .doc(updated.id)
+          .update(updated.toJson());
 
-    chapters[index] = updated;
+      chapters[index] = updated;
+
+      Get.snackbar(
+        'Berhasil',
+        'Chapter berhasil diperbarui',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e, s) {
+      log('[UPDATE_CHAPTER] $e', stackTrace: s);
+      Get.snackbar(
+        'Gagal',
+        'Tidak bisa memperbarui chapter',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   Future<void> deleteChapter(Chapter chapter) async {
     try {
       isLoading.value = true;
 
-      // 1. Hapus chapter dari Firestore
       await _firestore
           .collection('novels')
           .doc(novelId)
@@ -281,10 +322,8 @@ class EditNovelController extends GetxController {
           .doc(chapter.id)
           .delete();
 
-      // 2. Hapus dari state lokal
       chapters.removeWhere((c) => c.id == chapter.id);
 
-      // 3. Reorder nomor chapter (lokal + firestore)
       final batch = _firestore.batch();
 
       for (int i = 0; i < chapters.length; i++) {
@@ -302,13 +341,26 @@ class EditNovelController extends GetxController {
 
       await batch.commit();
 
-      // 4. Paksa refresh RxList
       chapters.refresh();
 
-      Get.snackbar('Dihapus', 'Chapter berhasil dihapus');
+      Get.snackbar(
+        'Berhasil',
+        'Chapter berhasil dihapus',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
     } catch (e, s) {
       log('[DELETE_CHAPTER] $e', stackTrace: s);
-      Get.snackbar('Error', 'Gagal menghapus chapter');
+      Get.snackbar(
+        'Gagal',
+        'Tidak bisa menghapus chapter',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -375,7 +427,6 @@ class EditNovelController extends GetxController {
 
       final novelId = novel.value!.id;
 
-      // Hapus semua chapter dulu
       final chaptersSnapshot = await _firestore
           .collection('novels')
           .doc(novelId)
@@ -386,20 +437,27 @@ class EditNovelController extends GetxController {
         await doc.reference.delete();
       }
 
-      // Hapus novel
       await _firestore.collection('novels').doc(novelId).delete();
 
-      Get.back(result: 'deleted');
       Get.snackbar(
         'Berhasil',
         'Novel berhasil dihapus',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
-    } catch (e) {
+
+      Get.back(result: 'deleted');
+    } catch (e, s) {
+      log('[DELETE_NOVEL] $e', stackTrace: s);
       Get.snackbar(
         'Gagal',
-        'Gagal menghapus novel',
+        'Tidak bisa menghapus novel',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } finally {
       isLoading.value = false;
@@ -431,14 +489,25 @@ class EditNovelController extends GetxController {
       newCoverImage.value = null;
       isDirty.value = false;
 
+      Get.snackbar(
+        'Berhasil',
+        'Perubahan berhasil disimpan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+
       Get.back();
     } catch (e, s) {
-      log('SAVE ERROR: $e', stackTrace: s);
+      log('[SAVE_NOVEL] $e', stackTrace: s);
       Get.snackbar(
         'Gagal',
         'Tidak bisa menyimpan perubahan',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } finally {
       isLoading.value = false;

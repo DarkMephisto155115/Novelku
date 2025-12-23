@@ -134,6 +134,11 @@ class AppThemes {
         borderRadius: BorderRadius.circular(12),
       ),
     ),
+    dividerTheme: DividerThemeData(
+      color: AppThemeData.lightInputBorder,
+      thickness: 1,
+      space: 1,
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData(

@@ -20,7 +20,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await NotificationHandler().initialize();
+  // await NotificationHandler().initialize();
 
   runApp(const MyApp());
 }

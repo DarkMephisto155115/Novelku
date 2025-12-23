@@ -205,13 +205,27 @@ class ProfileController extends GetxController {
             }
 
             final d = novelDoc.data() as Map<String, dynamic>;
+            
+            final chaptersSnap = await ref
+                .collection('chapters')
+                .get();
+            
+            final publishedChapters = chaptersSnap.docs
+                .where((ch) {
+                  final isPublished = ch['isPublished'];
+                  return isPublished != null && 
+                      (isPublished.toString().toLowerCase() == 'published' || 
+                       isPublished.toString() == 'true');
+                })
+                .length;
+            
             favoriteNovels.add(
               FavoriteNovel(
                 id: novelDoc.id,
                 title: d['title'] ?? '',
                 coverUrl: d['imageUrl'] ?? '',
                 genre: d['genre'] ?? 'General',
-                chapterCount: d['chapterCount'] ?? 0,
+                chapterCount: publishedChapters,
                 views: d['viewCount'] ?? 0,
                 status: d['status'] ?? 'Berlanjut',
               ),
@@ -243,7 +257,6 @@ class ProfileController extends GetxController {
   Future<void> editNovel(String novelId) async {
     final result = await Get.toNamed(
       '/edit_novel/$novelId',
-      // parameters: {'id': novelId},
     );
 
     if (result == 'deleted') {
