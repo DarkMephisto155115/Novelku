@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 import '../models/settings_model.dart';
 
 class SettingsController extends GetxController {
   final Rx<ReadingSettings> settings = ReadingSettings(
-    isDarkMode: false,
+    // isDarkMode: false,
     fontSize: 'Sedang',
     fontFamily: 'Arial',
     novelNotifications: true,
@@ -15,18 +16,20 @@ class SettingsController extends GetxController {
 
   final List<String> fontSizes = ['Kecil', 'Sedang', 'Besar', 'Sangat Besar'];
   final List<String> fontFamilies = ['Arial', 'Georgia', 'Pangolin'];
+  final RxBool draftDarkMode = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadSettings();
+    final themeController = Get.find<ThemeController>(); 
+    draftDarkMode.value = themeController.isDarkMode;
   }
 
   Future<void> _loadSettings() async {
     try {
       final prefs = Get.find<SharedPreferences>();
       settings.value = ReadingSettings(
-        isDarkMode: prefs.getBool('isDarkMode') ?? false,
         fontSize: prefs.getString('fontSize') ?? 'Sedang',
         fontFamily: prefs.getString('fontFamily') ?? 'Arial',
         novelNotifications: prefs.getBool('novelNotifications') ?? true,
@@ -40,7 +43,7 @@ class SettingsController extends GetxController {
   Future<void> _saveSettings() async {
     try {
       final prefs = Get.find<SharedPreferences>();
-      await prefs.setBool('isDarkMode', settings.value.isDarkMode);
+      // await prefs.setBool('isDarkMode', settings.value.isDarkMode);
       await prefs.setString('fontSize', settings.value.fontSize);
       await prefs.setString('fontFamily', settings.value.fontFamily);
       await prefs.setBool('novelNotifications', settings.value.novelNotifications);
@@ -51,9 +54,7 @@ class SettingsController extends GetxController {
   }
 
   void toggleDarkMode(bool value) {
-    settings.value = settings.value.copyWith(isDarkMode: value);
-    // Apply theme change immediately
-    Get.find<ThemeController>().setTheme(value ? ThemeMode.dark : ThemeMode.light);
+    draftDarkMode.value = value;
   }
 
   void setFontSize(String size) {
@@ -72,7 +73,11 @@ class SettingsController extends GetxController {
     settings.value = settings.value.copyWith(autoScroll: value);
   }
 
-  void saveChanges() {
+  void saveChanges() async{
+    final themeController = Get.find<ThemeController>();
+    themeController.setTheme(
+      draftDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+    );
     _saveSettings();
     Get.snackbar(
       'Berhasil',
@@ -81,6 +86,10 @@ class SettingsController extends GetxController {
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+  Get.offAllNamed(AppPages.INITIAL);
   }
 
   // Helper methods for live preview

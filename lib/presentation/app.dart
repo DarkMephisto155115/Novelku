@@ -9,19 +9,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () {
-        final ThemeController themeController = Get.find<ThemeController>();
-        return GetMaterialApp(
-          title: 'Novelku',
-          debugShowCheckedModeBanner: false,
-          theme: AppThemes.lightTheme,
-          darkTheme: AppThemes.darkTheme,
-          themeMode: themeController.themeMode,
-          initialRoute: AppPages.INITIAL,
-          getPages: AppPages.routes,
-        );
-      },
-    );
+    final ThemeController themeController = Get.find<ThemeController>();
+
+    return Obx(() {
+      return GetMaterialApp(
+        title: 'Novelku',
+        debugShowCheckedModeBanner: false,
+        theme: AppThemes.lightTheme,
+        darkTheme: AppThemes.darkTheme,
+        themeMode: themeController.themeMode,
+        initialRoute: AppPages.INITIAL,
+        getPages: AppPages.routes,
+      );
+    });
   }
 }

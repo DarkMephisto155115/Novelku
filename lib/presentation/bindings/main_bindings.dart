@@ -84,9 +84,9 @@ class AuthorProfileBinding implements Bindings {
 class SplashBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<ThemeController>(
-      () => ThemeController(),
-    );
+    // Get.lazyPut<ThemeController>(
+    //   () => ThemeController(),
+    // );
     Get.lazyPut<PremiumController>(
       () => PremiumController(),
       fenix: true,

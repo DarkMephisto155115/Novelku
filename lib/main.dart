@@ -14,19 +14,7 @@ void main() async {
 
   Get.put<SharedPreferences>(prefs);
 
-  final String? savedTheme = prefs.getString('theme');
-  ThemeMode initialTheme = ThemeMode.light;
-  
-  if (savedTheme == 'dark') {
-    initialTheme = ThemeMode.dark;
-  } else if (savedTheme == 'light') {
-    initialTheme = ThemeMode.light;
-  }
-
-  Get.put<ThemeController>(
-    ThemeController(initialTheme: initialTheme),
-    permanent: true,
-  );
+  Get.put<ThemeController>(ThemeController(), permanent: true);
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

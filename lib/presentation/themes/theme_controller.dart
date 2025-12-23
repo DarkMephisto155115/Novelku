@@ -4,47 +4,52 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeController extends GetxController {
   static ThemeController get to => Get.find();
+
   late final Rx<ThemeMode> _themeMode;
-  
   ThemeMode get themeMode => _themeMode.value;
   bool get isDarkMode => _themeMode.value == ThemeMode.dark;
-  
-  // Constructor dengan initial theme
-  ThemeController({ThemeMode initialTheme = ThemeMode.light}) {
-    _themeMode = initialTheme.obs;
+
+  ThemeController() {
+    _themeMode = ThemeMode.system.obs;
   }
 
   @override
   void onInit() {
     super.onInit();
-    print('ThemeController onInit - current theme: ${_themeMode.value}');
-  }
 
-  Future<void> _saveThemeToPrefs(String theme) async {
-    try {
-      final prefs = Get.find<SharedPreferences>();
-      await prefs.setString('theme', theme);
-      print('✅ Theme saved to prefs: $theme');
-    } catch (e) {
-      print('❌ Error saving theme: $e');
+    final prefs = Get.find<SharedPreferences>();
+    final savedTheme = prefs.getString('theme');
+
+    if (savedTheme != null) {
+      _themeMode.value =
+          savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+    } else {
+      _themeMode.value =
+          Get.isDarkMode ? ThemeMode.dark : ThemeMode.light;
     }
+
+    Get.changeThemeMode(_themeMode.value);
+    print('🎨 Active theme: ${_themeMode.value}');
   }
 
   void toggleTheme() {
-    if (_themeMode.value == ThemeMode.light) {
-      _themeMode.value = ThemeMode.dark;
-      _saveThemeToPrefs('dark');
+    if (_themeMode.value == ThemeMode.dark) {
+      setTheme(ThemeMode.light);
     } else {
-      _themeMode.value = ThemeMode.light;
-      _saveThemeToPrefs('light');
+      setTheme(ThemeMode.dark);
     }
-    Get.changeThemeMode(_themeMode.value);
-    print('Theme toggled to: ${_themeMode.value}');
   }
 
-  void setTheme(ThemeMode mode) {
+  void setTheme(ThemeMode mode) async {
     _themeMode.value = mode;
-    _saveThemeToPrefs(mode == ThemeMode.dark ? 'dark' : 'light');
-    Get.changeThemeMode(_themeMode.value);
+    Get.changeThemeMode(mode);
+
+    final prefs = Get.find<SharedPreferences>();
+    await prefs.setString(
+      'theme',
+      mode == ThemeMode.dark ? 'dark' : 'light',
+    );
+
+    print('💾 Theme saved: $mode');
   }
 }
