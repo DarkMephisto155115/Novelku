@@ -266,22 +266,15 @@ class LoginPage extends GetView<LoginController> {
           onPressed: controller.isLoading.value
               ? null
               : () async {
-                  try {
-                    await controller.login();
+                  final success = await controller.login();
+                  
+                  if (success) {
+                    _showSuccessSnackbar('Login berhasil');
+                    // Tunggu snackbar tampil sebelum navigasi
+                    await Future.delayed(const Duration(seconds: 1));
                     Get.offAllNamed(Routes.HOME);
-                    Get.snackbar(
-                      'Success',
-                      'Logged in successfully',
-                      backgroundColor: Colors.green,
-                      colorText: Colors.white,
-                    );
-                  } catch (e) {
-                    Get.snackbar(
-                      'Error',
-                      e.toString().replaceFirst('Exception: ', ''),
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
+                  } else {
+                    _showErrorSnackbar(controller.errorMessage.value);
                   }
                 },
           style: ElevatedButton.styleFrom(
@@ -319,6 +312,42 @@ class LoginPage extends GetView<LoginController> {
                 ),
         ),
       ),
+    );
+  }
+
+  void _showSuccessSnackbar(String message) {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      'Berhasil',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+      margin: const EdgeInsets.all(12),
+      borderRadius: 12,
+      isDismissible: true,
+      dismissDirection: DismissDirection.horizontal,
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    Get.snackbar(
+      'Login Gagal',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(12),
+      borderRadius: 12,
+      isDismissible: true,
+      dismissDirection: DismissDirection.horizontal,
     );
   }
 }

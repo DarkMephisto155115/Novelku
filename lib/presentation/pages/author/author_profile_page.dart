@@ -385,7 +385,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
                     children: [
                       _buildSmallStat(
                         Icons.format_list_numbered,
-                        '${novel.chapterCount} chapter',
+                        '${novel.chapterCount} bab',
                       ),
                       const SizedBox(width: 10),
                       _buildSmallStat(

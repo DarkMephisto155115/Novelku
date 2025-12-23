@@ -4,20 +4,20 @@ import 'package:terra_brain/presentation/models/novel_model.dart';
 
 class EditChapterController extends GetxController {
   late Chapter chapter;
-  final RxBool isEditMode = false.obs;
+
+  final isEditMode = false.obs;
+  final isPreviewMode = false.obs;
+  final isPublished = false.obs;
+  final isDirty = false.obs;
+  final isValid = false.obs;
+
+  final wordCount = 0.obs;
+  final characterCount = 0.obs;
+
+  static const int minCharacterCount = 200;
 
   final titleController = TextEditingController();
   final contentController = TextEditingController();
-
-  final RxBool isPreviewMode = false.obs;
-  final RxBool isPublished = false.obs;
-
-  final RxInt wordCount = 0.obs;
-  final RxInt characterCount = 0.obs;
-  final RxBool isDirty = false.obs;
-  final RxBool isValid = false.obs;
-  static const int minCharacterCount = 200;
-
 
   @override
   void onInit() {
@@ -25,7 +25,7 @@ class EditChapterController extends GetxController {
 
     final args = Get.arguments;
 
-    if (args != null && args['chapter'] != null) {
+    if (args != null && args['chapter'] is Chapter) {
       chapter = args['chapter'] as Chapter;
       isEditMode.value = true;
 
@@ -33,9 +33,7 @@ class EditChapterController extends GetxController {
       contentController.text = chapter.content;
       isPublished.value = chapter.isPublished == 'published';
     } else {
-      isEditMode.value = false;
-
-      final chapterNumber = args?['chapter'] ?? 1;
+      final chapterNumber = (args?['chapter'] as int?) ?? 1;
 
       chapter = Chapter(
         id: '',
@@ -50,28 +48,22 @@ class EditChapterController extends GetxController {
 
     titleController.addListener(_onChanged);
     contentController.addListener(_onChanged);
+
+    _onChanged();
   }
 
   void _onChanged() {
-    final text = contentController.text;
+    final title = titleController.text.trim();
+    final content = contentController.text;
 
-    characterCount.value = text.length;
+    characterCount.value = content.length;
     wordCount.value =
-        text.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).length;
+        content.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).length;
 
     isValid.value =
-        titleController.text.trim().isNotEmpty &&
-            contentController.text.trim().isNotEmpty;
+        title.isNotEmpty && content.length >= minCharacterCount;
 
-    if (!isDirty.value) isDirty.value = true;
-  }
-
-
-  @override
-  void onClose() {
-    titleController.dispose();
-    contentController.dispose();
-    super.onClose();
+    isDirty.value = true;
   }
 
   void setPreview(bool value) {
@@ -79,38 +71,30 @@ class EditChapterController extends GetxController {
   }
 
   void togglePublished() {
-    isPublished.value = !isPublished.value;
-    _markDirty();
+    isPublished.toggle();
+    isDirty.value = true;
   }
 
-  void _markDirty() {
-    if (!isDirty.value) isDirty.value = true;
-  }
-
-  // isValid.value = () =>value
-  //     titleController.text.trim().isNotEmpty &&
-  //         contentController.text.trim().isNotEmpty;isPreviewModesNotEmpty
-
-
-  void saveChapter() {
+  /// 🔥 FINAL FIX — NO Get.back(), NO Snackbar
+  void saveChapter(BuildContext context) {
     final title = titleController.text.trim();
     final content = contentController.text.trim();
 
     if (title.isEmpty) {
-      Get.snackbar('Gagal', 'Judul chapter wajib diisi');
+      _popError(context, 'Judul chapter wajib diisi');
       return;
     }
 
     if (content.isEmpty) {
-      Get.snackbar('Gagal', 'Konten chapter wajib diisi');
+      _popError(context, 'Konten chapter wajib diisi');
       return;
     }
 
     if (content.length < minCharacterCount) {
-      Get.snackbar(
-        'Cerita terlalu pendek',
-        'Minimal $minCharacterCount karakter (sekarang ${content.length})',
-        snackPosition: SnackPosition.BOTTOM,
+      _popError(
+        context,
+        'Minimal $minCharacterCount karakter '
+            '(sekarang ${content.length})',
       );
       return;
     }
@@ -122,18 +106,26 @@ class EditChapterController extends GetxController {
       updatedAt: DateTime.now(),
     );
 
-    Get.back(result: {
+    Navigator.of(context).pop({
+      'success': true,
       'action': isEditMode.value ? 'update' : 'create',
       'chapter': updatedChapter,
     });
-
-    Get.snackbar(
-      'Berhasil',
-      isEditMode.value ? 'Chapter diperbarui' : 'Chapter ditambahkan',
-      snackPosition: SnackPosition.BOTTOM,
-    );
   }
 
+  void _popError(BuildContext context, String message) {
+    Navigator.of(context).pop({
+      'success': false,
+      'message': message,
+    });
+  }
 
   String get statusText => isPublished.value ? 'Published' : 'Draft';
+
+  @override
+  void onClose() {
+    titleController.dispose();
+    contentController.dispose();
+    super.onClose();
+  }
 }

@@ -13,6 +13,8 @@ class RegistrationController extends GetxController {
   var passwordHidden = true.obs;
   var confirmPasswordHidden = true.obs;
   var isLoading = false.obs;
+  var errorMessage = ''.obs;
+  var hasError = false.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -28,67 +30,90 @@ class RegistrationController extends GetxController {
     confirmPasswordHidden.value = !confirmPasswordHidden.value;
   }
 
-  Future<void> register() async {
-    isLoading.value = true;
-    if (
-        email.value.isEmpty ||
-        username.value.isEmpty ||
-        password.value.isEmpty
-        ) {
-          isLoading.value = false;
-      throw Exception('Semua field harus diisi');
+  Future<bool> register() async {
+    hasError.value = false;
+    errorMessage.value = '';
+
+    String emailVal = email.value.trim();
+    String usernameVal = username.value.trim();
+    String passwordVal = password.value;
+    String confirmPasswordVal = confirmPassword.value;
+
+    if (emailVal.isEmpty || usernameVal.isEmpty || passwordVal.isEmpty) {
+      hasError.value = true;
+      errorMessage.value = 'Semua field harus diisi';
+      return false;
     }
 
-    bool passwordMatch = password.value == confirmPassword.value;
-    if (!passwordMatch) {
-      isLoading.value = false;
-      throw Exception('Password dan konfirmasi password tidak sesuai');
+    if (passwordVal != confirmPasswordVal) {
+      hasError.value = true;
+      errorMessage.value = 'Password dan konfirmasi password tidak sesuai';
+      return false;
     }
 
-    bool usernameExists = await _checkUsernameExists(username.value);
+    if (passwordVal.length < 6) {
+      hasError.value = true;
+      errorMessage.value = 'Password minimal 6 karakter';
+      return false;
+    }
+
+    bool usernameExists = await _checkUsernameExists(usernameVal);
     if (usernameExists) {
-      isLoading.value = false;
-      throw Exception('USername sudah digunakan');
+      hasError.value = true;
+      errorMessage.value = 'Username sudah digunakan';
+      return false;
     }
+
+    isLoading.value = true;
+
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: email.value,
-        password: password.value,
+        email: emailVal,
+        password: passwordVal,
       );
 
       String uid = userCredential.user!.uid;
 
       await _firestore.collection('users').doc(uid).set({
-        'email': email.value,
-        'username': username.value,
+        'email': emailVal,
+        'username': usernameVal,
         'authorId': uid,
-        "followers": 0,
-        "following": 0,
-        "isPremium": false,
+        'followers': 0,
+        'following': 0,
+        'isPremium': false,
         'created_at': FieldValue.serverTimestamp(),
         'last_login_at': FieldValue.serverTimestamp(),
         'last_logout_at': null,
         'updated_at': FieldValue.serverTimestamp(),
       });
-      await loginController.bypassLogin(email.value, password.value);
+
+      await loginController.bypassLogin(emailVal, passwordVal);
       isLoading.value = false;
 
-      Get.offAllNamed("/genre_selection");
+      return true;
     } on FirebaseAuthException catch (e) {
-      rethrow;
-      // if (e.code == 'email-already-in-use') {
-      //   isLoading.value = false;
-      //   throw Exception('The account already exists for that email.');
-      // } else if (e.code == 'weak-password') {
-      //   isLoading.value = false;
-      //   throw Exception('The password is too weak.');
-      // } else {
-      //   isLoading.value = false;
-      //   throw Exception('Registration failed: ${e.message}');
-      // }
-    } finally {
       isLoading.value = false;
+      hasError.value = true;
+
+      String message;
+      if (e.code == 'email-already-in-use') {
+        message = 'Email sudah terdaftar';
+      } else if (e.code == 'weak-password') {
+        message = 'Password terlalu lemah';
+      } else if (e.code == 'invalid-email') {
+        message = 'Format email tidak valid';
+      } else {
+        message = 'Pendaftaran gagal. Silakan coba lagi';
+      }
+
+      errorMessage.value = message;
+      return false;
+    } catch (e) {
+      isLoading.value = false;
+      hasError.value = true;
+      errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi';
+      return false;
     }
   }
 

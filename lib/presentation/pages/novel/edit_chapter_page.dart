@@ -7,89 +7,99 @@ class EditChapterPage extends GetView<EditChapterController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Obx(
-          () => Text(
-              controller.isEditMode.value ? 'Edit Chapter' : 'Tambah Chapter',
-          ),
-          // () => Text(
-          //   controller.isPreviewMode.value ? 'Preview Chapter' : 'Edit Chapter',
-          // ),
-        ),
-        actions: [
-          Obx(
-            () => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(controller.statusText),
-                selected: controller.isPublished.value,
-                selectedColor:
-                    controller.isPublished.value ? Colors.green : Colors.yellow,
-                labelStyle: const TextStyle(color: Colors.black),
-                onSelected: (_) => controller.togglePublished(),
-              ),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Obx(
+                () => Text(
+              controller.isEditMode.value ? 'Edit Bab' : 'Tambah Bab',
             ),
           ),
-          Obx(
-            () => IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: controller.isDirty.value && controller.isValid.value
-                  ? controller.saveChapter
-                  : null,
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
+          actions: [
             Obx(
-              () => Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: controller.isPreviewMode.value
-                          ? () => controller.setPreview(false)
-                          : null,
-                      child: const Text('Edit'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: !controller.isPreviewMode.value
-                          ? () => controller.setPreview(true)
-                          : null,
-                      child: const Text('Preview'),
-                    ),
-                  ),
-                ],
+                  () => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(controller.statusText),
+                  selected: controller.isPublished.value,
+                  selectedColor: controller.isPublished.value
+                      ? Colors.green
+                      : Colors.yellow,
+                  labelStyle: const TextStyle(color: Colors.black),
+                  onSelected: (_) => controller.togglePublished(),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // KONTEN YANG BERUBAH
-            Expanded(
-              child: Obx(() {
-                return controller.isPreviewMode.value ? _preview() : _editor();
-              }),
+            Obx(
+                  () => IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: controller.isDirty.value &&
+                    controller.isValid.value
+                    ? () => controller.saveChapter(context)
+                    : null,
+              ),
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
+        body: Padding(
           padding: const EdgeInsets.all(16),
-          child: Obx(() => ElevatedButton(
-            onPressed: controller.isDirty.value && controller.isValid.value
-                ? controller.saveChapter
-                : null,
+          child: Column(
+            children: [
+              Obx(
+                    () => Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: controller.isPreviewMode.value
+                            ? () => controller.setPreview(false)
+                            : null,
+                        child: const Text('Edit'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: !controller.isPreviewMode.value
+                            ? () => controller.setPreview(true)
+                            : null,
+                        child: const Text('Preview'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Obx(
+                      () => controller.isPreviewMode.value
+                      ? _preview()
+                      : _editor(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Obx(
-                () => Text(controller.isEditMode.value ? 'Simpan Perubahan' : 'Tambah Chapter')
+                  () => ElevatedButton(
+                onPressed: controller.isDirty.value &&
+                    controller.isValid.value
+                    ? () => controller.saveChapter(context)
+                    : null,
+                child: Text(
+                  controller.isEditMode.value
+                      ? 'Simpan Perubahan'
+                      : 'Tambah Bab',
+                ),
+              ),
             ),
-          )),
+          ),
         ),
       ),
     );
@@ -100,9 +110,13 @@ class EditChapterPage extends GetView<EditChapterController> {
       children: [
         TextField(
           controller: controller.titleController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Judul Chapter',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
+            errorText: controller.isDirty.value &&
+                controller.titleController.text.trim().isEmpty
+                ? 'Judul wajib diisi'
+                : null,
           ),
         ),
         const SizedBox(height: 16),
@@ -111,16 +125,37 @@ class EditChapterPage extends GetView<EditChapterController> {
             controller: controller.contentController,
             maxLines: null,
             expands: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Mulai menulis...',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              errorText: controller.isDirty.value &&
+                  controller.characterCount.value <
+                      EditChapterController.minCharacterCount
+                  ? 'Minimal ${EditChapterController.minCharacterCount} karakter'
+                  : null,
             ),
           ),
         ),
         const SizedBox(height: 8),
         Obx(
-          () => Text(
-            '${controller.wordCount.value} kata • ${controller.characterCount.value} karakter',
+              () => Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${controller.wordCount.value} kata • '
+                    '${controller.characterCount.value} karakter',
+              ),
+              if (controller.characterCount.value <
+                  EditChapterController.minCharacterCount)
+                Text(
+                  'Kurang '
+                      '${EditChapterController.minCharacterCount - controller.characterCount.value} karakter',
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 12,
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -150,17 +185,6 @@ class EditChapterPage extends GetView<EditChapterController> {
             style: const TextStyle(height: 1.7),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buttonSave() {
-    return Obx(
-      () => ElevatedButton(
-        onPressed: controller.isDirty.value && controller.isValid.value
-            ? controller.saveChapter
-            : null,
-        child: const Text('Simpan'),
       ),
     );
   }

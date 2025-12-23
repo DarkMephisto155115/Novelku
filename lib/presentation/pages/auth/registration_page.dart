@@ -334,28 +334,18 @@ class RegistrationPage extends GetView<RegistrationController> {
     return Obx(() => SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () async {
-              try {
-                await controller.register();
-                Get.snackbar(
-                  'Sukses', 'Berhasil mendaftar akun',
-                  snackPosition: SnackPosition.TOP,
-                  backgroundColor: AppThemeData.successColor, 
-                  colorText: Colors.white,
-                );
-                Get.toNamed("/genre_selection");
-              } catch (e) {
-                Get.snackbar(
-                  'Registration Error',
-                  e.toString().replaceFirst('Exception: ', ''),
-                  snackPosition: SnackPosition.TOP,
-                  backgroundColor: Colors.red,
-                  colorText: Colors.white,
-                );
-              }
-            },
-
-            // controller.isLoading.value ? null : controller.register,
+            onPressed: controller.isLoading.value
+                ? null
+                : () async {
+                    final success = await controller.register();
+                    if (success) {
+                      _showSuccessSnackbar('Berhasil mendaftar akun');
+                      await Future.delayed(const Duration(milliseconds: 800));
+                      Get.offAllNamed('/genre_selection');
+                    } else {
+                      _showErrorSnackbar(controller.errorMessage.value);
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: Get.theme.primaryColor,
               foregroundColor: Colors.white,
@@ -391,5 +381,39 @@ class RegistrationPage extends GetView<RegistrationController> {
                   ),
           ),
         ));
+  }
+
+  void _showSuccessSnackbar(String message) {
+    Future.microtask(() {
+      Get.snackbar(
+        'Berhasil',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        isDismissible: true,
+        dismissDirection: DismissDirection.horizontal,
+      );
+    });
+  }
+
+  void _showErrorSnackbar(String message) {
+    Future.microtask(() {
+      Get.snackbar(
+        'Registrasi Gagal',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        isDismissible: true,
+        dismissDirection: DismissDirection.horizontal,
+      );
+    });
   }
 }

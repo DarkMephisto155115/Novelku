@@ -15,6 +15,8 @@ class AuthorsController extends GetxController {
   final RxString searchQuery = ''.obs;
 
   final RxList<String> categories = <String>['Semua'].obs;
+  final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -25,6 +27,8 @@ class AuthorsController extends GetxController {
 
   Future<void> fetchAuthors() async {
     try {
+      isLoading.value = true;
+      errorMessage.value = '';
       log('[AUTHOR] Fetch authors started');
 
       final currentUserId = _auth.currentUser?.uid;
@@ -33,6 +37,7 @@ class AuthorsController extends GetxController {
       if (novelSnap.docs.isEmpty) {
         authors.clear();
         log('[AUTHOR] No novels found');
+        isLoading.value = false;
         return;
       }
 
@@ -115,8 +120,11 @@ class AuthorsController extends GetxController {
 
       authors.value = temp;
       log('[AUTHOR] Fetch authors success: ${authors.length}');
+      isLoading.value = false;
     } catch (e) {
       log('[AUTHOR] ERROR fetchAuthors: $e');
+      errorMessage.value = 'Gagal memuat data penulis';
+      isLoading.value = false;
       rethrow;
     }
   }
@@ -179,26 +187,8 @@ class AuthorsController extends GetxController {
   List<Author> get otherAuthors =>
       filteredAuthors.where((a) => !a.isNew && !a.isPopular).toList();
 
-  List<dynamic> get structuredList {
-    final List<dynamic> items = [];
-
-    if (newAuthors.isNotEmpty) {
-      items.add('_header_new');
-      items.addAll(newAuthors);
-      items.add('_divider_new');
-    }
-
-    if (popularAuthors.isNotEmpty) {
-      items.add('_header_popular');
-      items.addAll(popularAuthors);
-    }
-
-    if (otherAuthors.isNotEmpty) {
-      items.add('_header_all');
-      items.addAll(otherAuthors);
-    }
-
-    return items;
+  List<Author> get structuredList {
+    return filteredAuthors;
   }
 
   void setCategory(String category) {

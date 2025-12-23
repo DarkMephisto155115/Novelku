@@ -13,9 +13,7 @@ import 'package:terra_brain/presentation/controllers/setting_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
-import '../controllers/edit_story_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
-import '../controllers/home_controller.dart';
 import '../controllers/novel_chapters_controller.dart';
 import '../controllers/write/writing_controller.dart';
 
@@ -60,29 +58,11 @@ class SettingBinding extends Bindings {
   }
 }
 
-class SensorBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<HomeController>(
-      () => HomeController(),
-    );
-  }
-}
-
 class EditProfileBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<EditProfileController>(
       () => EditProfileController(),
-    );
-  }
-}
-
-class EditStoryBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut<EditStoryController>(
-      () => EditStoryController(),
     );
   }
 }

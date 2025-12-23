@@ -84,19 +84,25 @@ class NovelChaptersPage extends StatelessWidget {
                     style: const TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
-                  if (novel.genre != null && novel.genre!.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        novel.genre!,
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ),
+                  Row(
+                    children: [
+                      if (novel.genre != null && novel.genre!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            novel.genre!,
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+                      _buildNovelStatusBadge(novel),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -119,6 +125,30 @@ class NovelChaptersPage extends StatelessWidget {
                           style: const TextStyle(fontSize: 12)),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    final isFav = controller.isFavorite.value;
+                    final isProcessing = controller.isFavoriteProcessing.value;
+                    return ElevatedButton.icon(
+                      onPressed: isProcessing
+                          ? null
+                          : () => controller.toggleFavorite(),
+                      icon: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        size: 18,
+                      ),
+                      label: Text(
+                        isFav ? 'Favorit' : 'Tambah Favorit',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isFav ? Colors.red : Colors.grey[300],
+                        foregroundColor:
+                            isFav ? Colors.white : Colors.black,
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -173,6 +203,60 @@ class NovelChaptersPage extends StatelessWidget {
           ),
         ),
         onChanged: controller.filterChapters,
+      ),
+    );
+  }
+
+  Widget _buildNovelStatusBadge(Novel novel) {
+    String status = 'Draft';
+    Color statusColor = Colors.grey;
+    Color statusBgColor = Colors.grey[100]!;
+
+    if (novel.status != null) {
+      switch (novel.status!.toLowerCase()) {
+        case 'ongoing':
+        case 'berlangsung':
+          status = 'Berlangsung';
+          statusColor = Colors.blue;
+          statusBgColor = Colors.blue[50]!;
+          break;
+        case 'completed':
+        case 'selesai':
+          status = 'Selesai';
+          statusColor = Colors.green;
+          statusBgColor = Colors.green[50]!;
+          break;
+        case 'hiatus':
+          status = 'Hiatus';
+          statusColor = Colors.orange;
+          statusBgColor = Colors.orange[50]!;
+          break;
+        case 'dropped':
+        case 'ditutup':
+          status = 'Ditutup';
+          statusColor = Colors.red;
+          statusBgColor = Colors.red[50]!;
+          break;
+        default:
+          status = novel.status!;
+          statusColor = Colors.grey;
+          statusBgColor = Colors.grey[100]!;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: statusBgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: statusColor,
+        ),
       ),
     );
   }
