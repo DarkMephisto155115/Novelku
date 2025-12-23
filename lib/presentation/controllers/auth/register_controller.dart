@@ -81,7 +81,7 @@ class RegistrationController extends GetxController {
         'authorId': uid,
         'followers': 0,
         'following': 0,
-        'isPremium': false,
+        'is_premium': false,
         'created_at': FieldValue.serverTimestamp(),
         'last_login_at': FieldValue.serverTimestamp(),
         'last_logout_at': null,

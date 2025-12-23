@@ -99,7 +99,7 @@ class ProfileController extends GetxController {
         (data['imageUrl'] is String && data['imageUrl'].isNotEmpty)
             ? data['imageUrl']
             : null,
-        isPremium: data['isPremium'] ?? false,
+        isPremium: data['is_premium'] ?? false,
         novelCount: data['novelCount'] ?? 0,
         readCount: data['readCount'] ?? 0,
         followerCount: data['followerCount'] ?? 0,
