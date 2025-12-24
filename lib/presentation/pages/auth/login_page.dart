@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/auth/LoginController.dart';
+import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
@@ -9,23 +10,29 @@ class LoginPage extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Get.theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildHeader(),
-              SizedBox(height: 40),
-              _buildLoginForm(),
-              SizedBox(height: 24),
-            ],
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+
+      return Scaffold(
+        backgroundColor: bgColor,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildHeader(),
+                SizedBox(height: 40),
+                _buildLoginForm(),
+                SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildHeader() {

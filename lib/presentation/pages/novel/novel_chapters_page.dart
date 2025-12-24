@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/novel_chapters_controller.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
+import '../../controllers/write/writing_controller.dart';
 
 class NovelChaptersPage extends StatelessWidget {
   const NovelChaptersPage({super.key});
@@ -11,40 +12,53 @@ class NovelChaptersPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(NovelChaptersController());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Obx(
-              () => Text(controller.novel.value?.title ?? 'Loading...'),
-        ),
-        centerTitle: true,
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
 
-        if (controller.novel.value == null) {
-          return const Center(child: Text('Novel tidak ditemukan'));
-        }
-
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildNovelHeader(controller),
-              _buildNovelDescription(controller),
-              _buildSearchBar(controller),
-              _buildChaptersList(controller),
-            ],
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          title: Obx(
+                () => Text(controller.novel.value?.title ?? 'Loading...'),
           ),
-        );
-      }),
-    );
+          centerTitle: true,
+        ),
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.novel.value == null) {
+            return Center(child: Text('Novel tidak ditemukan', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)));
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildNovelHeader(controller),
+                _buildNovelDescription(controller),
+                _buildSearchBar(controller),
+                _buildChaptersList(controller),
+              ],
+            ),
+          );
+        }),
+      );
+    });
   }
 
   Widget _buildNovelHeader(NovelChaptersController controller) {
     return Obx(() {
       final novel = controller.novel.value;
       if (novel == null) return const SizedBox.shrink();
+
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final textColor = isDarkMode ? Colors.white : Colors.black;
+      final subtitleColor = isDarkMode ? Colors.grey.shade400 : Colors.grey;
+      final genreBgColor = isDarkMode ? Colors.grey.shade700 : Colors.grey[200];
 
       return Padding(
         padding: const EdgeInsets.all(16),
@@ -72,9 +86,10 @@ class NovelChaptersPage extends StatelessWidget {
                 children: [
                   Text(
                     novel.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
@@ -85,7 +100,7 @@ class NovelChaptersPage extends StatelessWidget {
                       Text(
                         'Penulis: ${novel.authorName ?? 'Tidak diketahui'}',
                         style:
-                            const TextStyle(fontSize: 13, color: Colors.grey),
+                            TextStyle(fontSize: 13, color: subtitleColor),
                       ),
                       if (controller.isAuthorPremium.value) ...[
                         const SizedBox(width: 8),
@@ -125,16 +140,16 @@ class NovelChaptersPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: genreBgColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             novel.genre!,
-                            style: const TextStyle(fontSize: 11),
+                            style: TextStyle(fontSize: 11, color: textColor),
                           ),
                         ),
                       const SizedBox(width: 8),
-                      _buildNovelStatusBadge(novel),
+                      _buildNovelStatusBadge(novel, isDarkMode),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -144,19 +159,19 @@ class NovelChaptersPage extends StatelessWidget {
                           size: 14, color: Colors.red),
                       const SizedBox(width: 4),
                       Text('${novel.likeCount}',
-                          style: const TextStyle(fontSize: 12)),
+                          style: TextStyle(fontSize: 12, color: textColor)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.menu_book,
-                          size: 14, color: Colors.grey),
+                      Icon(Icons.menu_book,
+                          size: 14, color: subtitleColor),
                       const SizedBox(width: 4),
                       Text('${controller.chapters.length}',
-                          style: const TextStyle(fontSize: 12)),
+                          style: TextStyle(fontSize: 12, color: textColor)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.visibility,
-                          size: 14, color: Colors.grey),
+                      Icon(Icons.visibility,
+                          size: 14, color: subtitleColor),
                       const SizedBox(width: 4),
                       Text('${novel.viewCount}',
-                          style: const TextStyle(fontSize: 12)),
+                          style: TextStyle(fontSize: 12, color: textColor)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -199,26 +214,31 @@ class NovelChaptersPage extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final textColor = isDarkMode ? Colors.white : Colors.black;
+      final subtitleColor = isDarkMode ? Colors.grey.shade400 : Colors.grey;
+
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Deskripsi',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
             ),
             const SizedBox(height: 8),
             Text(
               description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey,
+                color: subtitleColor,
                 height: 1.5,
               ),
               textAlign: TextAlign.justify,
             ),
-            const Divider(height: 24),
+            Divider(height: 24, color: isDarkMode ? Colors.grey.shade700 : null),
           ],
         ),
       );
@@ -226,14 +246,23 @@ class NovelChaptersPage extends StatelessWidget {
   }
 
   Widget _buildSearchBar(NovelChaptersController controller) {
+    final writingController = Get.find<WritingController>();
+    final isDarkMode = writingController.themeController.isDarkMode;
+    final inputBgColor = isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
+        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
         decoration: InputDecoration(
           hintText: 'Cari bab...',
-          prefixIcon: const Icon(Icons.search),
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: Icon(Icons.search, color: isDarkMode ? Colors.grey.shade400 : Colors.black),
+          filled: true,
+          fillColor: inputBgColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
         ),
         onChanged: controller.filterChapters,
@@ -241,7 +270,7 @@ class NovelChaptersPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNovelStatusBadge(Novel novel) {
+  Widget _buildNovelStatusBadge(Novel novel, bool isDarkMode) {
     String status = 'Draft';
     Color statusColor = Colors.grey;
     Color statusBgColor = Colors.grey[100]!;
@@ -252,34 +281,34 @@ class NovelChaptersPage extends StatelessWidget {
         case 'berlangsung':
           status = 'Berlangsung';
           statusColor = Colors.blue;
-          statusBgColor = Colors.blue[50]!;
+          statusBgColor = isDarkMode ? Colors.blue.shade900 : Colors.blue[50]!;
           break;
         case 'completed':
         case 'selesai':
           status = 'Selesai';
           statusColor = Colors.green;
-          statusBgColor = Colors.green[50]!;
+          statusBgColor = isDarkMode ? Colors.green.shade900 : Colors.green[50]!;
           break;
         case 'hiatus':
           status = 'Hiatus';
           statusColor = Colors.orange;
-          statusBgColor = Colors.orange[50]!;
+          statusBgColor = isDarkMode ? Colors.orange.shade900 : Colors.orange[50]!;
           break;
         case 'dropped':
         case 'ditutup':
           status = 'Ditutup';
           statusColor = Colors.red;
-          statusBgColor = Colors.red[50]!;
+          statusBgColor = isDarkMode ? Colors.red.shade900 : Colors.red[50]!;
           break;
         case 'draft':
           status = 'Draft';
           statusColor = Colors.grey;
-          statusBgColor = Colors.grey[200]!;
+          statusBgColor = isDarkMode ? Colors.grey[700]! : Colors.grey[200]!;
           break;
         default:
           status = novel.status!;
           statusColor = Colors.grey;
-          statusBgColor = Colors.grey[100]!;
+          statusBgColor = isDarkMode ? Colors.grey[700]! : Colors.grey[100]!;
       }
     }
 
@@ -303,6 +332,10 @@ class NovelChaptersPage extends StatelessWidget {
   Widget _buildChaptersList(NovelChaptersController controller) {
     return Obx(() {
       if (controller.filteredChapters.isEmpty) {
+        final writingController = Get.find<WritingController>();
+        final isDarkMode = writingController.themeController.isDarkMode;
+        final textColor = isDarkMode ? Colors.white : Colors.black;
+
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Center(
@@ -310,19 +343,23 @@ class NovelChaptersPage extends StatelessWidget {
               controller.searchQuery.value.isEmpty
                   ? 'Belum ada bab yang dipublikasikan'
                   : 'Tidak ada bab yang cocok dengan pencarian',
+              style: TextStyle(color: textColor),
             ),
           ),
         );
       }
 
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+
       return ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: controller.filteredChapters.length,
-        separatorBuilder: (_, __) => const Divider(),
+        separatorBuilder: (_, __) => Divider(color: isDarkMode ? Colors.grey.shade700 : null),
         itemBuilder: (context, index) {
           final chapter = controller.filteredChapters[index];
-          return _buildChapterItem(chapter, controller);
+          return _buildChapterItem(chapter, controller, isDarkMode);
         },
       );
     });
@@ -331,17 +368,20 @@ class NovelChaptersPage extends StatelessWidget {
   Widget _buildChapterItem(
       Chapter chapter,
       NovelChaptersController controller,
+      bool isDarkMode,
       ) {
     final wordCount =
         chapter.content.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
     final estimatedReadTime = (wordCount / 200).ceil();
     final chapterIndex = controller.chapters.indexWhere((c) => c.id == chapter.id) + 1;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+    final subtitleColor = isDarkMode ? Colors.grey.shade400 : Colors.grey;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       title: Text(
         'Bab $chapterIndex: ${chapter.title}',
-        style: const TextStyle(fontWeight: FontWeight.w600),
+        style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,16 +389,16 @@ class NovelChaptersPage extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Tanggal: ${_formatDate(chapter.createdAt)}',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: subtitleColor),
           ),
           const SizedBox(height: 2),
           Text(
             '$estimatedReadTime min • $wordCount kata',
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: TextStyle(fontSize: 11, color: subtitleColor),
           ),
         ],
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: subtitleColor),
       onTap: () {
         Get.toNamed(
           '/reading',

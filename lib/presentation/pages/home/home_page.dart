@@ -6,6 +6,8 @@ import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../controllers/author/author_controller.dart' as home_ctrl_pkg;
 import '../../controllers/home_controller.dart' as home_ctrl_pkg;
 import '../../controllers/author/author_controller.dart';
+import '../../controllers/setting_controller.dart';
+import '../../controllers/write/writing_controller.dart';
 import '../../models/novel_item.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/novel_card.dart';
@@ -34,8 +36,13 @@ class _HomePageState extends State<HomePage> {
       PremiumPopupManager.checkAndShowPopupOnLaunch();
     });
 
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+
+      return Scaffold(
+        backgroundColor: bgColor,
       bottomNavigationBar: _buildBottomNav(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -85,18 +92,20 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(left: 8.0),
                       child: Text('✨ Novel Baru Minggu Ini',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
+                              fontSize: 16, 
+                              fontWeight: FontWeight.w600,
+                              color: isDarkMode ? Colors.white : Colors.black)),
                     ),
                     TextButton(
                         onPressed: () {
                           Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                           Get.toNamed('/all_novel');
                         },
-                        child: const Text('Lihat Semua'))
+                        child: Text('Lihat Semua', style: TextStyle(color: isDarkMode ? Colors.blue[300] : Colors.blue)))
                   ],
                 ),
               ),
@@ -137,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                                     errorBuilder: (_, __, ___) => Container(
                                         height: 140,
                                         width: 140,
-                                        color: Colors.grey[300])),
+                                        color: isDarkMode ? Colors.grey[700] : Colors.grey[300])),
                               ),
                               if (newNovels[idx].isNew)
                                 Positioned(
@@ -162,15 +171,17 @@ class _HomePageState extends State<HomePage> {
                               child: Text(newNovels[idx].title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w600))),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isDarkMode ? Colors.white : Colors.black))),
                           SizedBox(
                               width: 140,
                               child: Text(newNovels[idx].author,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.grey))),
+                                  style: TextStyle(
+                                      fontSize: 12, 
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey))),
                         ],
                       ),
                     ),
@@ -185,18 +196,20 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(left: 8.0),
                       child: Text('👥 Penulis Baru Minggu Ini',
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
+                              fontSize: 16, 
+                              fontWeight: FontWeight.w600,
+                              color: isDarkMode ? Colors.white : Colors.black)),
                     ),
                     TextButton(
                         onPressed: () {
                           Get.find<home_ctrl_pkg.HomeController>().clearSearch();
                           Get.toNamed('/list_author');
                         },
-                        child: const Text('Lihat Semua'))
+                        child: Text('Lihat Semua', style: TextStyle(color: isDarkMode ? Colors.blue[300] : Colors.blue)))
                   ],
                 ),
               ),
@@ -331,9 +344,10 @@ class _HomePageState extends State<HomePage> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
+                                      color: isDarkMode ? Colors.white : Colors.black,
                                     ),
                                   ),
                                 ),
@@ -343,9 +357,9 @@ class _HomePageState extends State<HomePage> {
                                     '${author.novelCount} novel',
                                     maxLines: 1,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.grey,
+                                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
                                     ),
                                   ),
                                 ),
@@ -419,10 +433,10 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: selectedFilter == filter
-                                      ? Colors.grey[300]
-                                      : Colors.white,
+                                      ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
+                                      : (isDarkMode ? Colors.grey[800] : Colors.white),
                                   border: Border.all(
-                                    color: Colors.grey[300]!,
+                                    color: isDarkMode ? Colors.grey[600]! : Colors.grey[300]!,
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -430,8 +444,8 @@ class _HomePageState extends State<HomePage> {
                                   filter,
                                   style: TextStyle(
                                     color: selectedFilter == filter
-                                        ? Colors.black
-                                        : Colors.grey[600],
+                                        ? (isDarkMode ? Colors.white : Colors.black)
+                                        : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
                                     fontWeight: selectedFilter == filter
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -487,7 +501,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-    );
+      );
+    });
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -548,11 +563,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchResults(home_ctrl_pkg.HomeController controller) {
+    final writingController = Get.find<WritingController>();
+    final isDarkMode = writingController.themeController.isDarkMode;
+    final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+    
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -565,8 +585,8 @@ class _HomePageState extends State<HomePage> {
       constraints: const BoxConstraints(maxHeight: 400),
       child: Obx(() {
         if (controller.searchResults.isEmpty && controller.authorSearchResults.isEmpty) {
-          return const Center(
-            child: Text('Tidak ada hasil ditemukan'),
+          return Center(
+            child: Text('Tidak ada hasil ditemukan', style: TextStyle(color: textColor)),
           );
         }
 
@@ -575,14 +595,14 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (controller.searchResults.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     'Novel',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: isDarkMode ? Colors.grey.shade400 : Colors.grey,
                     ),
                   ),
                 ),
@@ -590,7 +610,7 @@ class _HomePageState extends State<HomePage> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: controller.searchResults.length,
-                  separatorBuilder: (_, __) => const Divider(),
+                  separatorBuilder: (_, __) => Divider(color: isDarkMode ? Colors.grey.shade700 : null),
                   itemBuilder: (context, index) {
                     final novel = controller.searchResults[index];
                     return ListTile(
@@ -613,13 +633,13 @@ class _HomePageState extends State<HomePage> {
                         novel.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
                       ),
                       subtitle: Text(
                         novel.author,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.grey.shade400 : Colors.grey[600]),
                       ),
                       onTap: () {
                         Get.toNamed('/novel_chapters', arguments: {'novelId': novel.id});
@@ -630,17 +650,17 @@ class _HomePageState extends State<HomePage> {
               ],
               
               if (controller.searchResults.isNotEmpty && controller.authorSearchResults.isNotEmpty)
-                const Divider(height: 24),
+                Divider(height: 24, color: isDarkMode ? Colors.grey.shade700 : null),
 
               if (controller.authorSearchResults.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     'Penulis',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: isDarkMode ? Colors.grey.shade400 : Colors.grey,
                     ),
                   ),
                 ),
@@ -648,7 +668,7 @@ class _HomePageState extends State<HomePage> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: controller.authorSearchResults.length,
-                  separatorBuilder: (_, __) => const Divider(),
+                  separatorBuilder: (_, __) => Divider(color: isDarkMode ? Colors.grey.shade700 : null),
                   itemBuilder: (context, index) {
                     final author = controller.authorSearchResults[index];
                     return ListTile(
@@ -681,7 +701,7 @@ class _HomePageState extends State<HomePage> {
                             author.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
                           ),
                           if (author.isPremium) ...[
                             const SizedBox(width: 8),
@@ -715,7 +735,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       subtitle: Text(
                         '${author.followerCount} Pengikut',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.grey.shade400 : Colors.grey[600]),
                       ),
                       onTap: () {
                         Get.toNamed('/author_profile/${author.id}');
@@ -732,16 +752,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-          ),
-        ],
-      ),
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final navBgColor = isDarkMode ? Colors.grey.shade800 : Colors.white;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: navBgColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+            ),
+          ],
+        ),
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -789,7 +814,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
+      );
+    });
   }
 }
 

@@ -6,6 +6,8 @@ import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 import 'package:terra_brain/presentation/widgets/novel_card.dart';
+import '../../controllers/setting_controller.dart';
+import '../../controllers/write/writing_controller.dart';
 
 class ReadingPage extends GetView<ReadingController> {
   ReadingPage({Key? key}) : super(key: key);
@@ -23,8 +25,12 @@ class ReadingPage extends GetView<ReadingController> {
       },
     );
 
-    return Scaffold(
-      backgroundColor: _getBackgroundColor(),
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final settingsController = Get.find<SettingsController>();
+      
+      return Scaffold(
+        backgroundColor: _getBackgroundColor(),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -83,7 +89,8 @@ class ReadingPage extends GetView<ReadingController> {
           ),
         ],
       ),
-    );
+      );
+    });
   }
 
   Widget _buildChapterContent() {
@@ -788,13 +795,15 @@ class ReadingPage extends GetView<ReadingController> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Get.theme.primaryColor
-                                : Colors.grey[200],
+                                : Get.theme.dividerColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             themeLabel,
                             style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black,
+                              color: isSelected 
+                                  ? Colors.white 
+                                  : Get.theme.textTheme.bodyMedium?.color,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -831,12 +840,14 @@ class ReadingPage extends GetView<ReadingController> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Get.theme.primaryColor
-                                : Colors.grey[200],
+                                : Get.theme.dividerColor.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             icon,
-                            color: isSelected ? Colors.white : Colors.black,
+                            color: isSelected 
+                                ? Colors.white 
+                                : Get.theme.textTheme.bodyMedium?.color,
                           ),
                         ),
                       );

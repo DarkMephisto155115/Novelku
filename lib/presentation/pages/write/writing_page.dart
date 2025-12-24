@@ -2,100 +2,121 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/write/writing_controller.dart';
+import '../../controllers/setting_controller.dart';
 
 class WritingPage extends StatelessWidget {
   final c = Get.put(WritingController());
 
+  late Color bgColor;
+  late Color appBarBgColor;
+  late Color textColor;
+  late Color cardColor;
+  late Color inputBgColor;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        centerTitle: true,
-        title: const Text(
-          "Tulis Novel",
-          style: TextStyle(color: Colors.black),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(Get.context!).maybePop();
-          },
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Row(
-              children: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(0, 36),
+    return Obx(() {
+      final isDarkMode = c.themeController.isDarkMode;
+      bgColor = isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100;
+      appBarBgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+      textColor = isDarkMode ? Colors.white : Colors.black;
+      cardColor = isDarkMode ? Colors.grey.shade800 : Colors.white;
+      inputBgColor = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade100;
+      
+      final coverBgColor = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200;
+      final coverBorderColor = isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400;
+      final placeholderTextColor = isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
+
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          backgroundColor: appBarBgColor,
+          elevation: 0.5,
+          centerTitle: true,
+          title: Text(
+            "Tulis Novel",
+            style: TextStyle(color: textColor),
+          ),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: textColor),
+            onPressed: () {
+              Navigator.of(Get.context!).maybePop();
+            },
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Row(
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(0, 36),
+                    ),
+                    onPressed: () => c.showPreview(),
+                    child: const Text(
+                      "Preview",
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ),
-                  onPressed: () => c.showPreview(),
-                  child: const Text(
-                    "Preview",
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Obx(() => ElevatedButton(
-                      onPressed: c.isLoading.value ? null : () => c.saveNovel(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7A4FFF),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 6),
+                  Obx(() => ElevatedButton(
+                        onPressed:
+                            c.isLoading.value ? null : () => c.saveNovel(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7A4FFF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: const Size(0, 36),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        minimumSize: const Size(0, 36),
-                      ),
-                      child: c.isLoading.value
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation(Colors.white),
-                                strokeWidth: 2,
+                        child: c.isLoading.value
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Simpan",
+                                style: TextStyle(fontSize: 14),
                               ),
-                            )
-                          : const Text(
-                              "Simpan",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                    )),
-                const SizedBox(width: 8),
+                      )),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            )
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: c.formKey,
+            child: Column(
+              children: [
+                _cardCoverImage(coverBgColor, coverBorderColor, placeholderTextColor),
+                const SizedBox(height: 16),
+                _cardInformasiNovel(),
+                const SizedBox(height: 16),
+                _cardDeskripsi(),
+                const SizedBox(height: 16),
+                _cardTulisCerita(placeholderTextColor),
+                const SizedBox(height: 16),
+                _cardTipsMenulis(),
               ],
             ),
-          )
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: c.formKey,
-          child: Column(
-            children: [
-              _cardCoverImage(),
-              const SizedBox(height: 16),
-              _cardInformasiNovel(),
-              const SizedBox(height: 16),
-              _cardDeskripsi(),
-              const SizedBox(height: 16),
-              _cardTulisCerita(),
-              const SizedBox(height: 16),
-              _cardTipsMenulis(),
-            ],
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
-  Widget _cardCoverImage() {
+  Widget _cardCoverImage(Color coverBgColor, Color coverBorderColor, Color placeholderTextColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _boxDecoration(),
@@ -111,10 +132,10 @@ class WritingPage extends StatelessWidget {
                 width: double.infinity,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: coverBgColor,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.grey.shade400,
+                    color: coverBorderColor,
                     width: 2,
                     style: BorderStyle.solid,
                   ),
@@ -132,13 +153,13 @@ class WritingPage extends StatelessWidget {
                           Icon(
                             Icons.image_outlined,
                             size: 48,
-                            color: Colors.grey.shade600,
+                            color: placeholderTextColor,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Tap untuk memilih cover',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: placeholderTextColor,
                               fontSize: 14,
                             ),
                           ),
@@ -209,7 +230,8 @@ class WritingPage extends StatelessWidget {
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
@@ -217,12 +239,14 @@ class WritingPage extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                          const Icon(Icons.error_outline,
+                              color: Colors.red, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               c.errorMessage.value,
-                              style: const TextStyle(color: Colors.red, fontSize: 12),
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 12),
                             ),
                           ),
                         ],
@@ -231,7 +255,7 @@ class WritingPage extends StatelessWidget {
                   ],
                 );
               }
-              
+
               return DropdownButtonFormField<String>(
                 value: c.genreC.value.isEmpty ? null : c.genreC.value,
                 decoration: _inputDecoration("Pilih Genre"),
@@ -326,7 +350,7 @@ class WritingPage extends StatelessWidget {
   // =============================
   // CARD TULIS CERITA
   // =============================
-  Widget _cardTulisCerita() {
+  Widget _cardTulisCerita(Color placeholderTextColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _boxDecoration(),
@@ -342,11 +366,13 @@ class WritingPage extends StatelessWidget {
                 Text(
                   "${c.jumlahHuruf} karakter",
                   style: TextStyle(
-                    color: c.jumlahHuruf.value < WritingController.minCharacterCount
+                    color: c.jumlahHuruf.value <
+                            WritingController.minCharacterCount
                         ? Colors.orange
-                        : Colors.grey.shade600,
+                        : placeholderTextColor,
                     fontSize: 12,
-                    fontWeight: c.jumlahHuruf.value < WritingController.minCharacterCount
+                    fontWeight: c.jumlahHuruf.value <
+                            WritingController.minCharacterCount
                         ? FontWeight.w600
                         : FontWeight.normal,
                   ),
@@ -368,12 +394,18 @@ class WritingPage extends StatelessWidget {
             () => TextFormField(
               controller: c.ceritaC,
               maxLines: 12,
+              style: TextStyle(
+                fontSize: c.getFontSize(),
+                fontFamily: c.getFontFamilyValue(c.getFontFamily()),
+                height: 1.6,
+              ),
               decoration: _inputDecoration(
                 "Mulai tulis ceritamu di sini...\n\nContoh:\nDi sebuah desa kecil yang terletak di kaki gunung...",
               ).copyWith(
                 contentPadding: const EdgeInsets.all(16),
-                errorText: c.jumlahHuruf.value < WritingController.minCharacterCount && 
-                    c.ceritaC.text.isNotEmpty
+                errorText: c.jumlahHuruf.value <
+                            WritingController.minCharacterCount &&
+                        c.ceritaC.text.isNotEmpty
                     ? 'Minimal ${WritingController.minCharacterCount} karakter'
                     : null,
                 errorBorder: OutlineInputBorder(
@@ -395,7 +427,10 @@ class WritingPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             "Tips: Gunakan paragraf untuk memudahkan pembaca. Gunakan dialog untuk membuat cerita lebih hidup.",
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+            style: TextStyle(
+              fontSize: 12,
+              color: c.themeController.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+            ),
           )
         ],
       ),
@@ -406,13 +441,20 @@ class WritingPage extends StatelessWidget {
   // CARD TIPS MENULIS
   // =============================
   Widget _cardTipsMenulis() {
+    final tipsBgColor = c.themeController.isDarkMode 
+        ? Colors.purple.shade900 
+        : const Color(0xFFF7EDFF);
+    final tipsTextColor = c.themeController.isDarkMode 
+        ? Colors.purple.shade300 
+        : Colors.purple;
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _boxDecoration(color: const Color(0xFFF7EDFF)),
+      decoration: _boxDecoration(color: tipsBgColor),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _title("Tips Menulis Novel", color: Colors.purple),
+          _title("Tips Menulis Novel", color: tipsTextColor),
           const SizedBox(height: 8),
           _bullet("Buat outline cerita sebelum mulai menulis"),
           _bullet("Kembangkan karakter yang kuat dan menarik"),
@@ -427,15 +469,15 @@ class WritingPage extends StatelessWidget {
   // =============================
   // WIDGET UTILITAS
   // =============================
-  Widget _label(String text) =>
-      Text(text, style: const TextStyle(fontWeight: FontWeight.w600));
+  Widget _label(String text) => Text(text,
+      style: TextStyle(fontWeight: FontWeight.w600, color: textColor));
 
-  Widget _title(String text, {Color color = Colors.black}) => Text(
+  Widget _title(String text, {Color? color}) => Text(
         text,
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16,
-          color: color,
+          color: color ?? textColor,
         ),
       );
 
@@ -444,8 +486,8 @@ class WritingPage extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("• "),
-            Expanded(child: Text(text)),
+            Text("• ", style: TextStyle(color: textColor)),
+            Expanded(child: Text(text, style: TextStyle(color: textColor))),
           ],
         ),
       );
@@ -453,19 +495,19 @@ class WritingPage extends StatelessWidget {
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         filled: true,
-        fillColor: Colors.grey.shade100,
+        fillColor: inputBgColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
         ),
       );
 
-  BoxDecoration _boxDecoration({Color? color}) => BoxDecoration(
-        color: color ?? Colors.white,
+  BoxDecoration _boxDecoration({Color? color, Color? shadow}) => BoxDecoration(
+        color: color ?? cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: shadow ?? (c.themeController.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -473,7 +515,7 @@ class WritingPage extends StatelessWidget {
       );
 
   BoxDecoration _fieldDecoration() => BoxDecoration(
-        color: Colors.grey.shade100,
+        color: inputBgColor,
         borderRadius: BorderRadius.circular(10),
       );
 }

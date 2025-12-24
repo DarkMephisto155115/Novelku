@@ -3,28 +3,35 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
+import '../../controllers/write/writing_controller.dart';
 
 class RegistrationPage extends GetView<RegistrationController> {
   const RegistrationPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Get.theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildHeader(),
-              SizedBox(height: 40),
-              _buildRegisterForm(),
-            ],
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+
+      return Scaffold(
+        backgroundColor: bgColor,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildHeader(),
+                SizedBox(height: 40),
+                _buildRegisterForm(),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildHeader() {

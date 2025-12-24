@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/models/novel_item.dart';
+import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
 
 class ReadingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -92,6 +93,23 @@ class ReadingController extends GetxController {
       }
     } catch (e) {
       if (kDebugMode) print('Error loading reading settings: $e');
+    }
+    _syncWithGlobalTheme();
+  }
+
+  void _syncWithGlobalTheme() {
+    try {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final currentTheme = readingSettings.value.theme;
+      
+      final newTheme = isDarkMode ? ReadingTheme.dark : ReadingTheme.light;
+      if (currentTheme != newTheme) {
+        readingSettings.value = readingSettings.value.copyWith(theme: newTheme);
+        _saveReadingSettings();
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error syncing with global theme: $e');
     }
   }
 

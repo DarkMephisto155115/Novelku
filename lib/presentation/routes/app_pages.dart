@@ -32,6 +32,7 @@ class AppPages {
     GetPage(
       name: Routes.HOME,
       page: () => HomePage(),
+      binding: MainBinding(),
     ),
     GetPage(
       name: Routes.PROFILE,

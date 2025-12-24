@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
-import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
-class SettingsPage extends GetView<SettingsController> {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<SettingsController>();
+    
     return Scaffold(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -27,27 +28,27 @@ class SettingsPage extends GetView<SettingsController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Tema Section
-              _buildThemeSection(),
+              _buildThemeSection(controller),
               SizedBox(height: 24),
 
               // Font Size Section
-              _buildFontSizeSection(),
+              _buildFontSizeSection(controller),
               SizedBox(height: 24),
 
               // Font Family Section
-              _buildFontFamilySection(),
+              _buildFontFamilySection(controller),
               SizedBox(height: 24),
 
               // Live Preview Section
-              _buildLivePreviewSection(),
+              _buildLivePreviewSection(controller),
               SizedBox(height: 24),
 
               // Other Settings Section
-              _buildOtherSettingsSection(),
+              _buildOtherSettingsSection(controller),
               SizedBox(height: 32),
 
               // Save Button
-              _buildSaveButton(),
+              _buildSaveButton(controller),
               SizedBox(height: 20),
             ],
           ),
@@ -56,9 +57,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildThemeSection() {
-    final themeController = Get.find<ThemeController>();
-
+  Widget _buildThemeSection(SettingsController controller) {
     return Card(
       color: Get.theme.cardColor,
       elevation: 2,
@@ -114,7 +113,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildFontSizeSection() {
+  Widget _buildFontSizeSection(SettingsController controller) {
     return Card(
       color: Get.theme.cardColor,
       elevation: 2,
@@ -171,7 +170,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildFontFamilySection() {
+  Widget _buildFontFamilySection(SettingsController controller) {
     return Card(
       color: Get.theme.cardColor,
       elevation: 2,
@@ -221,7 +220,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildLivePreviewSection() {
+  Widget _buildLivePreviewSection(SettingsController controller) {
     return Card(
       color: Get.theme.cardColor,
       elevation: 2,
@@ -293,7 +292,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildOtherSettingsSection() {
+  Widget _buildOtherSettingsSection(SettingsController controller) {
     return Card(
       color: Get.theme.cardColor,
       elevation: 2,
@@ -384,7 +383,7 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(SettingsController controller) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(

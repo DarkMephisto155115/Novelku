@@ -4,31 +4,51 @@ import 'package:terra_brain/presentation/controllers/author/author_profile_contr
 import 'package:terra_brain/presentation/models/author_profile_model.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
+import '../../controllers/write/writing_controller.dart';
 
 class AuthorProfilePage extends GetView<AuthorProfileController> {
   const AuthorProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Get.theme.scaffoldBackgroundColor,
-      body: Obx(
-        () {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (controller.errorMessage.isNotEmpty) {
-            return Center(child: Text(controller.errorMessage.value));
-          }
-          final author = controller.author.value;
-          if (author == null) {
-            return const Center(
-              child: Text('Data penulis tidak tersedia'),
-            );
-          }
-          return _buildContent(author);
-        },
-      ),
+    return Obx(
+      () {
+        final writingController = Get.find<WritingController>();
+        
+
+        return Scaffold(
+          backgroundColor: Get.theme.scaffoldBackgroundColor,
+          body: Obx(
+            () {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.errorMessage.isNotEmpty) {
+                return Center(
+                  child: Text(
+                    controller.errorMessage.value,
+                    style: TextStyle(
+                      color: Get.theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                );
+              }
+              final author = controller.author.value;
+              if (author == null) {
+                return Center(
+                  child: Text(
+                    'Data penulis tidak tersedia',
+                    style: TextStyle(
+                      color: Get.theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                );
+              }
+              return _buildContent(author);
+            },
+          ),
+        );
+      },
     );
   }
 

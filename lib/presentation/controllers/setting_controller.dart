@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
+import 'package:terra_brain/presentation/models/reading_model.dart'
+    as reading_model;
 import '../models/settings_model.dart';
+import 'reading_controller.dart';
 
 class SettingsController extends GetxController {
   final Rx<ReadingSettings> settings = ReadingSettings(
@@ -22,7 +26,7 @@ class SettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadSettings();
-    final themeController = Get.find<ThemeController>(); 
+    final themeController = Get.find<ThemeController>();
     draftDarkMode.value = themeController.isDarkMode;
   }
 
@@ -46,7 +50,8 @@ class SettingsController extends GetxController {
       // await prefs.setBool('isDarkMode', settings.value.isDarkMode);
       await prefs.setString('fontSize', settings.value.fontSize);
       await prefs.setString('fontFamily', settings.value.fontFamily);
-      await prefs.setBool('novelNotifications', settings.value.novelNotifications);
+      await prefs.setBool(
+          'novelNotifications', settings.value.novelNotifications);
       await prefs.setBool('autoScroll', settings.value.autoScroll);
     } catch (e) {
       print('Error saving settings: $e');
@@ -73,12 +78,15 @@ class SettingsController extends GetxController {
     settings.value = settings.value.copyWith(autoScroll: value);
   }
 
-  void saveChanges() async{
+  void saveChanges() async {
     final themeController = Get.find<ThemeController>();
     themeController.setTheme(
       draftDarkMode.value ? ThemeMode.dark : ThemeMode.light,
     );
     _saveSettings();
+
+    _syncReadingTheme();
+
     Get.snackbar(
       'Berhasil',
       'Pengaturan telah disimpan',
@@ -89,7 +97,19 @@ class SettingsController extends GetxController {
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-  Get.offAllNamed(AppPages.INITIAL);
+    Get.offAllNamed(AppPages.INITIAL);
+  }
+
+  void _syncReadingTheme() {
+    try {
+      final readingController = Get.find<ReadingController>();
+      final newTheme = draftDarkMode.value
+          ? reading_model.ReadingTheme.dark
+          : reading_model.ReadingTheme.light;
+      readingController.updateTheme(newTheme);
+    } catch (e) {
+      if (kDebugMode) print('Reading controller not initialized: $e');
+    }
   }
 
   // Helper methods for live preview

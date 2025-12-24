@@ -19,12 +19,37 @@ import '../controllers/write/writing_controller.dart';
 
 class MainBinding extends Bindings {
   @override
-  void dependencies() {}
+  void dependencies() {
+    Get.lazyPut<WritingController>(
+      () => WritingController(),
+      fenix: true,
+    );
+    Get.lazyPut<SettingsController>(
+      () => SettingsController(),
+      fenix: true,
+    );
+    Get.lazyPut<ThemeController>(
+      () => ThemeController(),
+      fenix: true,
+    );
+  }
 }
 
 class LoginBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<WritingController>(
+      () => WritingController(),
+      fenix: true,
+    );
+    Get.lazyPut<SettingsController>(
+      () => SettingsController(),
+      fenix: true,
+    );
+    Get.lazyPut<ThemeController>(
+      () => ThemeController(),
+      fenix: true,
+    );
     Get.lazyPut<LoginController>(
       () => LoginController(),
     );
@@ -43,6 +68,18 @@ class ProfileBinding extends Bindings {
 class RegisterBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<WritingController>(
+      () => WritingController(),
+      fenix: true,
+    );
+    Get.lazyPut<SettingsController>(
+      () => SettingsController(),
+      fenix: true,
+    );
+    Get.lazyPut<ThemeController>(
+      () => ThemeController(),
+      fenix: true,
+    );
     Get.lazyPut<RegistrationController>(
       () => RegistrationController(),
     );
@@ -52,8 +89,17 @@ class RegisterBinding extends Bindings {
 class SettingBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<WritingController>(
+      () => WritingController(),
+      fenix: true,
+    );
     Get.lazyPut<SettingsController>(
       () => SettingsController(),
+      fenix: true,
+    );
+    Get.lazyPut<ThemeController>(
+      () => ThemeController(),
+      fenix: true,
     );
   }
 }

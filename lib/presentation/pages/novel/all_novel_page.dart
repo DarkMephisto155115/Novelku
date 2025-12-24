@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/novel_card.dart';
 import '../../controllers/all_novel_controller.dart';
+import '../../controllers/setting_controller.dart';
+import '../../controllers/write/writing_controller.dart';
 
 
 class SemuaNovelPage extends StatelessWidget {
@@ -12,22 +14,33 @@ class SemuaNovelPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(AllNovelController());
 
+    return Obx(() {
+      final writingController = Get.find<WritingController>();
+      final isDarkMode = writingController.themeController.isDarkMode;
+      final bgColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
+      final textColor = isDarkMode ? Colors.white : Colors.black;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Semua Novel'),
-      ),
-      body: Padding(
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          title: Text('Semua Novel', style: TextStyle(color: textColor)),
+        ),
+        body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 hintText: 'Cari novel...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                prefixIcon: Icon(Icons.search, color: textColor),
+                filled: true,
+                fillColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
               onChanged: controller.filterNovel,
@@ -35,7 +48,7 @@ class SemuaNovelPage extends StatelessWidget {
             const SizedBox(height: 16),
             Obx(() => Text(
               '${controller.filteredNovels.length} novel ditemukan',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
             )),
             const SizedBox(height: 16),
             Expanded(
@@ -60,7 +73,8 @@ class SemuaNovelPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+        ),
+      );
+    });
   }
 }

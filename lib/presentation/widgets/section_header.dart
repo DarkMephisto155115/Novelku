@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/write/writing_controller.dart';
 
 
 class SectionHeader extends StatelessWidget {
@@ -9,19 +11,24 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            ],
-          ),
-          if (trailing != null) trailing!,
-        ],
-      ),
-    );
+    return Obx(() {
+      final isDarkMode = Get.find<WritingController>().themeController.isDarkMode;
+      final textColor = isDarkMode ? Colors.white : Colors.black;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textColor)),
+              ],
+            ),
+            if (trailing != null) trailing!,
+          ],
+        ),
+      );
+    });
   }
 }

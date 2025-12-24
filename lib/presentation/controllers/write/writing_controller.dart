@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class WritingController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -32,6 +34,52 @@ class WritingController extends GetxController {
 
   List<String> listGenre = [];
   static const int minCharacterCount = 200;
+
+  SettingsController get settingsController {
+    if (!Get.isRegistered<SettingsController>()) {
+      Get.put(SettingsController());
+    }
+    return Get.find<SettingsController>();
+  }
+
+  ThemeController get themeController {
+    if (!Get.isRegistered<ThemeController>()) {
+      Get.put(ThemeController());
+    }
+    return Get.find<ThemeController>();
+  }
+
+  double getFontSize() {
+    switch (settingsController.settings.value.fontSize) {
+      case 'Kecil':
+        return 14.0;
+      case 'Sedang':
+        return 16.0;
+      case 'Besar':
+        return 18.0;
+      case 'Sangat Besar':
+        return 20.0;
+      default:
+        return 16.0;
+    }
+  }
+
+  String getFontFamily() {
+    return settingsController.settings.value.fontFamily;
+  }
+
+  String getFontFamilyValue(String fontName) {
+    switch (fontName) {
+      case 'Arial':
+        return 'Arial';
+      case 'Georgia':
+        return 'Georgia';
+      case 'Pangolin':
+        return 'Pangolin';
+      default:
+        return 'Arial';
+    }
+  }
 
   @override
   void onInit() {
@@ -360,9 +408,10 @@ class WritingController extends GetxController {
                       children: [
                         Text(
                           judulNovelC.text.trim(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            fontFamily: getFontFamilyValue(getFontFamily()),
                           ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -459,9 +508,10 @@ class WritingController extends GetxController {
             children: [
               Text(
                 judulBabC.text.trim(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  fontFamily: getFontFamilyValue(getFontFamily()),
                 ),
               ),
               const SizedBox(height: 8),
@@ -491,6 +541,16 @@ class WritingController extends GetxController {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                ceritaC.text.trim(),
+                style: TextStyle(
+                  fontSize: getFontSize(),
+                  fontFamily: getFontFamilyValue(getFontFamily()),
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.justify,
               ),
             ],
           ),
