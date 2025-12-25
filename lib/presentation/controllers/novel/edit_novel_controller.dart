@@ -8,10 +8,13 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class EditNovelController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   late final TextEditingController titleController = TextEditingController();
@@ -59,7 +62,18 @@ class EditNovelController extends GetxController {
     try {
       isLoading.value = true;
 
-      final snapshot = await _firestore.collection('genres').get();
+      final genresRef = _firestore.collection('genres');
+      var snapshot = await _cacheService.queryGet(genresRef);
+
+      if (snapshot.docs.isEmpty || snapshot.metadata.isFromCache) {
+        final refreshed = await _cacheService.queryGet(
+          genresRef,
+          forceRefresh: true,
+        );
+        if (refreshed.docs.isNotEmpty) {
+          snapshot = refreshed;
+        }
+      }
 
       if (snapshot.docs.isEmpty) {
         log('Tidak ada genre yang tersedia');
@@ -68,9 +82,9 @@ class EditNovelController extends GetxController {
         return;
       }
 
-      genres.value = snapshot.docs
-          .map((doc) => Genre.fromMap(doc.data(), doc.id))
-          .toList();
+      genres.assignAll(
+        snapshot.docs.map((doc) => Genre.fromMap(doc.data(), doc.id)).toList(),
+      );
 
       errorMessage.value = '';
     } catch (e, stack) {
@@ -87,7 +101,9 @@ class EditNovelController extends GetxController {
       errorMessage.value = '';
       log('idNovel: $novelId');
 
-      final doc = await _firestore.collection('novels').doc(novelId).get();
+      final doc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
 
       if (!doc.exists) {
         log("novel tidak ditemukan");
@@ -117,12 +133,13 @@ class EditNovelController extends GetxController {
   Future<void> fetchChapters() async {
     try {
       log('start fetching chapter');
-      final snapshot = await _firestore
-          .collection('novels')
-          .doc(novelId)
-          .collection('chapters')
-          .orderBy('chapter')
-          .get();
+      final snapshot = await _cacheService.queryGet(
+        _firestore
+            .collection('novels')
+            .doc(novelId)
+            .collection('chapters')
+            .orderBy('chapter'),
+      );
 
       chapters.value = snapshot.docs
           .map((doc) => Chapter.fromJson(doc.id, doc.data()))

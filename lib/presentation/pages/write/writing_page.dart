@@ -2,10 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/write/writing_controller.dart';
-import '../../controllers/setting_controller.dart';
 
-class WritingPage extends StatelessWidget {
-  final c = Get.put(WritingController());
+class WritingPage extends GetView<WritingController> {
+  WritingPage({super.key});
+
+  WritingController get c => controller;
 
   late Color bgColor;
   late Color appBarBgColor;

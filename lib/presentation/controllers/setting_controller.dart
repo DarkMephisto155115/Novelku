@@ -31,7 +31,6 @@ class SettingsController extends GetxController {
   }
 
   Future<void> _loadSettings() async {
-    try {
       final prefs = Get.find<SharedPreferences>();
       settings.value = ReadingSettings(
         fontSize: prefs.getString('fontSize') ?? 'Sedang',
@@ -39,23 +38,15 @@ class SettingsController extends GetxController {
         novelNotifications: prefs.getBool('novelNotifications') ?? true,
         autoScroll: prefs.getBool('autoScroll') ?? false,
       );
-    } catch (e) {
-      print('Error loading settings: $e');
-    }
   }
 
   Future<void> _saveSettings() async {
-    try {
       final prefs = Get.find<SharedPreferences>();
-      // await prefs.setBool('isDarkMode', settings.value.isDarkMode);
       await prefs.setString('fontSize', settings.value.fontSize);
       await prefs.setString('fontFamily', settings.value.fontFamily);
       await prefs.setBool(
           'novelNotifications', settings.value.novelNotifications);
       await prefs.setBool('autoScroll', settings.value.autoScroll);
-    } catch (e) {
-      print('Error saving settings: $e');
-    }
   }
 
   void toggleDarkMode(bool value) {

@@ -1,18 +1,18 @@
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:terra_brain/presentation/themes/theme_data.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class EditProfileController extends GetxController {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   // ==========================
   // TEXT CONTROLLERS
@@ -68,8 +68,9 @@ class EditProfileController extends GetxController {
     try {
       isLoading.value = true;
 
-      final doc =
-          await _firestore.collection('users').doc(uid).get();
+      final doc = await _cacheService.docGet(
+        _firestore.collection('users').doc(uid),
+      );
 
       if (!doc.exists) {
         throw 'Data user tidak ditemukan';

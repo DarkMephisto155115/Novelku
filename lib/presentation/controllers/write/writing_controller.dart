@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 class WritingController extends GetxController {
@@ -31,8 +32,10 @@ class WritingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _imagePicker = ImagePicker();
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
-  List<String> listGenre = [];
+  final RxList<String> listGenre = <String>[].obs;
   static const int minCharacterCount = 200;
 
   SettingsController get settingsController {
@@ -97,24 +100,36 @@ class WritingController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final snapshot = await _firestore.collection('genres').get();
-      log("genres fetched: ${snapshot.docs.length}");
+      final genresRef = _firestore.collection('genres');
+      var snapshot = await _cacheService.queryGet(genresRef);
+      log("genres fetched (cache?): ${snapshot.docs.length}");
+
+      if (snapshot.docs.isEmpty || snapshot.metadata.isFromCache) {
+        final refreshed = await _cacheService.queryGet(
+          genresRef,
+          forceRefresh: true,
+        );
+        if (refreshed.docs.isNotEmpty) {
+          snapshot = refreshed;
+        }
+      }
 
       if (snapshot.docs.isEmpty) {
+        listGenre.clear();
         errorMessage.value = 'Tidak ada genre yang tersedia';
         return;
       }
 
-      listGenre = snapshot.docs
-          .map((doc) => doc.data()['name'] as String)
-          .toList();
+      listGenre.assignAll(
+        snapshot.docs.map((doc) => doc.data()['name'] as String).toList(),
+      );
 
       if (!listGenre.contains(genreC.value)) {
         genreC.value = '';
       }
 
       if (kDebugMode) {
-        print("Genres: $listGenre");
+        print("Genres: ${listGenre.toList()}");
       }
 
       errorMessage.value = '';
@@ -187,7 +202,9 @@ class WritingController extends GetxController {
         coverImageUrl = await uploadCoverImageToStorage(imageFile, novelId);
       }
 
-      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+      final userDoc = await _cacheService.docGet(
+        _firestore.collection('users').doc(currentUser.uid),
+      );
       final userData = userDoc.data();
       
       if (kDebugMode) {

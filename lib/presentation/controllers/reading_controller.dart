@@ -6,12 +6,15 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/models/novel_item.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
 
 class ReadingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GetStorage _storage = GetStorage();
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   late Rx<Chapter> currentChapter;
 
@@ -167,10 +170,9 @@ class ReadingController extends GetxController {
         print('📡 Fetching chapters for novel: $novelId');
       }
       
-      final novelDoc = await _firestore
-          .collection('novels')
-          .doc(novelId)
-          .get();
+      final novelDoc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
 
       if (!novelDoc.exists) {
         if (kDebugMode) {
@@ -184,12 +186,13 @@ class ReadingController extends GetxController {
       novelAuthor.value = novelData['authorName'] ?? 'Unknown';
       authorId = novelData['authorId'] ?? '';
 
-      final chaptersSnapshot = await _firestore
-          .collection('novels')
-          .doc(novelId)
-          .collection('chapters')
-          .orderBy('chapter')
-          .get();
+      final chaptersSnapshot = await _cacheService.queryGet(
+        _firestore
+            .collection('novels')
+            .doc(novelId)
+            .collection('chapters')
+            .orderBy('chapter'),
+      );
 
       if (kDebugMode) {
         print('📡 Found ${chaptersSnapshot.docs.length} chapters');
@@ -243,10 +246,9 @@ class ReadingController extends GetxController {
 
   Future<void> fetchRecommendedNovels() async {
     try {
-      final snapshot = await _firestore
-          .collection('novels')
-          .limit(3)
-          .get();
+      final snapshot = await _cacheService.queryGet(
+        _firestore.collection('novels').limit(3),
+      );
 
       final novels = snapshot.docs.map((doc) {
         final data = doc.data();
@@ -291,14 +293,15 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final commentsSnapshot = await _firestore
-          .collection('novels')
-          .doc(novelId)
-          .collection('chapters')
-          .doc(currentChapter.value.id)
-          .collection('komentar')
-          .orderBy('timestamp', descending: true)
-          .get();
+      final commentsSnapshot = await _cacheService.queryGet(
+        _firestore
+            .collection('novels')
+            .doc(novelId)
+            .collection('chapters')
+            .doc(currentChapter.value.id)
+            .collection('komentar')
+            .orderBy('timestamp', descending: true),
+      );
 
       final loadedComments = commentsSnapshot.docs.map((doc) {
         final cData = doc.data();
@@ -524,18 +527,17 @@ class ReadingController extends GetxController {
     try {
       if (novelId.isEmpty || currentChapter.value.id.isEmpty) return;
       
-      final chapterDoc = await _firestore
-          .collection('novels')
-          .doc(novelId)
-          .collection('chapters')
-          .doc(currentChapter.value.id)
-          .get();
+      final chapterDoc = await _cacheService.docGet(
+        _firestore
+            .collection('novels')
+            .doc(novelId)
+            .collection('chapters')
+            .doc(currentChapter.value.id),
+      );
 
       if (!chapterDoc.exists) return;
 
       final chapterData = chapterDoc.data() ?? {};
-      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
-      final novelData = novelDoc.data() ?? {};
 
       currentChapter.value = Chapter(
         id: chapterDoc.id,
@@ -604,10 +606,9 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+      final userDoc = await _cacheService.docGet(
+        _firestore.collection('users').doc(currentUser.uid),
+      );
       
       final userData = userDoc.data() ?? {};
       final userName = userData['name'] ?? userData['username'] ?? 'Anonymous';
@@ -898,12 +899,13 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final doc = await _firestore
-          .collection('users')
-          .doc(authorId)
-          .collection('followers')
-          .doc(currentUser.uid)
-          .get();
+      final doc = await _cacheService.docGet(
+        _firestore
+            .collection('users')
+            .doc(authorId)
+            .collection('followers')
+            .doc(currentUser.uid),
+      );
 
       isFollowingAuthor.value = doc.exists;
     } catch (e) {
@@ -990,12 +992,13 @@ class ReadingController extends GetxController {
         return;
       }
 
-      final doc = await _firestore
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('favorites')
-          .doc(novelId)
-          .get();
+      final doc = await _cacheService.docGet(
+        _firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('favorites')
+            .doc(novelId),
+      );
 
       isFavorite.value = doc.exists;
     } catch (e) {
@@ -1039,7 +1042,9 @@ class ReadingController extends GetxController {
 
   Future<void> _addToFavorites(String userId) async {
     try {
-      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      final novelDoc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
       if (!novelDoc.exists) return;
 
       final novelData = novelDoc.data() ?? {};
@@ -1072,7 +1077,9 @@ class ReadingController extends GetxController {
 
   Future<void> _removeFromFavorites(String userId) async {
     try {
-      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      final novelDoc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
       if (!novelDoc.exists) return;
 
       final novelData = novelDoc.data() ?? {};

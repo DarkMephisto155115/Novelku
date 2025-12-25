@@ -413,7 +413,7 @@ class EditProfilePage extends GetView<EditProfileController> {
             style: OutlinedButton.styleFrom(
               foregroundColor: Get.theme.textTheme.bodyMedium?.color,
               side: BorderSide(
-                color: Get.theme.dividerColor.withOpacity(0.5),
+                color: Get.theme.dividerColor.withValues(alpha: 0.5),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

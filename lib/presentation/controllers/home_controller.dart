@@ -7,10 +7,13 @@ import 'package:video_player/video_player.dart';
 import '../models/novel_item.dart';
 
 import 'package:terra_brain/presentation/models/author_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class HomeController extends GetxController {
   final box = GetStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   var selectedImagePath = ''.obs;
   var isImageLoading = false.obs;
@@ -62,34 +65,50 @@ class HomeController extends GetxController {
 
     // Search Authors
     try {
-      final userSnap = await _firestore.collection('users').get();
-      final authors = userSnap.docs.map((doc) {
-        final data = doc.data();
-        return Author(
-          id: doc.id,
-          name: data['name'] ?? '-',
-          username: data['username'] ?? data['name'] ?? '-',
-          email: data['email'] ?? '',
-          biodata: data['biodata'] ?? '',
-          novelCount: data['novelCount'] ?? 0,
-          followerCount: data['followers'] ?? 0,
-          category: '',
-          isNew: false,
-          isPopular: false,
-          isPremium: data['is_premium'] ?? false,
-          imageUrl: data['imageUrl'],
-        );
-      }).where((author) {
-        return author.name.toLowerCase().contains(lowerQuery) ||
-               author.username.toLowerCase().contains(lowerQuery);
-      }).toList();
+      final usersRef = _firestore.collection('users');
+      final userSnap = await _cacheService.queryGet(usersRef);
+      _applyAuthorSearch(userSnap, lowerQuery);
 
-      authorSearchResults.assignAll(authors);
+      if (userSnap.metadata.isFromCache) {
+        final refreshedSnap =
+            await _cacheService.queryGet(usersRef, forceRefresh: true);
+        if (!refreshedSnap.metadata.isFromCache) {
+          _applyAuthorSearch(refreshedSnap, lowerQuery);
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error searching authors: $e');
       }
     }
+  }
+
+  void _applyAuthorSearch(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+    String lowerQuery,
+  ) {
+    final authors = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Author(
+        id: doc.id,
+        name: data['name'] ?? '-',
+        username: data['username'] ?? data['name'] ?? '-',
+        email: data['email'] ?? '',
+        biodata: data['biodata'] ?? '',
+        novelCount: data['novelCount'] ?? 0,
+        followerCount: data['followers'] ?? 0,
+        category: '',
+        isNew: false,
+        isPopular: false,
+        isPremium: data['is_premium'] ?? false,
+        imageUrl: data['imageUrl'],
+      );
+    }).where((author) {
+      return author.name.toLowerCase().contains(lowerQuery) ||
+          author.username.toLowerCase().contains(lowerQuery);
+    }).toList();
+
+    authorSearchResults.assignAll(authors);
   }
 
   void updateSearchQuery(String query) {

@@ -1,13 +1,17 @@
 import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/author_profile_model.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class AuthorProfileController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   final Rxn<AuthorProfile> author = Rxn<AuthorProfile>();
   final RxBool isLoading = false.obs;
@@ -47,7 +51,6 @@ class AuthorProfileController extends GetxController {
 
   @override
   void onResumed() {
-    // super.onResumed();
     fetchAuthorProfile();
   }
 
@@ -58,18 +61,18 @@ class AuthorProfileController extends GetxController {
 
       log('[AUTHOR_PROFILE] Fetch started: $authorId');
 
-      final authorDoc =
-          await _firestore.collection('users').doc(authorId).get();
+      final authorDoc = await _cacheService.docGet(
+        _firestore.collection('users').doc(authorId),
+      );
 
       if (!authorDoc.exists) {
         errorMessage.value = 'Author tidak ditemukan';
         return;
       }
 
-      final novelSnap = await _firestore
-          .collection('novels')
-          .where('authorId', isEqualTo: authorId)
-          .get();
+      final novelSnap = await _cacheService.queryGet(
+        _firestore.collection('novels').where('authorId', isEqualTo: authorId),
+      );
 
       final novels =
           novelSnap.docs
@@ -90,12 +93,13 @@ class AuthorProfileController extends GetxController {
 
   Future<void> checkIsFollowing() async {
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(authorId)
-          .collection('followers')
-          .doc(currentUserId)
-          .get();
+      final doc = await _cacheService.docGet(
+        _firestore
+            .collection('users')
+            .doc(authorId)
+            .collection('followers')
+            .doc(currentUserId),
+      );
 
       isFollowing.value = doc.exists;
     } catch (e) {

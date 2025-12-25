@@ -4,7 +4,6 @@ import 'package:terra_brain/presentation/controllers/author/author_profile_contr
 import 'package:terra_brain/presentation/models/author_profile_model.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
-import '../../controllers/write/writing_controller.dart';
 
 class AuthorProfilePage extends GetView<AuthorProfileController> {
   const AuthorProfilePage({Key? key}) : super(key: key);
@@ -12,9 +11,7 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () {
-        final writingController = Get.find<WritingController>();
-        
+      () {        
 
         return Scaffold(
           backgroundColor: Get.theme.scaffoldBackgroundColor,

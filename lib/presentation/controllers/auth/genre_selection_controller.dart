@@ -2,11 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
 
 class GenreSelectionController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   final RxList<Genre> genres = <Genre>[].obs;
 
@@ -32,37 +35,44 @@ class GenreSelectionController extends GetxController {
   Future<void> loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
     userID = prefs.getString("userId") ?? "";
-
-    if (userID.isEmpty) {
-      print("❌ userID tidak ditemukan di SharedPreferences");
-    } else {
-      print("✅ userID ditemukan: $userID");
-    }
   }
 
   Future<void> fetchGenres() async {
     try {
-      final snapshot = await _firestore.collection('genres').get();
-
-      if (snapshot.docs.isEmpty) {
-        Get.snackbar("Info", "Genre belum tersedia");
-        genres.clear();
+      final genresRef = _firestore.collection('genres');
+      final snapshot = await _cacheService.queryGet(genresRef);
+      if (_setGenres(snapshot)) {
         return;
       }
 
-      final list = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Genre.fromMap(
-          data,
-          doc.id,
-        );
-      }).toList();
-
-      genres.assignAll(list);
+      if (snapshot.metadata.isFromCache) {
+        final refreshed =
+            await _cacheService.queryGet(genresRef, forceRefresh: true);
+        _setGenres(refreshed);
+      }
     } catch (e) {
       print("Error fetching genres: $e");
       Get.snackbar("Error", "Gagal memuat genre");
     }
+  }
+
+  bool _setGenres(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (snapshot.docs.isEmpty) {
+      Get.snackbar("Info", "Genre belum tersedia");
+      genres.clear();
+      return true;
+    }
+
+    final list = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Genre.fromMap(
+        data,
+        doc.id,
+      );
+    }).toList();
+
+    genres.assignAll(list);
+    return false;
   }
 
 
@@ -87,7 +97,6 @@ class GenreSelectionController extends GetxController {
   }
 
   Future<void> saveSelectedGenres(List<Genre> selectedGenres) async {
-    try {
       final userRef = _firestore.collection('users').doc(userID);
       final old = await userRef.collection("selectedGenres").get();
 
@@ -101,9 +110,6 @@ class GenreSelectionController extends GetxController {
           "emoji": genre.emoji,
         });
       }
-    } catch (e) {
-      print("Error saving genre subcollection: $e");
-    }
   }
 
 

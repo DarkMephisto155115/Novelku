@@ -6,10 +6,13 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class ProfileController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   final Rx<UserProfile> user = UserProfile(
     id: '',
@@ -88,16 +91,17 @@ class ProfileController extends GetxController {
 
   Future<void> _fetchUserProfile() async {
     try {
-      final doc = await _firestore.collection('users').doc(userId).get();
+      final doc = await _cacheService.docGet(
+        _firestore.collection('users').doc(userId),
+      );
       if (!doc.exists) return;
 
       final data = doc.data()!;
 
       // Fetch all novels to calculate stats
-      final novelSnap = await _firestore
-          .collection('novels')
-          .where('authorId', isEqualTo: userId)
-          .get();
+      final novelSnap = await _cacheService.queryGet(
+        _firestore.collection('novels').where('authorId', isEqualTo: userId),
+      );
 
       final novels =
           novelSnap.docs.where((d) => d['status'] != 'Draft').toList();
@@ -141,7 +145,7 @@ class ProfileController extends GetxController {
         _hasMoreMyNovels = true;
       }
 
-      Query query = _firestore
+      Query<Map<String, dynamic>> query = _firestore
           .collection('novels')
           .where('authorId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
@@ -151,14 +155,14 @@ class ProfileController extends GetxController {
         query = query.startAfterDocument(_lastNovelDoc!);
       }
 
-      final snap = await query.get();
+      final snap = await _cacheService.queryGet(query);
 
       if (snap.docs.isNotEmpty) {
         _lastNovelDoc = snap.docs.last;
 
         myNovels.addAll(
           snap.docs.map((doc) {
-            final d = doc.data() as Map<String, dynamic>;
+            final d = doc.data();
             return UserNovel(
               id: doc.id,
               title: d['title'] ?? '',
@@ -194,7 +198,7 @@ class ProfileController extends GetxController {
         _hasMoreFavorites = true;
       }
 
-      Query query = _firestore
+      Query<Map<String, dynamic>> query = _firestore
           .collection('users')
           .doc(userId)
           .collection('favorites')
@@ -205,7 +209,7 @@ class ProfileController extends GetxController {
         query = query.startAfterDocument(_lastFavDoc!);
       }
 
-      final snap = await query.get();
+      final snap = await _cacheService.queryGet(query);
 
       if (snap.docs.isNotEmpty) {
         _lastFavDoc = snap.docs.last;
@@ -213,23 +217,22 @@ class ProfileController extends GetxController {
         for (final doc in snap.docs) {
           final ref = doc['novelRef'];
           if (ref is! DocumentReference) continue;
+          final typedRef = ref as DocumentReference<Map<String, dynamic>>;
 
           try {
-            final novelDoc = await ref.get();
+            final novelDoc = await _cacheService.docGet(typedRef);
             if (!novelDoc.exists) {
-              // optional cleanup
               await doc.reference.delete();
               continue;
             }
 
-            final d = novelDoc.data() as Map<String, dynamic>;
+            final d = novelDoc.data() ?? {};
             
-            // Filter out drafts from favorites
             if (d['status'] == 'Draft') continue;
             
-            final chaptersSnap = await ref
-                .collection('chapters')
-                .get();
+            final chaptersSnap = await _cacheService.queryGet(
+              typedRef.collection('chapters'),
+            );
             
             final publishedChapters = chaptersSnap.docs
                 .where((ch) {

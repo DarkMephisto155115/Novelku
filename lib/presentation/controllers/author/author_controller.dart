@@ -4,10 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/author_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class AuthorsController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   final RxList<Author> authors = <Author>[].obs;
 
@@ -32,7 +35,9 @@ class AuthorsController extends GetxController {
       log('[AUTHOR] Fetch authors started');
 
       final currentUserId = _auth.currentUser?.uid;
-      final novelSnap = await _firestore.collection('novels').get();
+      final novelSnap = await _cacheService.queryGet(
+        _firestore.collection('novels'),
+      );
 
       if (novelSnap.docs.isEmpty) {
         authors.clear();
@@ -60,10 +65,9 @@ class AuthorsController extends GetxController {
           continue;
         }
 
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(authorId)
-            .get();
+        final userDoc = await _cacheService.docGet(
+          _firestore.collection('users').doc(authorId),
+        );
 
         if (!userDoc.exists) {
           log('[AUTHOR] User not found for author: $authorId');
@@ -133,7 +137,9 @@ class AuthorsController extends GetxController {
     try {
       log('[GENRE] Fetch genres started');
 
-      final snap = await _firestore.collection('genres').get();
+      final snap = await _cacheService.queryGet(
+        _firestore.collection('genres'),
+      );
 
       if (snap.docs.isEmpty) {
         log('[GENRE] No genres found');

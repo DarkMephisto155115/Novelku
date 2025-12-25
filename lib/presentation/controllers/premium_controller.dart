@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/models/premium_future.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class PremiumController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
   final prefs = Get.find<SharedPreferences>();
 
   final RxBool isPremium = false.obs;
@@ -79,28 +82,29 @@ class PremiumController extends GetxController {
   }
 
   Future<Map<String, dynamic>?> getDataFirestore(String userId) async {
-    try {
-      DocumentSnapshot<Map<String, dynamic>> document =
-          await _firestore.collection('users').doc(userId).get();
-      if (document.exists) {
-        return document.data()!;
-      } else {
-        print("Data tidak ditemukan dari id: $userId");
-        return null;
+    if (userId.isEmpty) return null;
+
+    final userRef = _firestore.collection('users').doc(userId);
+    var document = await _cacheService.docGet(userRef);
+    Map<String, dynamic>? data = document.data();
+
+    if (document.metadata.isFromCache) {
+      final refreshedDoc = await _cacheService.docGet(
+        userRef,
+        forceRefresh: true,
+      );
+      if (!refreshedDoc.metadata.isFromCache) {
+        document = refreshedDoc;
+        data = document.data();
       }
-    } catch (e) {
-      print("Error fetching data: $e");
-      return null;
     }
+
+    return document.exists ? data : null;
   }
 
   Future<void> _savePremiumStatus(bool premium) async {
-    try {
       final prefs = Get.find<SharedPreferences>();
       await prefs.setBool('is_premium', premium);
-    } catch (e) {
-      print('Error saving premium status: $e');
-    }
   }
 
   void showPopup() {
@@ -158,13 +162,8 @@ class PremiumController extends GetxController {
   }
 
   void setShowPopupOnNextLaunch(bool show) async {
-    try {
       log("show? $show");
       await prefs.setBool('show_premium_popup_on_launch', show);
-    } catch (e) {
-      print('Error setting show popup: $e');
-      rethrow;
-    }
   }
 
   bool shouldShowPopupOnLaunch() {
@@ -193,12 +192,7 @@ class PremiumController extends GetxController {
   }
 
   void recordPopupShown() async {
-    try {
       await prefs.setInt(
           'last_premium_popup_shown', DateTime.now().millisecondsSinceEpoch);
-    } catch (e) {
-      print('Error recording popup shown: $e');
-      rethrow;
-    }
   }
 }

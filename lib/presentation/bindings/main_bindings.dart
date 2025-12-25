@@ -14,6 +14,7 @@ import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
 import '../controllers/all_novel_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
+import '../controllers/home_controller.dart';
 import '../controllers/novel_chapters_controller.dart';
 import '../controllers/write/writing_controller.dart';
 
@@ -30,6 +31,10 @@ class MainBinding extends Bindings {
     );
     Get.lazyPut<ThemeController>(
       () => ThemeController(),
+      fenix: true,
+    );
+    Get.lazyPut<HomeController>(
+      () => HomeController(),
       fenix: true,
     );
   }

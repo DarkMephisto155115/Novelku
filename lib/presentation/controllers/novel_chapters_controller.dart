@@ -3,10 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
+import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class NovelChaptersController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreCacheService _cacheService =
+      Get.find<FirestoreCacheService>();
 
   late final String novelId;
 
@@ -83,7 +86,6 @@ class NovelChaptersController extends GetxController {
         novel.value = novelData.copyWith(chapters: chapterList);
         isLoading.value = false;
       }, onError: (e) {
-        print('Error loading chapters: $e');
         novel.value = novelData;
         isLoading.value = false;
       });
@@ -174,10 +176,10 @@ class NovelChaptersController extends GetxController {
 
   Future<void> _addToFavorites(String userId) async {
     try {
-      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      final novelDoc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
       if (!novelDoc.exists) return;
-
-      final novelData = novelDoc.data() ?? {};
 
       await _firestore
           .collection('users')
@@ -190,11 +192,6 @@ class NovelChaptersController extends GetxController {
           });
 
       isFavorite.value = true;
-      // Get.snackbar(
-      //   'Berhasil',
-      //   '${novelData['title'] ?? 'Novel'} ditambahkan ke favorit',
-      //   snackPosition: SnackPosition.BOTTOM,
-      // );
 
       if (kDebugMode) {
         print('✅ Novel added to favorites: $novelId');
@@ -207,10 +204,10 @@ class NovelChaptersController extends GetxController {
 
   Future<void> _removeFromFavorites(String userId) async {
     try {
-      final novelDoc = await _firestore.collection('novels').doc(novelId).get();
+      final novelDoc = await _cacheService.docGet(
+        _firestore.collection('novels').doc(novelId),
+      );
       if (!novelDoc.exists) return;
-
-      final novelData = novelDoc.data() ?? {};
 
       await _firestore
           .collection('users')
@@ -220,11 +217,6 @@ class NovelChaptersController extends GetxController {
           .delete();
 
       isFavorite.value = false;
-      // Get.snackbar(
-      //   'Berhasil',
-      //   '${novelData['title'] ?? 'Novel'} dihapus dari favorit',
-      //   snackPosition: SnackPosition.BOTTOM,
-      // );
 
       if (kDebugMode) {
         print('✅ Novel removed from favorites: $novelId');
