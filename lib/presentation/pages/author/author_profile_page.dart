@@ -10,42 +10,37 @@ class AuthorProfilePage extends GetView<AuthorProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () {        
-
-        return Scaffold(
-          backgroundColor: Get.theme.scaffoldBackgroundColor,
-          body: Obx(
-            () {
-              if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (controller.errorMessage.isNotEmpty) {
-                return Center(
-                  child: Text(
-                    controller.errorMessage.value,
-                    style: TextStyle(
-                      color: Get.theme.textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                );
-              }
-              final author = controller.author.value;
-              if (author == null) {
-                return Center(
-                  child: Text(
-                    'Data penulis tidak tersedia',
-                    style: TextStyle(
-                      color: Get.theme.textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                );
-              }
-              return _buildContent(author);
-            },
-          ),
-        );
-      },
+    return Scaffold(
+      backgroundColor: Get.theme.scaffoldBackgroundColor,
+      body: Obx(
+        () {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (controller.errorMessage.isNotEmpty) {
+            return Center(
+              child: Text(
+                controller.errorMessage.value,
+                style: TextStyle(
+                  color: Get.theme.textTheme.bodyMedium?.color,
+                ),
+              ),
+            );
+          }
+          final author = controller.author.value;
+          if (author == null) {
+            return Center(
+              child: Text(
+                'Data penulis tidak tersedia',
+                style: TextStyle(
+                  color: Get.theme.textTheme.bodyMedium?.color,
+                ),
+              ),
+            );
+          }
+          return _buildContent(author);
+        },
+      ),
     );
   }
 

@@ -104,6 +104,7 @@ class RegistrationPage extends GetView<RegistrationController> {
       ),
       child: Form(
         key: controller.formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           children: [
             // Label Daftar
@@ -182,8 +183,10 @@ class RegistrationPage extends GetView<RegistrationController> {
         ),
         SizedBox(height: 8),
         TextFormField(
-          // controller: controller.emailController,
-          onChanged: (value) => controller.email.value = value,
+          onChanged: (value) {
+            controller.email.value = value;
+            controller.clearEmailError();
+          },
           style: TextStyle(
             color: Get.theme.textTheme.bodyLarge?.color,
             fontSize: 16,
@@ -207,6 +210,9 @@ class RegistrationPage extends GetView<RegistrationController> {
             if (!GetUtils.isEmail(value)) {
               return 'Format email tidak valid';
             }
+            if (controller.emailError.value.isNotEmpty) {
+              return controller.emailError.value;
+            }
             return null;
           },
         ),
@@ -227,8 +233,10 @@ class RegistrationPage extends GetView<RegistrationController> {
         ),
         SizedBox(height: 8),
         TextFormField(
-          // controller: controller.usernameController,
-          onChanged: (value) => controller.username.value = value,
+          onChanged: (value) {
+            controller.username.value = value;
+            controller.clearUsernameError();
+          },
           style: TextStyle(
             color: Get.theme.textTheme.bodyLarge?.color,
             fontSize: 16,
@@ -247,6 +255,9 @@ class RegistrationPage extends GetView<RegistrationController> {
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Username harus diisi';
+            }
+            if (controller.usernameError.value.isNotEmpty) {
+              return controller.usernameError.value;
             }
             return null;
           },
@@ -268,8 +279,10 @@ class RegistrationPage extends GetView<RegistrationController> {
         ),
         SizedBox(height: 8),
         Obx(() => TextFormField(
-              // controller: controller.passwordController,
-              onChanged: (value) => controller.password.value = value,
+              onChanged: (value) {
+                controller.password.value = value;
+                controller.clearPasswordError();
+              },
               obscureText: controller.passwordHidden.value,
               style: TextStyle(
                 color: Get.theme.textTheme.bodyLarge?.color,
@@ -305,6 +318,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                 }
                 if (value.length < 6) {
                   return 'Password minimal 6 karakter';
+                }
+                if (controller.passwordError.value.isNotEmpty) {
+                  return controller.passwordError.value;
                 }
                 return null;
               },

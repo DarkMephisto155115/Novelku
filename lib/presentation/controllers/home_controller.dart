@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -7,13 +10,17 @@ import 'package:video_player/video_player.dart';
 import '../models/novel_item.dart';
 
 import 'package:terra_brain/presentation/models/author_model.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class HomeController extends GetxController {
   final box = GetStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirestoreCacheService _cacheService =
       Get.find<FirestoreCacheService>();
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _novelSubscription;
 
   var selectedImagePath = ''.obs;
   var isImageLoading = false.obs;
@@ -37,9 +44,8 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     selectedCategory.value = 'All';
-    _fetchNovelsFromFirestore();
+    _subscribeToNovels();
     
-    // Listen to search query changes
     debounce(searchQuery, (query) {
       _performSearch(query);
     }, time: const Duration(milliseconds: 500));
@@ -124,20 +130,32 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {
+    _novelSubscription?.cancel();
     videoPlayerController?.dispose();
     searchController.dispose();
     super.onClose();
   }
 
-  void _fetchNovelsFromFirestore() {
+  void _subscribeToNovels() {
+    _novelSubscription?.cancel();
+
+    if (_auth.currentUser == null) {
+      allNovels.clear();
+      recommendedNovels.clear();
+      newNovels.clear();
+      return;
+    }
+
     try {
-      _firestore.collection('novels').snapshots().listen((snapshot) async {
+      _novelSubscription = _firestore
+          .collection('novels')
+          .snapshots()
+          .listen((snapshot) async {
         final List<NovelItem> novels = [];
         
         for (var doc in snapshot.docs) {
           final data = doc.data();
           
-          // Filter out drafts
           if (data['status'] == 'Draft') continue;
 
           final authorName = data['authorName'] ?? 'Tidak diketahui';
@@ -203,12 +221,10 @@ class HomeController extends GetxController {
 
         allNovels.assignAll(novels);
         
-        // Recommended novels - top liked (first 3)
         final sorted = List<NovelItem>.from(novels);
         sorted.sort((a, b) => b.likeCount.compareTo(a.likeCount));
         recommendedNovels.assignAll(sorted.take(3).toList());
 
-        // New novels - latest created
         final newest = List<NovelItem>.from(novels);
         newest.sort((a, b) {
           final dateA = _parseDate(a.id);
@@ -220,11 +236,27 @@ class HomeController extends GetxController {
         if (kDebugMode) {
           print('✅ Loaded ${novels.length} novels from Firestore');
         }
+      }, onError: (error, stackTrace) {
+        if (error is FirebaseException && error.code == 'permission-denied') {
+          _handlePermissionDenied();
+        } else if (kDebugMode) {
+          print('❌ Error fetching novels: $error');
+        }
       });
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error fetching novels: $e');
+        print('❌ Error subscribing to novels: $e');
       }
+    }
+  }
+
+  void _handlePermissionDenied() {
+    _novelSubscription?.cancel();
+    allNovels.clear();
+    recommendedNovels.clear();
+    newNovels.clear();
+    if (Get.currentRoute != Routes.LOGIN) {
+      Get.offAllNamed(Routes.LOGIN);
     }
   }
 

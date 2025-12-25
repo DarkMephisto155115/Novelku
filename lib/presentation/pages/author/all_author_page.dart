@@ -222,7 +222,7 @@ class AuthorsPage extends GetView<AuthorsController> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Get.toNamed('/author_profile/${author.id}'),
+        onTap: () => Get.toNamed('/author_profile', arguments: {'authorId': author.id}),
         child: Card(
           elevation: 1,
           shape: RoundedRectangleBorder(

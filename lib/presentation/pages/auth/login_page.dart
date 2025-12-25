@@ -107,6 +107,7 @@ class LoginPage extends GetView<LoginController> {
       ),
       child: Form(
         key: controller.formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           children: [
             Align(
@@ -175,6 +176,7 @@ class LoginPage extends GetView<LoginController> {
         SizedBox(height: 8),
         TextFormField(
           controller: controller.emailController,
+          onChanged: (_) => controller.clearEmailError(),
           style: TextStyle(
             color: Get.theme.textTheme.bodyLarge?.color,
             fontSize: 16,
@@ -198,6 +200,9 @@ class LoginPage extends GetView<LoginController> {
             if (!GetUtils.isEmail(value)) {
               return 'Format email tidak valid';
             }
+            if (controller.emailError.value.isNotEmpty) {
+              return controller.emailError.value;
+            }
             return null;
           },
         ),
@@ -220,6 +225,7 @@ class LoginPage extends GetView<LoginController> {
         Obx(
           () => TextFormField(
             controller: controller.passwordController,
+            onChanged: (_) => controller.clearPasswordError(),
             obscureText: !controller.isPasswordHidden.value,
             style: TextStyle(
               color: Get.theme.textTheme.bodyLarge?.color,
@@ -251,6 +257,9 @@ class LoginPage extends GetView<LoginController> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Password harus diisi';
+              }
+              if (controller.passwordError.value.isNotEmpty) {
+                return controller.passwordError.value;
               }
               return null;
             },

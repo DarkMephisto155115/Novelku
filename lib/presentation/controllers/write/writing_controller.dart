@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
@@ -95,6 +96,13 @@ class WritingController extends GetxController {
 
 
   Future<void> fetchGenres() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      listGenre.clear();
+      errorMessage.value = 'Silakan login untuk memilih genre';
+      return;
+    }
+
     try {
       log("start fetching genres");
       isLoading.value = true;
@@ -133,6 +141,15 @@ class WritingController extends GetxController {
       }
 
       errorMessage.value = '';
+    } on FirebaseException catch (e, s) {
+      log('[FETCH_GENRES_FIREBASE] ${e.message}', stackTrace: s);
+      if (e.code == 'permission-denied') {
+        listGenre.clear();
+        errorMessage.value = 'Akses genre ditolak. Silakan login kembali.';
+        _redirectToLogin();
+      } else {
+        errorMessage.value = 'Gagal mengambil data genre';
+      }
     } catch (e, s) {
       log('[FETCH_GENRES] $e', stackTrace: s);
       errorMessage.value = 'Gagal mengambil data genre';
@@ -334,6 +351,12 @@ class WritingController extends GetxController {
       ),
       barrierDismissible: false,
     );
+  }
+
+  void _redirectToLogin() {
+    if (Get.currentRoute != Routes.LOGIN) {
+      Get.offAllNamed(Routes.LOGIN);
+    }
   }
 
   void showPreview() {

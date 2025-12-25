@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/models/genre_model.dart';
+import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 
@@ -23,7 +24,11 @@ class GenreSelectionController extends GetxController {
   }
 
   Future<void> _init() async {
-    await loadUserId();
+    final hasUser = await loadUserId();
+    if (!hasUser) {
+      return;
+    }
+
     await fetchGenres();
 
     ever(genres, (_) {
@@ -32,9 +37,25 @@ class GenreSelectionController extends GetxController {
     });
   }
 
-  Future<void> loadUserId() async {
+  Future<bool> loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
     userID = prefs.getString("userId") ?? "";
+
+    if (userID.isEmpty) {
+      if (Get.currentRoute != Routes.LOGIN) {
+        Get.offAllNamed(Routes.LOGIN);
+      }
+      Get.snackbar(
+        'Sesi Berakhir',
+        'Silakan login untuk melanjutkan',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppThemeData.errorColor,
+        colorText: AppThemeData.lightTextPrimary,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   Future<void> fetchGenres() async {
@@ -50,9 +71,23 @@ class GenreSelectionController extends GetxController {
             await _cacheService.queryGet(genresRef, forceRefresh: true);
         _setGenres(refreshed);
       }
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        Get.snackbar(
+          'Sesi Berakhir',
+          'Silakan login untuk melanjutkan',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppThemeData.errorColor,
+          colorText: AppThemeData.lightTextPrimary,
+        );
+        if (Get.currentRoute != Routes.LOGIN) {
+          Get.offAllNamed(Routes.LOGIN);
+        }
+        return;
+      }
+      Get.snackbar('Error', 'Gagal memuat genre');
     } catch (e) {
-      print("Error fetching genres: $e");
-      Get.snackbar("Error", "Gagal memuat genre");
+      Get.snackbar('Error', 'Gagal memuat genre');
     }
   }
 
@@ -97,23 +132,25 @@ class GenreSelectionController extends GetxController {
   }
 
   Future<void> saveSelectedGenres(List<Genre> selectedGenres) async {
-      final userRef = _firestore.collection('users').doc(userID);
-      final old = await userRef.collection("selectedGenres").get();
+    if (userID.isEmpty) return;
 
-      for (var doc in old.docs) {
-        await doc.reference.delete();
-      }
+    final userRef = _firestore.collection('users').doc(userID);
+    final old = await userRef.collection("selectedGenres").get();
 
-      for (var genre in selectedGenres) {
-        await userRef.collection("selectedGenres").doc(genre.id).set({
-          "name": genre.name,
-          "emoji": genre.emoji,
-        });
-      }
+    for (var doc in old.docs) {
+      await doc.reference.delete();
+    }
+
+    for (var genre in selectedGenres) {
+      await userRef.collection("selectedGenres").doc(genre.id).set({
+        "name": genre.name,
+        "emoji": genre.emoji,
+      });
+    }
   }
 
 
-  void proceedToHome() {
+  Future<void> proceedToHome() async {
     final selectedGenres = genres.where((genre) => genre.isSelected).toList();
     
     if (selectedGenres.length < 3) {
@@ -121,14 +158,19 @@ class GenreSelectionController extends GetxController {
         'Peringatan',
         'Pilih minimal 3 genre favoritmu',
         snackPosition: SnackPosition.BOTTOM,
-        // backgroundColor: Colors.orange,
-        // colorText: Colors.white,
       );
       return;
     }
 
-    saveSelectedGenres(selectedGenres);
-    Get.offAllNamed('/home');
+    if (userID.isEmpty) {
+      await loadUserId();
+      if (userID.isEmpty) {
+        return;
+      }
+    }
+
+    await saveSelectedGenres(selectedGenres);
+    Get.offAllNamed(Routes.HOME);
     Get.snackbar(
       'Berhasil!',
       'Preferensi genre telah disimpan',

@@ -75,7 +75,7 @@ class AppPages {
       binding: AuthorsBinding(),
     ),
     GetPage(
-      name: '/author_profile/:id',
+      name: Routes.AUTHOR_PROFILE,
       page: () => const AuthorProfilePage(),
       binding: AuthorProfileBinding(),
     ),

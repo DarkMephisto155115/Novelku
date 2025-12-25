@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:terra_brain/presentation/controllers/auth/genre_selection_controller.dart';
+import 'package:terra_brain/presentation/controllers/home_controller.dart';
+import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
@@ -292,7 +295,20 @@ class ProfileController extends GetxController {
     await _auth.signOut();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    _disposeAuthControllers();
     Get.offAllNamed(Routes.LOGIN);
+  }
+
+  void _disposeAuthControllers() {
+    if (Get.isRegistered<HomeController>()) {
+      Get.delete<HomeController>(force: true);
+    }
+    if (Get.isRegistered<WritingController>()) {
+      Get.delete<WritingController>(force: true);
+    }
+    if (Get.isRegistered<GenreSelectionController>()) {
+      Get.delete<GenreSelectionController>(force: true);
+    }
   }
 
   String formatNumber(int number) {

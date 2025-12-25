@@ -8,6 +8,8 @@ import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 
 class AuthorProfileController extends GetxController {
+  static const int _novelQueryLimit = 30;
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirestoreCacheService _cacheService =
@@ -19,13 +21,13 @@ class AuthorProfileController extends GetxController {
   final RxBool isFollowing = false.obs;
 
   late final String authorId;
-  late final String currentUserId;
+  String? currentUserId;
 
   @override
   void onInit() {
     super.onInit();
 
-    authorId = Get.parameters['id'] ?? '';
+    authorId = _resolveAuthorId();
     final user = _auth.currentUser;
 
     if (authorId.isEmpty) {
@@ -49,12 +51,12 @@ class AuthorProfileController extends GetxController {
     checkIsFollowing();
   }
 
-  @override
-  void onResumed() {
-    fetchAuthorProfile();
-  }
-
   Future<void> fetchAuthorProfile() async {
+    if (authorId.isEmpty) {
+      errorMessage.value = 'Author ID tidak ditemukan';
+      return;
+    }
+
     try {
       isLoading.value = true;
       errorMessage.value = '';
@@ -71,7 +73,10 @@ class AuthorProfileController extends GetxController {
       }
 
       final novelSnap = await _cacheService.queryGet(
-        _firestore.collection('novels').where('authorId', isEqualTo: authorId),
+        _firestore
+            .collection('novels')
+            .where('authorId', isEqualTo: authorId)
+            .limit(_novelQueryLimit),
       );
 
       final novels =
@@ -92,13 +97,18 @@ class AuthorProfileController extends GetxController {
   }
 
   Future<void> checkIsFollowing() async {
+    if (authorId.isEmpty || currentUserId == null) {
+      return;
+    }
+
     try {
+      final followerId = currentUserId!;
       final doc = await _cacheService.docGet(
         _firestore
             .collection('users')
             .doc(authorId)
             .collection('followers')
-            .doc(currentUserId),
+            .doc(followerId),
       );
 
       isFollowing.value = doc.exists;
@@ -108,16 +118,19 @@ class AuthorProfileController extends GetxController {
   }
 
   Future<void> toggleFollow() async {
-    if (author.value == null) return;
+    if (author.value == null || authorId.isEmpty || currentUserId == null) {
+      return;
+    }
 
+    final followerId = currentUserId!;
     final batch = _firestore.batch();
 
     final authorRef = _firestore.collection('users').doc(authorId);
-    final followerRef = authorRef.collection('followers').doc(currentUserId);
+    final followerRef = authorRef.collection('followers').doc(followerId);
 
     final followingRef = _firestore
         .collection('users')
-        .doc(currentUserId)
+        .doc(followerId)
         .collection('following')
         .doc(authorId);
 
@@ -137,7 +150,7 @@ class AuthorProfileController extends GetxController {
         batch.update(authorRef, {
           'followers': FieldValue.increment(-1),
         });
-        batch.update(_firestore.collection('users').doc(currentUserId), {
+        batch.update(_firestore.collection('users').doc(followerId), {
           'following': FieldValue.increment(-1),
         });
       } else {
@@ -150,7 +163,7 @@ class AuthorProfileController extends GetxController {
         batch.update(authorRef, {
           'followers': FieldValue.increment(1),
         });
-        batch.update(_firestore.collection('users').doc(currentUserId), {
+        batch.update(_firestore.collection('users').doc(followerId), {
           'following': FieldValue.increment(1),
         });
       }
@@ -166,6 +179,23 @@ class AuthorProfileController extends GetxController {
             : author.value!.followerCount - 1,
       );
     }
+  }
+
+  String _resolveAuthorId() {
+    final args = Get.arguments;
+    if (args is Map && args['authorId'] != null) {
+      final value = args['authorId'].toString().trim();
+      if (value.isNotEmpty) {
+        return value;
+      }
+    }
+
+    final paramId = Get.parameters['id']?.trim();
+    if (paramId != null && paramId.isNotEmpty) {
+      return paramId;
+    }
+
+    return '';
   }
 
   String formatNumber(int number) {

@@ -257,7 +257,8 @@ class _HomePageState extends State<HomePage> {
                               onTap: () {
                                 Get.find<home_ctrl_pkg.HomeController>()
                                     .clearSearch();
-                                Get.toNamed('/author_profile/${author.id}');
+                                Get.toNamed('/author_profile',
+                                    arguments: {'authorId': author.id});
                               },
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -801,7 +802,8 @@ class _HomePageState extends State<HomePage> {
                                 : Colors.grey[600]),
                       ),
                       onTap: () {
-                        Get.toNamed('/author_profile/${author.id}');
+                        Get.toNamed('/author_profile',
+                            arguments: {'authorId': author.id});
                       },
                     );
                   },

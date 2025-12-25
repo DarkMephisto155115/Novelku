@@ -17,6 +17,8 @@ class LoginController extends GetxController {
   final isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
+  final RxString emailError = ''.obs;
+  final RxString passwordError = ''.obs;
 
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
@@ -26,9 +28,29 @@ class LoginController extends GetxController {
     themeController.toggleTheme();
   }
 
+  void clearErrors() {
+    hasError.value = false;
+    errorMessage.value = '';
+    emailError.value = '';
+    passwordError.value = '';
+  }
+
+  void clearEmailError() {
+    if (emailError.value.isNotEmpty) {
+      emailError.value = '';
+    }
+  }
+
+  void clearPasswordError() {
+    if (passwordError.value.isNotEmpty) {
+      passwordError.value = '';
+    }
+  }
+
   Future<void> bypassLogin(String email, String password) async {
     emailController.text = email;
     passwordController.text = password;
+    clearErrors();
     
     if (_auth.currentUser != null) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -41,6 +63,7 @@ class LoginController extends GetxController {
   }
 
   Future<bool> login() async {
+    clearErrors();
     if (!formKey.currentState!.validate()) {
       return false;
     }
@@ -49,9 +72,8 @@ class LoginController extends GetxController {
   }
 
   Future<bool> performLogin(String email, String password) async {
+    clearErrors();
     isLoading.value = true;
-    hasError.value = false;
-    errorMessage.value = '';
 
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -72,22 +94,30 @@ class LoginController extends GetxController {
       String message;
       if (e.code == 'user-not-found') {
         message = 'Email tidak terdaftar';
+        emailError.value = message;
       } else if (e.code == 'wrong-password') {
         message = 'Password salah';
+        passwordError.value = message;
       } else if (e.code == 'invalid-email') {
         message = 'Format email tidak valid';
+        emailError.value = message;
       } else if (e.code == 'user-disabled') {
         message = 'Akun ini telah dinonaktifkan';
+        emailError.value = message;
       } else {
         message = 'Login gagal. Silakan coba lagi';
+        passwordError.value = message;
       }
 
       errorMessage.value = message;
+      formKey.currentState?.validate();
       return false;
     } catch (e) {
       isLoading.value = false;
       hasError.value = true;
       errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi';
+      passwordError.value = errorMessage.value;
+      formKey.currentState?.validate();
       return false;
     }
   }

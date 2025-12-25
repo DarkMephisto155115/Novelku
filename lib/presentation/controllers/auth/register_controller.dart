@@ -16,6 +16,9 @@ class RegistrationController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
   var hasError = false.obs;
+  var emailError = ''.obs;
+  var usernameError = ''.obs;
+  var passwordError = ''.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -30,13 +33,37 @@ class RegistrationController extends GetxController {
     confirmPasswordHidden.value = !confirmPasswordHidden.value;
   }
 
+  void clearErrors() {
+    hasError.value = false;
+    errorMessage.value = '';
+    emailError.value = '';
+    usernameError.value = '';
+    passwordError.value = '';
+  }
+
+  void clearEmailError() {
+    if (emailError.value.isNotEmpty) {
+      emailError.value = '';
+    }
+  }
+
+  void clearUsernameError() {
+    if (usernameError.value.isNotEmpty) {
+      usernameError.value = '';
+    }
+  }
+
+  void clearPasswordError() {
+    if (passwordError.value.isNotEmpty) {
+      passwordError.value = '';
+    }
+  }
+
   Future<bool> register() async {
+    clearErrors();
     if (!formKey.currentState!.validate()) {
       return false;
     }
-
-    hasError.value = false;
-    errorMessage.value = '';
 
     String emailVal = email.value.trim();
     String usernameVal = username.value.trim();
@@ -46,6 +73,8 @@ class RegistrationController extends GetxController {
     if (usernameExists) {
       hasError.value = true;
       errorMessage.value = 'Username sudah digunakan';
+      usernameError.value = errorMessage.value;
+      formKey.currentState?.validate();
       return false;
     }
 
@@ -87,20 +116,27 @@ class RegistrationController extends GetxController {
       String message;
       if (e.code == 'email-already-in-use') {
         message = 'Email sudah terdaftar';
+        emailError.value = message;
       } else if (e.code == 'weak-password') {
         message = 'Password terlalu lemah';
+        passwordError.value = message;
       } else if (e.code == 'invalid-email') {
         message = 'Format email tidak valid';
+        emailError.value = message;
       } else {
         message = 'Pendaftaran gagal. Silakan coba lagi';
+        passwordError.value = message;
       }
 
       errorMessage.value = message;
+      formKey.currentState?.validate();
       return false;
     } catch (e) {
       isLoading.value = false;
       hasError.value = true;
       errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi';
+      passwordError.value = errorMessage.value;
+      formKey.currentState?.validate();
       if (kDebugMode) {
         print("Registration error: $e");
       }
