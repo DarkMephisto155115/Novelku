@@ -6,8 +6,8 @@ import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart'
     as reading_model;
-import '../models/settings_model.dart';
-import 'reading_controller.dart';
+import '../../models/settings_model.dart';
+import '../novel/reading_controller.dart';
 
 class SettingsController extends GetxController {
   final Rx<ReadingSettings> settings = ReadingSettings(

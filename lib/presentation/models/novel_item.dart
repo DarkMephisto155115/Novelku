@@ -11,6 +11,7 @@ class NovelItem {
   final bool isNew;
   final String? description;
   final DateTime? createdAt;
+  final String status;
 
   NovelItem({
     required this.id,
@@ -25,5 +26,6 @@ class NovelItem {
     this.isNew = false,
     this.description,
     this.createdAt,
+    this.status = 'Ongoing',
   });
 }

@@ -184,7 +184,7 @@ class LoginPage extends GetView<LoginController> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Get.theme.inputDecorationTheme.fillColor,
-            hintText: 'user@example.com',
+            hintText: 'Masukkan email anda',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

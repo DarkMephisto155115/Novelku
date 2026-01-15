@@ -8,6 +8,7 @@ import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/models/novel_item.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
+import 'package:terra_brain/presentation/service/analytics_service.dart';
 
 class ReadingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,6 +16,7 @@ class ReadingController extends GetxController {
   final GetStorage _storage = GetStorage();
   final FirestoreCacheService _cacheService =
       Get.find<FirestoreCacheService>();
+  final AnalyticsService _analyticsService = AnalyticsService();
 
   late Rx<Chapter> currentChapter;
 
@@ -486,6 +488,10 @@ class ReadingController extends GetxController {
         imageUrl: chapter.imageUrl,
       );
     } else {
+      _analyticsService.logLikeNovel(
+        novelId: novelId,
+        novelTitle: chapter.title,
+      );
       currentChapter.value = Chapter(
         id: chapter.id,
         title: chapter.title,
@@ -628,6 +634,12 @@ class ReadingController extends GetxController {
         timestamp: timestamp,
         likeCount: 0,
         isPremium: isPremium,
+      );
+
+      _analyticsService.logComment(
+        novelId: novelId,
+        novelTitle: currentChapter.value.title,
+        commentLength: commentText.length > 100 ? 'long' : commentText.length > 50 ? 'medium' : 'short',
       );
 
       _firestore
@@ -790,14 +802,16 @@ class ReadingController extends GetxController {
 
   void navigateToNextChapter() {
     if (chapterList.isEmpty) {
-      Get.snackbar('Info', 'Tidak ada bab berikutnya');
+      Get.snackbar('Info', 'Tidak ada bab selanjutnya');
       return;
     }
 
     final currentIndex =
         chapterList.indexWhere((ch) => ch.id == currentChapter.value.id);
     if (currentIndex < chapterList.length - 1) {
-      currentChapter.value = chapterList[currentIndex + 1];
+      final nextChapter = chapterList[currentIndex + 1];
+      _logChapterNavigation(nextChapter);
+      currentChapter.value = nextChapter;
       _loadChapterLikeState();
       scrollPosition.value = 0;
       saveReadingProgress(0);
@@ -817,7 +831,9 @@ class ReadingController extends GetxController {
     final currentIndex =
         chapterList.indexWhere((ch) => ch.id == currentChapter.value.id);
     if (currentIndex > 0) {
-      currentChapter.value = chapterList[currentIndex - 1];
+      final prevChapter = chapterList[currentIndex - 1];
+      _logChapterNavigation(prevChapter);
+      currentChapter.value = prevChapter;
       _loadChapterLikeState();
       scrollPosition.value = 0;
       saveReadingProgress(0);
@@ -829,12 +845,22 @@ class ReadingController extends GetxController {
   }
 
   void jumpToChapter(Chapter chapter) {
+    _logChapterNavigation(chapter);
     currentChapter.value = chapter;
     _loadChapterLikeState();
     scrollPosition.value = 0;
     saveReadingProgress(0);
     loadChapterComments();
     isCommentsExpanded.value = false;
+  }
+
+  Future<void> _logChapterNavigation(Chapter chapter) async {
+    await _analyticsService.logStartReading(
+      novelId: novelId,
+      novelTitle: currentChapter.value.title,
+      chapterId: chapter.id,
+      chapterNumber: chapter.chapterNumber,
+    );
   }
 
   String formatTimeAgo(DateTime date) {

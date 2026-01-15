@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:terra_brain/presentation/controllers/premium_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/premium_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../routes/app_pages.dart';
 

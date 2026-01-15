@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/reading_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/reading_controller.dart';
 import 'package:terra_brain/presentation/widgets/reading_stats_widget.dart';
 
 class ReadingHistoryPage extends GetView<ReadingController> {

@@ -5,17 +5,17 @@ import 'package:terra_brain/presentation/controllers/author/author_profile_contr
 import 'package:terra_brain/presentation/controllers/novel/edit_chapter_controller.dart';
 import 'package:terra_brain/presentation/controllers/novel/edit_novel_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile/edit_profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/premium_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/premium_controller.dart';
 import 'package:terra_brain/presentation/controllers/profile/profile_controller.dart';
-import 'package:terra_brain/presentation/controllers/reading_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/reading_controller.dart';
 import 'package:terra_brain/presentation/controllers/auth/register_controller.dart';
-import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/setting_controller.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
 
-import '../controllers/all_novel_controller.dart';
+import '../controllers/novel/all_novel_controller.dart';
 import '../controllers/auth/genre_selection_controller.dart';
-import '../controllers/home_controller.dart';
-import '../controllers/novel_chapters_controller.dart';
+import '../controllers/home/home_controller.dart';
+import '../controllers/novel/novel_chapters_controller.dart';
 import '../controllers/write/writing_controller.dart';
 
 class MainBinding extends Bindings {

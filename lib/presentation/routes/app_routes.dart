@@ -26,5 +26,6 @@ abstract class Routes {
   static const NOVEL_CHAPTERS = '/novel_chapters';
   static const EDIT_CHAPTER = '/edit_chapter';
   static const EDIT_NOVEL = '/edit_novel';
+  static const ANALYTICS_DEBUG = '/analytics_debug';
 
 }

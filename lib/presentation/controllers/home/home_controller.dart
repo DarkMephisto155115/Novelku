@@ -7,11 +7,12 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:video_player/video_player.dart';
-import '../models/novel_item.dart';
+import '../../models/novel_item.dart';
 
 import 'package:terra_brain/presentation/models/author_model.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
+import 'package:terra_brain/presentation/service/analytics_service.dart';
 
 class HomeController extends GetxController {
   final box = GetStorage();
@@ -19,6 +20,7 @@ class HomeController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirestoreCacheService _cacheService =
       Get.find<FirestoreCacheService>();
+  final AnalyticsService _analyticsService = AnalyticsService();
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _novelSubscription;
 
@@ -68,6 +70,12 @@ class HomeController extends GetxController {
     }).toList();
 
     searchResults.assignAll(novelResults);
+
+    // Log search event
+    await _analyticsService.logSearchNovel(
+      searchQuery: query,
+      resultsCount: novelResults.length,
+    );
 
     // Search Authors
     try {
@@ -216,22 +224,27 @@ class HomeController extends GetxController {
             readers: data['viewCount'] ?? 0,
             isNew: _isNewNovel(data['createdAt']),
             createdAt: createdAtDate ?? DateTime.now(),
+            status: data['status'] ?? 'Ongoing',
           ));
         }
 
         allNovels.assignAll(novels);
         
         final sorted = List<NovelItem>.from(novels);
-        sorted.sort((a, b) => b.likeCount.compareTo(a.likeCount));
-        recommendedNovels.assignAll(sorted.take(3).toList());
+        sorted.sort((a, b) {
+          final scoreA = (a.likeCount * 0.6) + (a.readers * 0.4);
+          final scoreB = (b.likeCount * 0.6) + (b.readers * 0.4);
+          return scoreB.compareTo(scoreA);
+        });
+        recommendedNovels.assignAll(sorted.take(6).toList());
 
         final newest = List<NovelItem>.from(novels);
         newest.sort((a, b) {
-          final dateA = _parseDate(a.id);
-          final dateB = _parseDate(b.id);
+          final dateA = a.createdAt ?? DateTime.now();
+          final dateB = b.createdAt ?? DateTime.now();
           return dateB.compareTo(dateA);
         });
-        newNovels.assignAll(newest.take(3).toList());
+        newNovels.assignAll(newest.take(6).toList());
 
         if (kDebugMode) {
           print('✅ Loaded ${novels.length} novels from Firestore');
@@ -324,5 +337,9 @@ class HomeController extends GetxController {
     final sorted = List<NovelItem>.from(novels);
     sorted.sort((a, b) => b.readers.compareTo(a.readers));
     return sorted;
+  }
+
+  List<NovelItem> filterByFinished(List<NovelItem> novels) {
+    return novels.where((n) => n.status.toLowerCase() == 'selesai').toList();
   }
 }

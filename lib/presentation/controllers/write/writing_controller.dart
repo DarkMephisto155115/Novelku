@@ -8,10 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/setting_controller.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
 import 'package:terra_brain/presentation/service/firestore_cache_service.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
+import 'package:terra_brain/presentation/service/analytics_service.dart';
 
 class WritingController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -35,6 +36,7 @@ class WritingController extends GetxController {
   final ImagePicker _imagePicker = ImagePicker();
   final FirestoreCacheService _cacheService =
       Get.find<FirestoreCacheService>();
+  final AnalyticsService _analyticsService = AnalyticsService();
 
   final RxList<String> listGenre = <String>[].obs;
   static const int minCharacterCount = 200;
@@ -258,6 +260,12 @@ class WritingController extends GetxController {
         'updatedAt': DateTime.now(),
       });
 
+      await _analyticsService.logCreateNovel(
+        novelId: novelId,
+        novelTitle: judulNovelC.text.trim(),
+        genre: genreC.value,
+      );
+
       final chapterRef = novelRef.collection('chapters').doc();
 
       await chapterRef.set({
@@ -269,6 +277,14 @@ class WritingController extends GetxController {
         'createdAt': DateTime.now(),
         'updatedAt': DateTime.now(),
       });
+
+      await _analyticsService.logPublishChapter(
+        novelId: novelId,
+        novelTitle: judulNovelC.text.trim(),
+        chapterId: chapterRef.id,
+        chapterNumber: 1,
+        wordCount: ceritaC.text.trim().split(' ').length,
+      );
 
       await _firestore.collection('users').doc(currentUser.uid).update({
         'novels': FieldValue.arrayUnion([novelId])

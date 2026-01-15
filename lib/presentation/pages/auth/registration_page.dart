@@ -194,7 +194,7 @@ class RegistrationPage extends GetView<RegistrationController> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Get.theme.inputDecorationTheme.fillColor,
-            hintText: 'user@example.com',
+            hintText: 'Masukkan email anda',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -244,7 +244,7 @@ class RegistrationPage extends GetView<RegistrationController> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Get.theme.inputDecorationTheme.fillColor,
-            hintText: 'user_name',
+            hintText: 'Masukkan username anda',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

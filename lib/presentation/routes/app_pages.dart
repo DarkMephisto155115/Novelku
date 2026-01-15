@@ -15,6 +15,7 @@ import 'package:terra_brain/presentation/pages/auth/registration_page.dart';
 import 'package:terra_brain/presentation/pages/profil/setting_page.dart';
 import 'package:terra_brain/presentation/pages/auth/splash_screen.dart';
 import 'package:terra_brain/presentation/pages/write/writing_page.dart';
+import 'package:terra_brain/presentation/widgets/analytics_debug_panel.dart';
 
 import '../pages/author/all_author_page.dart';
 
@@ -108,6 +109,10 @@ class AppPages {
       name: '/edit_chapter',
       page: () => EditChapterPage(),
       binding: EditChapterBinding(),
+    ),
+    GetPage(
+      name: Routes.ANALYTICS_DEBUG,
+      page: () => const AnalyticsDebugPanel(),
     ),
   ];
 }

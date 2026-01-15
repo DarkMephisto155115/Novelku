@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/release
 
 pubspec.lock
+ANALYTICS_GUIDE.md
+FIREBASE_SETUP.md
+analyze_output.txt

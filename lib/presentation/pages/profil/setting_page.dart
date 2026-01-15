@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/setting_controller.dart';
+import 'package:terra_brain/presentation/controllers/profile/setting_controller.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -49,6 +49,10 @@ class SettingsPage extends StatelessWidget {
 
               // Save Button
               _buildSaveButton(controller),
+              SizedBox(height: 20),
+
+              // Analytics Debug Button
+              _buildAnalyticsDebugButton(),
               SizedBox(height: 20),
             ],
           ),
@@ -419,5 +423,30 @@ class SettingsPage extends StatelessWidget {
       default:
         return 'Arial';
     }
+  }
+
+  Widget _buildAnalyticsDebugButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => Get.toNamed('/analytics_debug'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          padding: EdgeInsets.symmetric(vertical: 16),
+        ),
+        child: Text(
+          'Analytics Debug Panel',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
   }
 }

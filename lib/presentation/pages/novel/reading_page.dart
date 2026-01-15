@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/reading_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/reading_controller.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/models/reading_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 import 'package:terra_brain/presentation/widgets/novel_card.dart';
-import '../../controllers/setting_controller.dart';
+import '../../controllers/profile/setting_controller.dart';
 import '../../controllers/write/writing_controller.dart';
 
 class ReadingPage extends GetView<ReadingController> {

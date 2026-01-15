@@ -29,7 +29,7 @@ class ThemeController extends GetxController {
     }
 
     Get.changeThemeMode(_themeMode.value);
-    print('🎨 Active theme: ${_themeMode.value}');
+    // print('🎨 Active theme: ${_themeMode.value}');
   }
 
   void toggleTheme() {
@@ -50,6 +50,6 @@ class ThemeController extends GetxController {
       mode == ThemeMode.dark ? 'dark' : 'light',
     );
 
-    print('💾 Theme saved: $mode');
+    // print('💾 Theme saved: $mode');
   }
 }

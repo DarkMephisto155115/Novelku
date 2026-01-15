@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/themes/theme_controller.dart';
+import 'package:terra_brain/presentation/service/analytics_service.dart';
 
 class LoginController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -10,6 +11,7 @@ class LoginController extends GetxController {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AnalyticsService _analyticsService = AnalyticsService();
   String userID = '';
 
   ThemeController get themeController => Get.find<ThemeController>();
@@ -84,6 +86,11 @@ class LoginController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
       await prefs.setString('userId', userCredential.user!.uid);
+
+      await _analyticsService.setUserId(userCredential.user!.uid);
+      await _analyticsService.logLogin(method: 'email');
+      await _analyticsService.setUserProperty('user_type', 'reader');
+      await _analyticsService.setUserProperty('registration_date', DateTime.now().toString());
 
       isLoading.value = false;
       return true;

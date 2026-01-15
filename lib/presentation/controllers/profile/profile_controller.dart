@@ -1,11 +1,12 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terra_brain/presentation/controllers/auth/genre_selection_controller.dart';
-import 'package:terra_brain/presentation/controllers/home_controller.dart';
+import 'package:terra_brain/presentation/controllers/home/home_controller.dart';
 import 'package:terra_brain/presentation/controllers/write/writing_controller.dart';
 import 'package:terra_brain/presentation/models/profile_model.dart';
 import 'package:terra_brain/presentation/routes/app_pages.dart';
@@ -292,6 +293,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> logout() async {
+    await FirebaseAnalytics.instance.setUserId(id: null);
     await _auth.signOut();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

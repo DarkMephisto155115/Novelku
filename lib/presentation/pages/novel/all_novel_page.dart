@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/novel_card.dart';
-import '../../controllers/all_novel_controller.dart';
-import '../../controllers/setting_controller.dart';
+import '../../controllers/novel/all_novel_controller.dart';
+import '../../controllers/profile/setting_controller.dart';
 import '../../controllers/write/writing_controller.dart';
 
 

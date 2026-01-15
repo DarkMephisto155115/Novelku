@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:terra_brain/presentation/controllers/novel_chapters_controller.dart';
+import 'package:terra_brain/presentation/controllers/novel/novel_chapters_controller.dart';
 import 'package:terra_brain/presentation/models/novel_model.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
 import '../../controllers/write/writing_controller.dart';

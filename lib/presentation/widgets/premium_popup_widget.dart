@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/premium_controller.dart';
+import '../controllers/profile/premium_controller.dart';
 import '../models/premium_future.dart';
 
 class PremiumPopup extends StatelessWidget {

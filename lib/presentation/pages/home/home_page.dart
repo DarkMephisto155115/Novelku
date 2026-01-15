@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:terra_brain/presentation/helpers/premium_popup_manager.dart';
 import 'package:terra_brain/presentation/pages/novel/all_novel_page.dart';
 import 'package:terra_brain/presentation/themes/theme_data.dart';
-import '../../controllers/home_controller.dart' as home_ctrl_pkg;
+import '../../controllers/home/home_controller.dart' as home_ctrl_pkg;
 import '../../controllers/author/author_controller.dart';
 import '../../controllers/write/writing_controller.dart';
 import '../../models/novel_item.dart';
@@ -19,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String selectedFilter = 'Trending';
+  bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +50,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _buildHeader(context),
                 const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
-                ),
+                SectionHeader(title: '🔥 Rekomendasi Hari Ini'),
                 Obx(() {
                   final recommended = homeController.recommendedNovels;
                   if (recommended.isEmpty) {
@@ -86,32 +84,19 @@ class _HomePageState extends State<HomePage> {
                   );
                 }),
                 const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: Text('✨ Novel Baru Minggu Ini',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    isDarkMode ? Colors.white : Colors.black)),
+                SectionHeader(
+                  title: '✨ Novel Baru Minggu Ini',
+                  trailing: TextButton(
+                    onPressed: () {
+                      Get.find<home_ctrl_pkg.HomeController>().clearSearch();
+                      Get.toNamed('/all_novel');
+                    },
+                    child: Text(
+                      'Lihat Semua',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.blue[300] : Colors.blue,
                       ),
-                      TextButton(
-                          onPressed: () {
-                            Get.find<home_ctrl_pkg.HomeController>()
-                                .clearSearch();
-                            Get.toNamed('/all_novel');
-                          },
-                          child: Text('Lihat Semua',
-                              style: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.blue[300]
-                                      : Colors.blue)))
-                    ],
+                    ),
                   ),
                 ),
                 Obx(() {
@@ -128,77 +113,18 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
                   return SizedBox(
-                    height: 200,
+                    height: 230,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       scrollDirection: Axis.horizontal,
-                      itemBuilder: (_, idx) => GestureDetector(
+                      itemBuilder: (_, idx) => NovelCardHorizontal(
+                        item: newNovels[idx],
                         onTap: () {
                           Get.find<home_ctrl_pkg.HomeController>()
                               .clearSearch();
                           Get.toNamed('/novel_chapters',
                               arguments: {'novelId': newNovels[idx].id});
                         },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(newNovels[idx].coverUrl,
-                                      height: 140,
-                                      width: 140,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                          height: 140,
-                                          width: 140,
-                                          color: isDarkMode
-                                              ? Colors.grey[700]
-                                              : Colors.grey[300])),
-                                ),
-                                if (newNovels[idx].isNew)
-                                  Positioned(
-                                    left: 8,
-                                    top: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color: Colors.green,
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                      child: const Text('Baru',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12)),
-                                    ),
-                                  )
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                                width: 140,
-                                child: Text(newNovels[idx].title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : Colors.black))),
-                            SizedBox(
-                                width: 140,
-                                child: Text(newNovels[idx].author,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDarkMode
-                                            ? Colors.grey[400]
-                                            : Colors.grey))),
-                          ],
-                        ),
                       ),
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemCount: newNovels.length,
@@ -206,32 +132,19 @@ class _HomePageState extends State<HomePage> {
                   );
                 }),
                 const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: Text('👥 Penulis Baru Minggu Ini',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    isDarkMode ? Colors.white : Colors.black)),
+                SectionHeader(
+                  title: '👥 Penulis Baru Minggu Ini',
+                  trailing: TextButton(
+                    onPressed: () {
+                      Get.find<home_ctrl_pkg.HomeController>().clearSearch();
+                      Get.toNamed('/list_author');
+                    },
+                    child: Text(
+                      'Lihat Semua',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.blue[300] : Colors.blue,
                       ),
-                      TextButton(
-                          onPressed: () {
-                            Get.find<home_ctrl_pkg.HomeController>()
-                                .clearSearch();
-                            Get.toNamed('/list_author');
-                          },
-                          child: Text('Lihat Semua',
-                              style: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.blue[300]
-                                      : Colors.blue)))
-                    ],
+                    ),
                   ),
                 ),
                 GetBuilder<AuthorsController>(
@@ -406,10 +319,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: SectionHeader(title: '❤️ Favorit Saya'),
-                ),
+                SectionHeader(title: '❤️ Favorit Saya'),
                 if (favoritesController != null)
                   Obx(() {
                     final favs = favoritesController.favorites ?? [];
@@ -441,63 +351,69 @@ class _HomePageState extends State<HomePage> {
                     );
                   }),
                 const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: SectionHeader(title: '📚 Jelajahi Novel'),
-                ),
+                SectionHeader(title: '📚 Jelajahi Novel'),
                 const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: ['Trending', 'Terbaru', 'Terlaris']
-                        .map((filter) => Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFilter = filter;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: selectedFilter == filter
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: ['Trending', 'Terbaru', 'Selesai'].map((filter) {
+                        final isSelected = selectedFilter == filter;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedFilter = filter;
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (isDarkMode
+                                        ? Colors.grey[700]
+                                        : Colors.white)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        )
+                                      ]
+                                    : [],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  filter,
+                                  style: TextStyle(
+                                    color: isSelected
                                         ? (isDarkMode
-                                            ? Colors.grey[700]
-                                            : Colors.grey[300])
+                                            ? Colors.white
+                                            : Colors.black)
                                         : (isDarkMode
-                                            ? Colors.grey[800]
-                                            : Colors.white),
-                                    border: Border.all(
-                                      color: isDarkMode
-                                          ? Colors.grey[600]!
-                                          : Colors.grey[300]!,
-                                    ),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    filter,
-                                    style: TextStyle(
-                                      color: selectedFilter == filter
-                                          ? (isDarkMode
-                                              ? Colors.white
-                                              : Colors.black)
-                                          : (isDarkMode
-                                              ? Colors.grey[400]
-                                              : Colors.grey[600]),
-                                      fontWeight: selectedFilter == filter
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                    ),
+                                            ? Colors.grey[400]
+                                            : Colors.grey[600]),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
-                            ))
-                        .toList(),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -521,23 +437,49 @@ class _HomePageState extends State<HomePage> {
                     filteredNovels = homeController.filterByTrending(allNovels);
                   } else if (selectedFilter == 'Terbaru') {
                     filteredNovels = homeController.filterByLatest(allNovels);
-                  } else if (selectedFilter == 'Terlaris') {
-                    filteredNovels =
-                        homeController.filterByBestselling(allNovels);
+                  } else if (selectedFilter == 'Selesai') {
+                    filteredNovels = homeController.filterByFinished(allNovels);
                   }
 
                   return Column(
                     children: [
-                      for (var e in filteredNovels.take(6))
-                        NovelCardVertical(
-                          item: e,
-                          onTap: () {
-                            Get.find<home_ctrl_pkg.HomeController>()
-                                .clearSearch();
-                            Get.toNamed('/novel_chapters',
-                                arguments: {'novelId': e.id});
-                          },
-                        )
+                      ...(isExpanded
+                              ? filteredNovels
+                              : filteredNovels.take(6))
+                          .map((e) => NovelCardVertical(
+                                item: e,
+                                onTap: () {
+                                  Get.find<home_ctrl_pkg.HomeController>()
+                                      .clearSearch();
+                                  Get.toNamed('/novel_chapters',
+                                      arguments: {'novelId': e.id});
+                                },
+                              ))
+                          .toList(),
+                      if (filteredNovels.length > 6)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  isExpanded = !isExpanded;
+                                });
+                              },
+                              child: Text(
+                                isExpanded
+                                    ? 'Lihat Lebih Sedikit'
+                                    : 'Lihat Lebih Banyak',
+                                style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.blue[300]
+                                      : Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   );
                 }),

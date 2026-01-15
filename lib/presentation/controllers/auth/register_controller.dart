@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,7 @@ class RegistrationController extends GetxController {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   TextEditingController birthDateController = TextEditingController();
 
@@ -106,6 +108,9 @@ class RegistrationController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
       await prefs.setString('userId', uid);
+
+      await _analytics.setUserId(id: uid);
+      await _analytics.logSignUp(signUpMethod: 'email');
 
       isLoading.value = false;
       return true;
